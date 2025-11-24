@@ -65,14 +65,6 @@ export default function ProfilePage() {
                                     {userItems.map((item) => (
                                         <div key={item.id} className="relative group">
                                             <ItemCard item={item} />
-                                            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-10">
-                                                <Button size="icon" variant="secondary" className="h-8 w-8 shadow-sm">
-                                                    <Edit2 className="h-4 w-4" />
-                                                </Button>
-                                                <Button size="icon" variant="destructive" className="h-8 w-8 shadow-sm">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
                                         </div>
                                     ))}
                                 </div>

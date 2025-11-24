@@ -11,8 +11,8 @@ interface ItemCardProps {
 
 export function ItemCard({ item }: ItemCardProps) {
     return (
-        <Card className="group overflow-hidden flex flex-col h-full border-muted hover:border-primary/50 transition-all hover:shadow-lg">
-            <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted group">
+        <Card className="group overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg">
+            <div className="relative aspect-4/3 w-full overflow-hidden bg-muted group">
                 <img
                     src={item.image}
                     alt={item.title}
