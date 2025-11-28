@@ -10,15 +10,21 @@ export async function fetchFoundItems() {
     return res.json();
 }
 
-export async function postLostFoundItem(type: "lost" | "found", formData: FormData) {
+export async function postLostFoundItem(type: "lost" | "found", formData: FormData, token?: string) {
     const endpoint =
         type === "lost"
             ? "http://127.0.0.1:8000/lost-items/"
             : "http://127.0.0.1:8000/found-items/";
 
     try {
+        const headers: HeadersInit = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(endpoint, {
             method: "POST",
+            headers,
             body: formData,
         });
 

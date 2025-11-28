@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { MOCK_USER } from '@/lib/mock-data';
 import { Search, PlusCircle } from 'lucide-react';
+import { UserMenu } from '@/components/user-menu';
+import { auth, signIn } from "@/auth";
 
-export function Navbar() {
+export async function Navbar() {
+    const session = await auth()
+
     return (
         <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -33,12 +36,20 @@ export function Navbar() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <Link href="/profile">
-                        <Avatar className="h-9 w-9 border-2 border-background ring-2 ring-muted hover:ring-primary transition-all">
-                            <AvatarImage src={MOCK_USER.avatar} alt={MOCK_USER.name} />
-                            <AvatarFallback>AJ</AvatarFallback>
-                        </Avatar>
-                    </Link>
+                    {session?.user ? (
+                        <UserMenu user={session.user} />
+                    ) : (
+                        <form
+                            action={async () => {
+                                "use server"
+                                await signIn("google")
+                            }}
+                        >
+                            <Button variant="outline" size="sm">
+                                Sign In
+                            </Button>
+                        </form>
+                    )}
                 </div>
             </div>
         </nav>

@@ -14,7 +14,7 @@ export default function MatchPage({ params }: { params: Promise<{ id: string }> 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Find the lost item being viewed
-    const lostItem = MOCK_ITEMS.find((i) => i.id === id);
+    const lostItem = MOCK_ITEMS.find((i) => i.id == id);
 
     // Filter for items found by the current user
     const userFoundItems = MOCK_ITEMS.filter(
