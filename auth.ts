@@ -62,12 +62,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             session.user.email = token.email!;
             session.user.name = token.name!;
             session.user.image = token.picture!;
-            session.user.id = token.sub!;
 
             return session;
         },
     },
     pages: {
-        error: 'auth/error',
+        error: '/auth/error',
+        signIn: '/auth/signin',
     }
 });

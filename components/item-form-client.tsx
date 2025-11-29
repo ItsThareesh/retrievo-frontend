@@ -59,7 +59,7 @@ export function ItemFormClient({ type, session }: ItemFormClientProps) {
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        if (!type || !session?.user) return;
+        if (!type) return;
 
         setIsSubmitting(true);
 
@@ -75,10 +75,10 @@ export function ItemFormClient({ type, session }: ItemFormClientProps) {
             });
 
             // Add user ID to form data
-            formData.append('user_id', session.user.id);
+            formData.append('user_id', session?.userId);
 
             // Send to API
-            const res = await postLostFoundItem(type, formData, session.backendToken);
+            const res = await postLostFoundItem(type, formData, session?.backendToken);
 
             // Handle response
             if (res.ok) {
