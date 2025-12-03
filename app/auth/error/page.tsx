@@ -86,6 +86,16 @@ function AuthErrorContent() {
                 variant: "outline"
             }
         },
+        MissingIdToken: {
+            title: "Missing ID Token",
+            message: "Required authentication information is missing. Please try signing in again.",
+            icon: AlertCircle,
+            actionButton: {
+                label: "Try Again",
+                href: "/auth/signin",
+                variant: "outline"
+            }
+        },
         OAuthCallback: {
             title: "Authentication Callback Error",
             message: "Something went wrong during the sign-in process. Please try again.",
