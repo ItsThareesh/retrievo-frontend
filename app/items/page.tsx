@@ -4,11 +4,10 @@ import { Item } from '@/types/items';
 
 
 export default async function BrowseItemsPage() {
-    const { lost_items, found_items } = await fetchAllItems();
+    const res = await fetchAllItems();
 
-    const lostItems: Item[] = lost_items ?? [];
-    const foundItems: Item[] = found_items ?? [];
-
+    const lostItems: Item[] = res.data.lost_items ?? [];
+    const foundItems: Item[] = res.data.found_items ?? [];
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">

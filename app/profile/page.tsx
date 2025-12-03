@@ -15,10 +15,10 @@ export default async function ProfilePage() {
     let lostItems: Item[] = [];
 
     try {
-        const data = await fetchAllUserItems(session.backendToken);
+        const res = await fetchAllUserItems(session.backendToken);
 
-        foundItems = data.found_items;
-        lostItems = data.lost_items;
+        foundItems = res.data.found_items;
+        lostItems = res.data.lost_items;
     } catch (err) {
         if (err instanceof UnauthorizedError) {
             redirect('/auth/signin?callbackUrl=/profile');
