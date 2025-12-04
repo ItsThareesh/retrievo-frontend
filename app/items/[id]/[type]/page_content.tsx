@@ -89,7 +89,7 @@ export default async function ItemPageContent({ formattedItem }: { formattedItem
                         <div className="space-y-3">
                             {formattedItem.type === 'lost' ? (
                                 <Button size="lg" className="w-full h-12 text-lg shadow-sm" asChild>
-                                    <Link href={`/items/${formattedItem.id}/category/${formattedItem.category}/match`}>
+                                    <Link href={`/items/${formattedItem.id}/match/${formattedItem.category}`}>
                                         I Found This!
                                     </Link>
                                 </Button>

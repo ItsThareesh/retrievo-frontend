@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 import { Check, Send, AlertCircle } from 'lucide-react';
@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { Item } from "@/types/items";
 
 interface ClientMatchPageProps {
-    // lostItem: Item;
     userFoundItems: Item[];
     itemId: string;
 }
