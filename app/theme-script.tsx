@@ -7,7 +7,9 @@ export function ThemeScript() {
       } else {
         document.documentElement.classList.remove('dark');
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('Error setting theme:', e);
+    }
   `;
 
   return (
