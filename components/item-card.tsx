@@ -2,14 +2,15 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Item } from '@/lib/mock-data';
+import { Item } from '@/types/items';
 import { MapPin, Calendar, ArrowRight } from 'lucide-react';
 
 interface ItemCardProps {
     item: Item;
+    type: 'lost' | 'found';
 }
 
-export function ItemCard({ item }: ItemCardProps) {
+export function ItemCard({ item, type }: ItemCardProps) {
     return (
         <Card className="group overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg">
             <div className="relative aspect-4/3 w-full overflow-hidden bg-muted group">
@@ -20,12 +21,12 @@ export function ItemCard({ item }: ItemCardProps) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <Badge
-                    className={`absolute top-3 right-3 shadow-sm ${item.type === 'lost'
+                    className={`absolute top-3 right-3 shadow-sm ${type === 'lost'
                         ? 'bg-red-500/90 hover:bg-red-600 text-white border-red-600'
                         : 'bg-green-500/90 hover:bg-green-600 text-white border-green-600'
                         }`}
                 >
-                    {item.type === 'lost' ? 'Lost' : 'Found'}
+                    {type === 'lost' ? 'Lost' : 'Found'}
                 </Badge>
             </div>
             <CardHeader className="p-5 pb-2 space-y-1">
@@ -56,7 +57,7 @@ export function ItemCard({ item }: ItemCardProps) {
             <CardFooter className="p-5 pt-0">
                 <Button asChild className="w-full group/btn" variant="outline">
                     <Link
-                        href={`/items/${item.id}`}
+                        href={`/items/${item.id}/${type}`}
                         className="flex items-center justify-center gap-2"
                     >
                         View Details

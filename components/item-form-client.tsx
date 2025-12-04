@@ -6,30 +6,19 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { CalendarIcon, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
-
 import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { redirect, useRouter } from 'next/navigation';
+import { postLostFoundItem, UnauthorizedError } from '@/lib/api';
+import { signIn } from "next-auth/react";
+import type { Session } from 'next-auth';
 
 const formSchema = z.object({
     title: z.string().min(2, {
@@ -47,15 +36,18 @@ const formSchema = z.object({
     location: z.string().min(2, {
         message: "Location must be at least 2 characters.",
     }),
-    image: z.any().optional(),
+    image: z.any()
 });
 
-interface ItemFormProps {
+interface ItemFormClientProps {
     type: 'lost' | 'found';
+    session: Session;
 }
 
-export function ItemForm({ type }: ItemFormProps) {
+export function ItemFormClient({ type, session }: ItemFormClientProps) {
     const [preview, setPreview] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -66,9 +58,39 @@ export function ItemForm({ type }: ItemFormProps) {
         },
     });
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values);
-        alert(`Reported ${type} item: ${values.title}`);
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        if (!type) return;
+
+        try {
+            setIsSubmitting(true);
+
+            // Prepare form-data
+            const formData = new FormData();
+            Object.entries(values).forEach(([key, val]) => {
+                if (val instanceof Date) {
+                    formData.append(key, val.toISOString());
+                } else {
+                    formData.append(key, val as any);
+                }
+            });
+
+            const res = await postLostFoundItem(type, formData, session.backendToken);
+
+            if (res.ok === false) {
+                throw new Error(`Failed to submit item. Status: ${res.status}`);
+            }
+
+            redirect("/items");
+
+        } catch (error) {
+            if (error instanceof UnauthorizedError) {
+                redirect(`/auth/signin?callbackUrl=/${type}/new`);
+            }
+
+            throw error;
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,8 +106,20 @@ export function ItemForm({ type }: ItemFormProps) {
 
     const removeImage = () => {
         setPreview(null);
-        // Reset file input if needed, though controlled input is tricky with file
     };
+
+    if (!session?.user) {
+        return (
+            <div className="max-w-3xl mx-auto py-10 px-4">
+                <div className="text-center">
+                    <p className="mb-4">Please sign in to report items.</p>
+                    <Button onClick={() => signIn("google")}>
+                        Sign In with Google
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-3xl mx-auto py-10 px-4">
@@ -173,7 +207,7 @@ export function ItemForm({ type }: ItemFormProps) {
                                                         selected={field.value}
                                                         onSelect={field.onChange}
                                                         disabled={(date) =>
-                                                            date > new Date() || date < new Date("1900-01-01")
+                                                            date > new Date() || date < new Date("2000-01-01")
                                                         }
                                                     />
                                                 </PopoverContent>
@@ -252,8 +286,13 @@ export function ItemForm({ type }: ItemFormProps) {
                                 </div>
                             </div>
 
-                            <Button type="submit" size="lg" className="w-full h-12 text-lg">
-                                Submit Report
+                            <Button
+                                type="submit"
+                                size="lg"
+                                className="w-full h-12 text-lg"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "Submitting..." : "Submit Report"}
                             </Button>
                         </form>
                     </Form>

@@ -1,29 +1,12 @@
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MOCK_ITEMS } from '@/lib/mock-data';
-import { MapPin, Calendar, Tag, User, Share2, Flag } from 'lucide-react';
+import { MapPin, Calendar, User, Share2, Flag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Item } from '@/types/items';
 
-interface ItemPageProps {
-    params: Promise<{
-        id: string;
-    }>;
-}
-
-export default async function ItemPage({ params }: ItemPageProps) {
-    // Simulate network delay to show loading skeleton
-    await new Promise((resolve) => setTimeout(resolve, 250));
-
-    const { id } = await params;
-    const item = MOCK_ITEMS.find((i) => i.id === id);
-
-    if (!item) {
-        notFound();
-    }
-
+export default async function ItemPageContent({ formattedItem }: { formattedItem: Item }) {
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -31,18 +14,18 @@ export default async function ItemPage({ params }: ItemPageProps) {
                 <div className="lg:col-span-2 space-y-6">
                     <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
                         <img
-                            src={item.image}
-                            alt={item.title}
+                            src={formattedItem.image}
+                            alt={formattedItem.title}
                             className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
                         />
                         <div className="absolute top-4 left-4">
                             <Badge
-                                className={`text-lg px-4 py-1.5 shadow-md ${item.type === 'lost'
+                                className={`text-lg px-4 py-1.5 shadow-md ${formattedItem.type === 'lost'
                                     ? 'bg-red-500 hover:bg-red-600 border-red-600'
                                     : 'bg-green-500 hover:bg-green-600 border-green-600'
                                     }`}
                             >
-                                {item.type === 'lost' ? 'Lost' : 'Found'}
+                                {formattedItem.type === 'lost' ? 'Lost' : 'Found'}
                             </Badge>
                         </div>
                     </div>
@@ -52,7 +35,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
                         <Card>
                             <CardContent className="p-6">
                                 <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                                    {item.description}
+                                    {formattedItem.description}
                                 </p>
                             </CardContent>
                         </Card>
@@ -62,11 +45,11 @@ export default async function ItemPage({ params }: ItemPageProps) {
                 {/* Right Column: Details & Actions */}
                 <div className="space-y-6">
                     <div>
-                        <h1 className="text-3xl font-bold mb-2 leading-tight">{item.title}</h1>
+                        <h1 className="text-3xl font-bold mb-2 leading-tight">{formattedItem.title}</h1>
                         <div className="flex items-center gap-2 text-muted-foreground mb-6">
-                            <span className="text-sm">Posted on {item.date}</span>
+                            <span className="text-sm">Posted on {formattedItem.date}</span>
                             <span>•</span>
-                            <Badge variant="outline" className="font-normal">{item.category}</Badge>
+                            <Badge variant="outline" className="font-normal">{formattedItem.category}</Badge>
                         </div>
 
                         <div className="space-y-4 mb-8">
@@ -74,15 +57,15 @@ export default async function ItemPage({ params }: ItemPageProps) {
                                 <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                 <div>
                                     <p className="font-medium text-sm">Location</p>
-                                    <p className="text-muted-foreground text-sm">{item.location}</p>
+                                    <p className="text-muted-foreground text-sm">{formattedItem.location}</p>
                                 </div>
                             </div>
 
                             <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border">
                                 <Calendar className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                 <div>
-                                    <p className="font-medium text-sm">Date {item.type === 'lost' ? 'Lost' : 'Found'}</p>
-                                    <p className="text-muted-foreground text-sm">{item.date}</p>
+                                    <p className="font-medium text-sm">Date {formattedItem.type === 'lost' ? 'Lost' : 'Found'}</p>
+                                    <p className="text-muted-foreground text-sm">{formattedItem.date}</p>
                                 </div>
                             </div>
 
@@ -92,18 +75,21 @@ export default async function ItemPage({ params }: ItemPageProps) {
                                     <p className="font-medium text-sm">Reported by</p>
                                     <div className="flex items-center gap-2 mt-1">
                                         <Avatar className="h-6 w-6">
-                                            <AvatarFallback className="text-[10px]">U</AvatarFallback>
+                                            <AvatarImage src={formattedItem.reporter_picture} alt={formattedItem.reporter_name} />
+                                            <AvatarFallback className="text-[10px]">
+                                                {formattedItem.reporter_name?.[0] ?? "U"}
+                                            </AvatarFallback>
                                         </Avatar>
-                                        <p className="text-muted-foreground text-sm">{item.ownerId || item.finderId || 'Unknown'}</p>
+                                        <p className="text-muted-foreground text-sm">{formattedItem.reporter_name}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-3">
-                            {item.type === 'lost' ? (
+                            {formattedItem.type === 'lost' ? (
                                 <Button size="lg" className="w-full h-12 text-lg shadow-sm" asChild>
-                                    <Link href={`/items/${item.id}/match`}>
+                                    <Link href={`/items/${formattedItem.id}/match/${formattedItem.category}`}>
                                         I Found This!
                                     </Link>
                                 </Button>
@@ -113,7 +99,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
                                 </Button>
                             )}
                             <Button size="lg" variant="outline" className="w-full h-12">
-                                Contact {item.type === 'lost' ? 'Owner' : 'Finder'}
+                                Contact {formattedItem.type === 'lost' ? 'Owner' : 'Finder'}
                             </Button>
                             <div className="grid grid-cols-2 gap-3 pt-2">
                                 <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
@@ -133,7 +119,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
                         <Card>
                             <CardContent className="p-6">
                                 <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                                    {item.description}
+                                    {formattedItem.description}
                                 </p>
                             </CardContent>
                         </Card>
