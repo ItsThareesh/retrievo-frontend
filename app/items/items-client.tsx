@@ -91,7 +91,7 @@ export function ItemsClient({ initialLostItems, initialFoundItems }: ItemsBrowse
                     {filteredLostItems.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {filteredLostItems.map(item => (
-                                <ItemCard key='1' item={item} type="lost" />
+                                <ItemCard key={item.id} item={item} type="lost" />
                             ))}
                         </div>
                     ) : (
@@ -114,7 +114,7 @@ export function ItemsClient({ initialLostItems, initialFoundItems }: ItemsBrowse
                     {filteredFoundItems.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {filteredFoundItems.map(item => (
-                                <ItemCard key='1' item={item} type="found" />
+                                <ItemCard key={item.id} item={item} type="found" />
                             ))}
                         </div>
                     ) : (

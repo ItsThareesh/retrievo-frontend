@@ -12,5 +12,5 @@ export interface Item {
     location: string;
     image: string;
     type: 'lost' | 'found';
-    // status: 'open' | 'claimed' | 'resolved';
+    status: 'open' | 'claimed' | 'resolved';
 }

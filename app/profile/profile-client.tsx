@@ -89,7 +89,7 @@ export function ProfileClient({ session, lostItems, foundItems }: ProfileClientP
                             {userItems.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {userItems.map((item) => (
-                                        <div key={item.reporter_public_id} className="relative group">
+                                        <div key={item.id} className="relative group">
                                             <ItemCard item={item} type={item.type} />
                                         </div>
                                     ))}
@@ -105,7 +105,7 @@ export function ProfileClient({ session, lostItems, foundItems }: ProfileClientP
                             {lostItems.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {lostItems.map((item) => (
-                                        <ItemCard key={item.reporter_public_id} item={item} type="lost" />
+                                        <ItemCard key={item.id} item={item} type="lost" />
                                     ))}
                                 </div>
                             ) : (
@@ -119,7 +119,7 @@ export function ProfileClient({ session, lostItems, foundItems }: ProfileClientP
                             {foundItems.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {foundItems.map((item) => (
-                                        <ItemCard key={item.reporter_public_id} item={item} type="found" />
+                                        <ItemCard key={item.id} item={item} type="found" />
                                     ))}
                                 </div>
                             ) : (
