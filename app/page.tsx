@@ -84,14 +84,19 @@ export default function Home() {
         {/*Glow element with animation */}
         <div
           id="scrollGlow"
-          className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 
-                     w-[120%] h-[300px] dark:bg-[radial-gradient(ellipse_at_bottom,rgba(93,96,241,0.35),transparent_70%)] blur-3xl opacity-100 transition-all duration-300">
-
-        </div>
-      </section >
+          className="
+            pointer-events-none
+            absolute bottom-0 left-1/2 -translate-x-1/2
+            w-[120%] h-[300px]
+            origin-bottom
+            dark:bg-[radial-gradient(ellipse_at_bottom,rgba(93,96,241,0.35),transparent_70%)]
+            blur-3xl opacity-100
+          "
+        ></div>
+      </section>
 
       {/* Features Section */}
-      < section className="py-24 bg-muted/30 border-t" >
+      <section className="py-24 bg-muted/30 border-t">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
@@ -127,7 +132,7 @@ export default function Home() {
 
           </div>
         </div>
-      </section >
-    </div >
+      </section>
+    </div>
   );
 }

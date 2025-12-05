@@ -3,13 +3,13 @@
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { ReactNode } from 'react';
 
-export function ThemeProvider({ children }: { children: ReactNode; [key:string]: any; }) {
+export function ThemeProvider({ children }: { children: ReactNode;[key: string]: any; }) {
   return (
-    <NextThemesProvider 
-      attribute="class" 
-      defaultTheme="light"
-      enableSystem={false}
-      enableColorScheme={false}
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
     >
       {children}
     </NextThemesProvider>

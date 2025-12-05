@@ -5,39 +5,12 @@ import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Check initial theme from localStorage or system preference
-    const stored = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (stored === 'dark' || (!stored && prefersDark)) {
-      document.documentElement.classList.add('dark');
-      setIsDark(true);
-    } else {
-      document.documentElement.classList.remove('dark');
-      setIsDark(false);
-    }
-
     setMounted(true);
   }, []);
-
-  const handleThemeChange = () => {
-    const html = document.documentElement;
-    const newDarkMode = !isDark;
-
-    if (newDarkMode) {
-      html.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      html.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-
-    setIsDark(newDarkMode);
-  };
 
   if (!mounted) {
     return (
@@ -49,6 +22,12 @@ export function ThemeToggle() {
     );
   }
 
+  const isDark = theme === "dark";
+
+  const handleThemeChange = () => {
+    setTheme(isDark ? "light" : "dark");
+  };
+
   return (
     <button
       onClick={handleThemeChange}
@@ -56,15 +35,15 @@ export function ThemeToggle() {
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
       className="
-      w-full h-10
-      flex items-center gap-2
-      rounded-md px-3
-      border border-input 
-      bg-background 
-      hover:bg-accent hover:text-accent-foreground
-      dark:bg-input/30 dark:border-input dark:hover:bg-input/50
-      transition-colors cursor-pointer
-    "
+        w-full h-10
+        flex items-center gap-2
+        rounded-md px-3
+        border border-input 
+        bg-background 
+        hover:bg-accent hover:text-accent-foreground
+        dark:bg-input/30 dark:border-input dark:hover:bg-input/50
+        transition-colors cursor-pointer
+      "
     >
       {isDark ? (
         <>

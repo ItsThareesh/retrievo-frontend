@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Search, PlusCircle } from 'lucide-react';
 import { auth } from "@/auth";
 import { SignInButton } from './sign-in-button';
