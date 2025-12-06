@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -32,6 +32,8 @@ export function ProfileClient({ session, lostItems, foundItems }: ProfileClientP
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
 
+    console.log(session.user);
+
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col md:flex-row gap-8">
@@ -47,6 +49,9 @@ export function ProfileClient({ session, lostItems, foundItems }: ProfileClientP
                                             src={session.user.image}
                                             alt={session.user.name}
                                         />
+                                        <AvatarFallback>
+                                            {session.user.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                                        </AvatarFallback>
                                     </Avatar>
                                 </div>
                                 <CardTitle className="text-xl">{session.user.name}</CardTitle>

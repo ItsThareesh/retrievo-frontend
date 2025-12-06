@@ -94,7 +94,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                                         <div className="flex items-center gap-2 mt-1">
                                             <Avatar className="h-6 w-6">
                                                 <AvatarImage src={reporter.image} alt={reporter.name} />
-                                                <AvatarFallback className="text-[10px]">
+                                                <AvatarFallback>
                                                     {reporter.name?.[0] ?? "U"}
                                                 </AvatarFallback>
                                             </Avatar>

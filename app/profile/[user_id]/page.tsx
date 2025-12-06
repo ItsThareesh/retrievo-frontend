@@ -45,7 +45,7 @@ export default async function UserPage({ params }: { params: Promise<{ user_id: 
                                             src={user.image || ""}
                                             alt={user.name || ""}
                                         />
-                                        <AvatarFallback className="text-primary font-semibold">
+                                        <AvatarFallback>
                                             {user.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
