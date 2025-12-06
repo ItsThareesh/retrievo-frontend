@@ -13,8 +13,6 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
     let userFoundItems;
 
-    console.log("Hi");
-
     try {
         userFoundItems = await fetchFoundUserItems('others', session.backendToken);
     } catch (err) {

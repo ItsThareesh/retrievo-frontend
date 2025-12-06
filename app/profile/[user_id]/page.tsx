@@ -1,36 +1,34 @@
-'use client'
-
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { ItemCard } from '@/components/item-card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ItemCard } from '@/components/item-card';
-import { LogOut } from 'lucide-react';
-import { signOut } from 'next-auth/react';
-import type { Session } from 'next-auth';
+import { fetchUserProfile } from '@/lib/api';
 import { Item } from '@/types/item';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { User } from '@/types/user';
 
-interface ProfileClientProps {
-    session: Session;
-    lostItems: Item[];
-    foundItems: Item[];
-}
+export default async function UserPage({ params }: { params: Promise<{ user_id: string; }> }) {
+    const { user_id } = await params;
 
-export function ProfileClient({ session, lostItems, foundItems }: ProfileClientProps) {
-    const formattedLost = lostItems.map(item => ({
-        ...item,
-        type: 'lost' as const
-    }));
+    let user: User;
+    let foundItems: Item[] = [];
+    let lostItems: Item[] = [];
 
-    const formattedFound = foundItems.map(item => ({
-        ...item,
-        type: 'found' as const
-    }));
+    try {
+        // Returns all details for a user with lost_items and found_items arrays
+        const res = await fetchUserProfile(user_id);
 
-    const userItems = [...formattedLost, ...formattedFound].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+        user = res.user;
+        foundItems = res.found_items;
+        lostItems = res.lost_items;
+    } catch (err) {
+        console.error("Error fetching user profile items:", err);
+        throw err;
+    }
+
+    let userItems = [...lostItems, ...foundItems];
+    userItems.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    console.log(typeof user.created_at);
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
@@ -44,29 +42,22 @@ export function ProfileClient({ session, lostItems, foundItems }: ProfileClientP
                                 <div className="mx-auto mb-4 p-1 bg-background rounded-full w-fit">
                                     <Avatar className="w-24 h-24 border-2 border-background">
                                         <AvatarImage
-                                            src={session.user.image}
-                                            alt={session.user.name}
+                                            src={user.image || ""}
+                                            alt={user.name || ""}
                                         />
+                                        <AvatarFallback className="text-primary font-semibold">
+                                            {user.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                                        </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <CardTitle className="text-xl">{session.user.name}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{session.user.email}</p>
+                                <CardTitle className="text-xl">{user.name}</CardTitle>
+                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                                <CardContent className="space-y-2 m-2 pb-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Member since {new Date(user.created_at).toLocaleDateString()}
+                                    </p>
+                                </CardContent>
                             </CardHeader>
-                            <CardContent className="space-y-2 p-4">
-                                {/* <Button variant="outline" className="w-full justify-start h-10">
-                                    <Settings className="mr-2 h-4 w-4" />
-                                    Edit Profile
-                                </Button> */}
-                                <ThemeToggle />
-                                <Button
-                                    variant="ghost"
-                                    className="w-full justify-start h-10 cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={() => signOut({ callbackUrl: '/' })}
-                                >
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    Sign Out
-                                </Button>
-                            </CardContent>
                         </Card>
                     </div>
                 </div>

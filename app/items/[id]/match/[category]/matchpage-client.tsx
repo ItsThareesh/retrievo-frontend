@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 import { Check, Send, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import { Item } from "@/types/items";
+import { Item } from "@/types/item";
 
 interface ClientMatchPageProps {
     userFoundItems: Item[];

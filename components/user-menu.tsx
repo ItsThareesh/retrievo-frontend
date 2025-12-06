@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 
 interface UserMenuProps {
     user: {
@@ -52,12 +52,6 @@ export function UserMenu({ user }: UserMenuProps) {
                         Profile
                     </Link>
                 </DropdownMenuItem>
-                {/* <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                    </Link>
-                </DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                     className="text-destructive focus:text-destructive cursor-pointer"

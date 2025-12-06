@@ -1,3 +1,4 @@
+// Custom Error for Unauthorized Access
 export class UnauthorizedError extends Error {
     constructor(message = "Unauthorized") {
         super(message);
@@ -5,6 +6,7 @@ export class UnauthorizedError extends Error {
     }
 }
 
+// Helper function to safely parse JSON
 async function safeJson(res: Response) {
     try {
         return await res.json();
@@ -13,6 +15,7 @@ async function safeJson(res: Response) {
     }
 }
 
+// POST: Lost or Found Item
 export async function postLostFoundItem(
     type: "lost" | "found",
     formData: FormData,
@@ -48,6 +51,7 @@ export async function postLostFoundItem(
     }
 }
 
+// GET: All Items
 export async function fetchAllItems() {
     try {
         const res = await fetch("http://127.0.0.1:8000/items/all");
@@ -73,6 +77,7 @@ export async function fetchAllItems() {
     }
 }
 
+// GET: Single Item by ID and Type along with Reporter Info
 export async function fetchItem(itemId: string, itemType: string) {
     try {
         const res = await fetch(
@@ -91,6 +96,7 @@ export async function fetchItem(itemId: string, itemType: string) {
     }
 }
 
+// GET: All Items for a Specific User
 export async function fetchAllUserItems(token?: string) {
     try {
         const res = await fetch("http://127.0.0.1:8000/profile/my-items", {
@@ -121,6 +127,7 @@ export async function fetchAllUserItems(token?: string) {
     }
 }
 
+// GET: Found Items by Category for a Specific User
 export async function fetchFoundUserItems(
     lostItemCategory: string,
     token?: string
@@ -160,5 +167,22 @@ export async function fetchFoundUserItems(
 
         console.error("fetchFoundUserItems error:", err);
         return [];
+    }
+}
+
+// GET: User Profile Information
+export const fetchUserProfile = async (user_id?: string) => {
+    try {
+        const res = await fetch(`http://127.0.0.1:8000/profile/${user_id}`);
+
+        if (!res.ok) {
+            console.error("fetchUserProfile failed:", res.status);
+            return null;
+        }
+
+        return await safeJson(res);
+    } catch (err) {
+        console.error("fetchUserProfile error:", err);
+        return null;
     }
 }

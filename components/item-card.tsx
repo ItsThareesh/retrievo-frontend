@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Item } from '@/types/items';
+import { Item } from '@/types/item';
 import { MapPin, Calendar, ArrowRight } from 'lucide-react';
 
 interface ItemCardProps {

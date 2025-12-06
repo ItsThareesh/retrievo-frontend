@@ -20,30 +20,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return "/auth/error?error=AccessDenied";
             }
 
-            // Must exist for secure backend verification
+            // ID must exist for secure backend verification
             if (!account?.id_token) {
                 return "/auth/error?error=MissingIdToken";
             }
 
             try {
+                // Returns access token and user ID from backend
                 const res = await fetch(`${process.env.BACKEND_URL}/auth/google`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id_token: account.id_token })
                 });
 
+                // Backend reachable, but rejected
                 if (!res.ok) {
-                    // Backend reachable, but rejected
-                    return "/auth/error?error=BackendAuthFailed";
+                    return "/auth/error?error=Default";
                 }
 
                 const data = await res.json();
 
-                // Attach to account
+                // Attach to account (will be available in jwt callback)
                 account.backendToken = data.access_token;
                 account.backendUserId = data.user_id;
 
-                return true;  // allow login
+                return true;
             }
             catch (err) {
                 console.error("Backend unreachable:", err);
@@ -54,10 +55,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         async jwt({ token, account, profile }) {
             // On initial sign in, account and profile are available
             if (account && profile) {
-                token.email = profile.email;
-                token.name = profile.name;
-                token.picture = profile.picture;
-
                 token.backendToken = account.backendToken;
                 token.userId = account.backendUserId;
             }
@@ -66,14 +63,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
 
         async session({ session, token }) {
-            // Attach backend token and userId to session
             session.backendToken = token.backendToken as string;
             session.userId = token.userId as string;
 
-            // Update user properties
-            session.user.email = token.email!;
-            session.user.name = token.name!;
-            session.user.image = token.picture!;
+            try {
+                if (session.backendToken) {
+                    const res = await fetch(`${process.env.BACKEND_URL}/profile/me`, {
+                        headers: { Authorization: `Bearer ${session.backendToken}` },
+                    });
+
+                    if (res.ok) {
+                        const me = await res.json();
+                        session.user = {
+                            ...session.user,
+                            name: me.name,
+                            email: me.email,
+                            image: me.image,
+                        };
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch /profile/me in session callback:", err);
+            }
 
             return session;
         },
