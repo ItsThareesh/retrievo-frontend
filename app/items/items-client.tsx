@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ItemCard } from '@/components/item-card';
 import { Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Item } from '@/types/items';
+import { Item } from '@/types/item';
 
 interface ItemsBrowseProps {
     initialLostItems: Item[];

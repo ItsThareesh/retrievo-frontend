@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { UserMenu } from "./user-menu"
 
-export function SignInButton({ session }: { session: any }) {
+export function LoginButton({ session }: { session: any }) {
     return (
         <div className="flex items-center gap-4" >
             {
@@ -17,7 +17,7 @@ export function SignInButton({ session }: { session: any }) {
                         size="sm"
                         onClick={() => signIn("google", { callbackUrl: "/" })}
                     >
-                        Sign In
+                        Login
                     </Button>
                 )
             }

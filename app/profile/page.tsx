@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { ProfileClient } from '@/app/profile/profile-client';
 import { fetchAllUserItems, UnauthorizedError } from '@/lib/api';
-import { Item } from '@/types/items';
+import { Item } from '@/types/item';
 import { redirect } from 'next/navigation';
 
 export default async function ProfilePage() {
@@ -15,6 +15,7 @@ export default async function ProfilePage() {
     let lostItems: Item[] = [];
 
     try {
+        // Returns all items for a user with lost_items and found_items arrays
         const res = await fetchAllUserItems(session.backendToken);
 
         foundItems = res.data.found_items;

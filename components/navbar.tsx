@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle } from 'lucide-react';
 import { auth } from "@/auth";
-import { SignInButton } from './sign-in-button';
+import { LoginButton } from './login-button';
 
 export async function Navbar() {
-    const session = await auth()
+    const session = await auth();
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -35,7 +35,7 @@ export async function Navbar() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <SignInButton session={session} />
+                    <LoginButton session={session} />
                 </div>
             </div>
         </nav>

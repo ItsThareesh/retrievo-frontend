@@ -1,9 +1,10 @@
 import { fetchAllItems } from '@/lib/api';
 import { ItemsClient } from './items-client';
-import { Item } from '@/types/items';
+import { Item } from '@/types/item';
 
 
 export default async function BrowseItemsPage() {
+    // Returns all items in a dictionary with lost_items and found_items arrays
     const res = await fetchAllItems();
 
     const lostItems: Item[] = res.data.lost_items ?? [];
