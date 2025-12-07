@@ -15,9 +15,9 @@ import { User, LogOut } from 'lucide-react';
 
 interface UserMenuProps {
     user: {
-        name?: string | null;
-        email?: string | null;
-        image?: string | null;
+        name: string;
+        email: string;
+        image: string;
     };
 }
 
@@ -32,7 +32,7 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
                 <Avatar className="h-9 w-9 border-2 border-background ring-2 ring-muted hover:ring-primary transition-all cursor-pointer">
-                    <AvatarImage src={user.image || ''} alt={user.name || 'User'} />
+                    <AvatarImage src={user.image} alt={user.name} />
                     <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
             </DropdownMenuTrigger>

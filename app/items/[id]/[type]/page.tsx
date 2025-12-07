@@ -93,15 +93,15 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                                         <p className="font-medium text-sm">Reported by</p>
                                         <div className="flex items-center gap-2 mt-1">
                                             <Avatar className="h-6 w-6">
-                                                <AvatarImage src={reporter.image} alt={reporter.name} />
+                                                <AvatarImage src={reporter.image} />
                                                 <AvatarFallback>
-                                                    {reporter.name?.[0] ?? "U"}
+                                                    {item.reporter_name?.[0] ?? "U"}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            {session && reporter.name === session.user.name ? (
+                                            {session && item.reporter_name === session.user.name ? (
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-muted-foreground text-sm">
-                                                        {reporter.name}
+                                                        {item.reporter_name}
                                                     </p>
 
                                                     <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border">
@@ -109,9 +109,9 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <Link href={`/profile/${reporter.public_id}`}>
+                                                <Link href={`/profile/${item.reporter_public_id}`}>
                                                     <p className="hover:underline text-muted-foreground cursor-pointer">
-                                                        {reporter.name}
+                                                        {item.reporter_name}
                                                     </p>
                                                 </Link>
                                             )}

@@ -32,8 +32,6 @@ export function ProfileClient({ session, lostItems, foundItems }: ProfileClientP
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
 
-    console.log(session.user);
-
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col md:flex-row gap-8">

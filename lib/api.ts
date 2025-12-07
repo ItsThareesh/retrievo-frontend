@@ -17,14 +17,10 @@ async function safeJson(res: Response) {
 
 // POST: Lost or Found Item
 export async function postLostFoundItem(
-    type: "lost" | "found",
     formData: FormData,
     token?: string
 ) {
-    const endpoint =
-        type === "lost"
-            ? "http://127.0.0.1:8000/lost-item/"
-            : "http://127.0.0.1:8000/found-item/";
+    const endpoint = "http://127.0.0.1:8000/items/"
 
     try {
         const res = await fetch(endpoint, {

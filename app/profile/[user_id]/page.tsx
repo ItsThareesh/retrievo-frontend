@@ -28,8 +28,6 @@ export default async function UserPage({ params }: { params: Promise<{ user_id: 
     let userItems = [...lostItems, ...foundItems];
     userItems.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    console.log(typeof user.created_at);
-
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col md:flex-row gap-8">
