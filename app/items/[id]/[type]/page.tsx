@@ -1,16 +1,21 @@
 import { Suspense } from "react";
 import Loading from "../../loading";
 import { notFound } from "next/navigation";
-import Link from 'next/link';
+import Link from "next/link";
 import { fetchItem } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
 import { Calendar, Flag, MapPin, Share2, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { auth } from "@/auth";
+import { ImageViewer } from "@/components/image-viewer";
 
-export default async function ItemPage({ params }: { params: Promise<{ id: string; type: string }> }) {
+export default async function ItemPage({
+    params,
+}: {
+    params: Promise<{ id: string; type: string }>;
+}) {
     const session = await auth();
 
     const { id, type } = await params;
@@ -30,23 +35,25 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column: Image */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
-                            <img
-                                src={item.image}
-                                alt={item.title}
-                                className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute top-4 left-4">
-                                <Badge
-                                    className={`text-lg px-4 py-1.5 shadow-md text-white ${item.type === 'lost'
-                                        ? 'bg-red-500 hover:bg-red-600 border-red-600'
-                                        : 'bg-emerald-500 hover:bg-emerald-600 border-emerald-600'
-                                        }`}
-                                >
-                                    {item.type === 'lost' ? 'Lost' : 'Found'}
-                                </Badge>
+                        <ImageViewer src={item.image} alt={item.title}>
+                            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
+                                <img
+                                    src={item.image}
+                                    alt={item.title}
+                                    className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
+                                />
+                                <div className="absolute top-4 left-4">
+                                    <Badge
+                                        className={`text-lg px-4 py-1.5 shadow-md text-white ${item.type === "lost"
+                                            ? "bg-red-500 hover:bg-red-600 border-red-600"
+                                            : "bg-emerald-500 hover:bg-emerald-600 border-emerald-600"
+                                            }`}
+                                    >
+                                        {item.type === "lost" ? "Lost" : "Found"}
+                                    </Badge>
+                                </div>
                             </div>
-                        </div>
+                        </ImageViewer>
 
                         <div className="hidden lg:block">
                             <h3 className="text-lg font-semibold mb-3">Description</h3>
@@ -63,11 +70,15 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                     {/* Right Column: Details & Actions */}
                     <div className="space-y-6">
                         <div>
-                            <h1 className="text-3xl font-bold mb-2 leading-tight">{item.title}</h1>
+                            <h1 className="text-3xl font-bold mb-2 leading-tight">
+                                {item.title}
+                            </h1>
                             <div className="flex items-center gap-2 text-muted-foreground mb-6">
                                 <span className="text-sm">Posted on {item.date}</span>
                                 <span>•</span>
-                                <Badge variant="outline" className="font-normal">{item.category}</Badge>
+                                <Badge variant="outline" className="font-normal">
+                                    {item.category}
+                                </Badge>
                             </div>
 
                             <div className="space-y-4 mb-8">
@@ -75,14 +86,18 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                                     <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                     <div>
                                         <p className="font-medium text-sm">Location</p>
-                                        <p className="text-muted-foreground text-sm">{item.location}</p>
+                                        <p className="text-muted-foreground text-sm">
+                                            {item.location}
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border">
                                     <Calendar className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                     <div>
-                                        <p className="font-medium text-sm">Date {item.type === 'lost' ? 'Lost' : 'Found'}</p>
+                                        <p className="font-medium text-sm">
+                                            Date {item.type === "lost" ? "Lost" : "Found"}
+                                        </p>
                                         <p className="text-muted-foreground text-sm">{item.date}</p>
                                     </div>
                                 </div>
@@ -121,8 +136,12 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                             </div>
 
                             <div className="space-y-3">
-                                {item.type === 'lost' ? (
-                                    <Button size="lg" className="w-full h-12 text-lg shadow-sm" asChild>
+                                {item.type === "lost" ? (
+                                    <Button
+                                        size="lg"
+                                        className="w-full h-12 text-lg shadow-sm"
+                                        asChild
+                                    >
                                         <Link href={`/items/${item.id}/match/${item.category}`}>
                                             I Found This!
                                         </Link>
@@ -133,14 +152,22 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                                     </Button>
                                 )}
                                 <Button size="lg" variant="outline" className="w-full h-12">
-                                    Contact {item.type === 'lost' ? 'Owner' : 'Finder'}
+                                    Contact {item.type === "lost" ? "Owner" : "Finder"}
                                 </Button>
                                 <div className="grid grid-cols-2 gap-3 pt-2">
-                                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full text-muted-foreground"
+                                    >
                                         <Share2 className="w-4 h-4 mr-2" />
                                         Share
                                     </Button>
-                                    <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-destructive">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full text-muted-foreground hover:text-destructive"
+                                    >
                                         <Flag className="w-4 h-4 mr-2" />
                                         Report
                                     </Button>
@@ -161,6 +188,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
                     </div>
                 </div>
             </div>
-        </Suspense >
+        </Suspense>
     );
 }
+
