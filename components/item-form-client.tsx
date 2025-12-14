@@ -29,7 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation'; // Add this import
 import { postLostFoundItem, UnauthorizedError } from '@/lib/api';
 import { signIn } from "next-auth/react";
 import type { Session } from 'next-auth';
@@ -63,6 +63,7 @@ interface ItemFormClientProps {
 export function ItemFormClient({ session }: ItemFormClientProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -98,11 +99,10 @@ export function ItemFormClient({ session }: ItemFormClientProps) {
             }
 
             alert("Item reported successfully!");
-            redirect(`/items/${res.data}/${values.item_type}`);
-
+            router.push(`/items/${res.data}/${values.item_type}`);
         } catch (error) {
             if (error instanceof UnauthorizedError) {
-                redirect(`/auth/signin?callbackUrl=/${values.item_type}/new`);
+                router.push(`/auth/signin?callbackUrl=/${values.item_type}/new`);
             }
             throw error;
         } finally {
@@ -161,7 +161,7 @@ export function ItemFormClient({ session }: ItemFormClientProps) {
                                     render={({ field }) => (
                                         <FormItem className="col-span-1">
                                             <FormLabel>Category</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger className="h-11 w-full">
                                                         <SelectValue placeholder="Select a category" />
@@ -210,7 +210,7 @@ export function ItemFormClient({ session }: ItemFormClientProps) {
                                     render={({ field }) => (
                                         <FormItem className="col-span-1">
                                             <FormLabel>Visibility</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger className="h-11 w-full">
                                                         <SelectValue placeholder="Select visibility" />
@@ -376,7 +376,7 @@ export function ItemFormClient({ session }: ItemFormClientProps) {
                                 className="w-full h-12 text-lg cursor-pointer"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Reporting..." : "Report Item"}
+                                {isSubmitting ? "Reporting..." : "Report"}
                             </Button>
                         </form>
                     </Form>
