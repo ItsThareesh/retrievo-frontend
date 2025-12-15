@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { fetchFoundUserItems, UnauthorizedError } from '@/lib/api';
 import ClientMatchPage from './matchpage-client';
+import { Item } from '@/types/item';
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string, category: string }> }) {
     const { id, category } = await params;
