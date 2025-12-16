@@ -89,13 +89,13 @@ export async function fetchItem(itemId: string, token?: string) {
 
         if (!res.ok) {
             console.error("fetchItem failed:", res.status);
-            return null;
+            return { ok: false, data: null, status: res.status };
         }
 
-        return await safeJson(res);
+        return { ok: true, data: await safeJson(res) };
     } catch (err) {
         console.error("fetchItem error:", err);
-        return null;
+        return { ok: false, data: null, error: String(err) };
     }
 }
 
@@ -178,13 +178,49 @@ export const fetchUserProfile = async (user_id?: string) => {
 
         if (!res.ok) {
             console.error("fetchUserProfile failed:", res.status);
-            return null;
+            return {
+                ok: false,
+                data: {
+                    user: null,
+                    lost_items: [],
+                    found_items: [],
+                },
+                status: res.status,
+            }
         }
 
-        return await safeJson(res);
+        return { ok: true, data: await safeJson(res) };
     } catch (err) {
         console.error("fetchUserProfile error:", err);
-        return null;
+        return { ok: false, data: null, error: String(err) };
+    }
+}
+
+// PATCH: Update single item fields
+export async function updateItem(itemId: string, data: Record<string, any>, token?: string) {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (res.status === 401) throw new UnauthorizedError();
+
+        if (!res.ok) {
+            console.error("updateItem failed:", res.status);
+            return { ok: false, status: res.status };
+        }
+
+        return { ok: true, data: await safeJson(res) };
+    } catch (err) {
+        if (err instanceof UnauthorizedError) throw err;
+
+        console.error("updateItem error:", err);
+        return { ok: false, error: String(err) };
     }
 }
 

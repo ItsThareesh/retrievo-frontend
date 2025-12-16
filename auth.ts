@@ -42,7 +42,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // Attach to account (will be available in jwt callback)
                 account.backendToken = data.access_token;
-                account.backendUserId = data.user_id;
 
                 return true;
             }
@@ -56,7 +55,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // On initial sign in, account and profile are available
             if (account && profile) {
                 token.backendToken = account.backendToken;
-                token.userId = account.backendUserId;
             }
 
             return token;
@@ -64,7 +62,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         async session({ session, token }) {
             session.backendToken = token.backendToken as string;
-            session.userId = token.userId as string;
 
             try {
                 if (session.backendToken) {
@@ -76,6 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         const me = await res.json();
                         session.user = {
                             ...session.user,
+                            public_id: me.public_id,
                             name: me.name,
                             email: me.email,
                             image: me.image,

@@ -2,9 +2,6 @@ export interface Item {
     id: string;
     created_at: string;
     user_id: string;
-    reporter_public_id: string;
-    reporter_name: string;
-    reporter_picture: string;
     title: string;
     description: string;
     category: string;

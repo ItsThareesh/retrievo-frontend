@@ -1,5 +1,5 @@
 import { fetchAllItems } from '@/lib/api';
-import { ItemsClient } from './items-client';
+import { ItemsClient } from './items-browsing-client';
 import { Item } from '@/types/item';
 import { auth } from '@/auth';
 
