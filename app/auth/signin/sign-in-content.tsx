@@ -33,7 +33,7 @@ export default function SignInContent() {
 
                 <CardContent className="space-y-6 p-8 pt-4">
                     {error && (
-                        <div className="bg-destructive/10 text-destructive text-sm p-4 rounded-lg flex items-center gap-3 border border-destructive/20 animate-in slide-in-from-top-2">
+                        <div className="bg-destructive/10 text-destructive text-sm p-4 rounded-lg flex items-center gap-3 border border-destructive/20 animate-in slide-in-from-top-2 text-center justify-center">
                             <span className="font-medium">Authentication failed. Please try again.</span>
                         </div>
                     )}

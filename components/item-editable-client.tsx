@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,8 +10,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Calendar, MapPin, Check, X, Flag, Share2, User } from "lucide-react";
-import { updateItem } from "@/lib/api";
+import { MoreHorizontal, Trash2, Calendar, MapPin, Flag, Share2, User, Pencil, X } from "lucide-react";
+import { updateItem, deleteItem } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -23,6 +23,23 @@ import { Card, CardContent } from "./ui/card";
 import { ImageViewer } from "./image-viewer";
 import { Textarea } from "./ui/textarea";
 import { User as UserType } from "@/types/user";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
 
 interface ItemEditableProps {
     item: Item;
@@ -31,7 +48,12 @@ interface ItemEditableProps {
 }
 
 export default function ItemEditable({ item, reporter, session }: ItemEditableProps) {
-    const [fields, setFields] = useState({
+    const router = useRouter();
+    const [isEditing, setIsEditing] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const [formData, setFormData] = useState({
         title: item.title ?? "",
         location: item.location ?? "",
         description: item.description ?? "",
@@ -40,85 +62,50 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
         date: item.date ? new Date(item.date).toISOString().slice(0, 10) : "",
     });
 
-    const [editingField, setEditingField] = useState<keyof typeof fields | null>(null);
-    const [loading, setLoading] = useState(false);
-
     const canEdit = !!session && reporter.public_id === session.user?.public_id;
-    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-    // Focus input when entering edit mode
-    useEffect(() => {
-        if (editingField && inputRef.current) {
-            inputRef.current.focus();
-            if (inputRef.current instanceof HTMLInputElement) {
-                inputRef.current.select();
-            }
-        }
-    }, [editingField]);
+    const handleSave = async () => {
+        setIsSaving(true);
 
-    // Keyboard shortcuts
-    useEffect(() => {
-        function handleKeyDown(e: KeyboardEvent) {
-            if (!editingField) return;
+        // Calculate diff - only send changed fields
+        const updates: Record<string, any> = {};
+        let hasChanges = false;
 
-            if (e.key === "Escape") {
-                e.preventDefault();
-                cancelEdit();
-            } else if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                saveField(editingField);
-            }
-        }
+        for (const key of Object.keys(formData) as (keyof typeof formData)[]) {
+            const newValue = formData[key];
 
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [editingField, fields]);
-
-    async function saveField(field: keyof typeof fields) {
-        const currentValue = fields[field];
-        const originalValue =
-            field === "date"
-                ? item.date
+            const oldValue =
+                key === "date"
                     ? new Date(item.date).toISOString().slice(0, 10)
-                    : ""
-                : (item[field as keyof Item] ?? "");
+                    : item[key] ?? "";
 
-        if (currentValue === originalValue) {
-            setEditingField(null);
+            if (newValue !== oldValue) {
+                updates[key] =
+                    key === "date" ? new Date(newValue).toISOString() : newValue;
+            }
+        }
+
+        if (!hasChanges) {
+            setIsEditing(false);
+            setIsSaving(false);
             return;
         }
 
-        try {
-            setLoading(true);
+        const res = await updateItem(item.id, updates, session?.backendToken);
 
-            const payload: any = {};
-            payload[field] =
-                field === "date"
-                    ? new Date(fields.date).toISOString()
-                    : currentValue;
-
-            const res = await updateItem(item.id, payload, session?.backendToken);
-
-            if (!res.ok) {
-                toast.error("Update failed. Please try again.");
-                return;
-            }
-
-            // optimistic local sync
-            item[field] = payload[field];
-
-            toast.success("Updated successfully");
-            setEditingField(null);
-        } catch (err) {
-            console.error(err);
-            toast.error("Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
+        if (res.ok) {
+            toast.success("Item updated successfully");
+            setIsEditing(false);
+            router.refresh();
+        } else {
+            toast.error("Failed to update item");
         }
-    }
 
-    function cancelEdit() {
-        setFields({
+        setIsSaving(false);
+    };
+
+    const handleCancel = () => {
+        setFormData({
             title: item.title ?? "",
             location: item.location ?? "",
             description: item.description ?? "",
@@ -126,61 +113,21 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
             visibility: item.visibility ?? "public",
             date: item.date ? new Date(item.date).toISOString().slice(0, 10) : "",
         });
-        setEditingField(null);
-    }
-
-    // Reusable edit button component
-    const EditButton = ({
-        fieldName,
-        className = ""
-    }: {
-        fieldName: keyof typeof fields;
-        className?: string;
-    }) => {
-        if (!canEdit || editingField) return null;
-
-        return (
-            <button
-                aria-label={`Edit ${fieldName}`}
-                onClick={() => setEditingField(fieldName)}
-                className={cn(
-                    "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
-                    "transition-opacity duration-150",
-                    "text-muted-foreground hover:text-foreground",
-                    "rounded p-1 -m-1",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-                    className
-                )}
-            >
-                <Pencil className="w-3.5 h-3.5" />
-            </button>
-        );
+        setIsEditing(false);
     };
 
-    // Action buttons for save/cancel
-    const EditActions = ({ fieldName }: { fieldName: keyof typeof fields }) => (
-        <div className="flex items-center gap-2">
-            <Button
-                size="sm"
-                onClick={() => saveField(fieldName)}
-                disabled={loading}
-                className="h-8"
-            >
-                <Check className="w-3.5 h-3.5 mr-1" />
-                {loading ? "Saving..." : "Save"}
-            </Button>
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={cancelEdit}
-                disabled={loading}
-                className="h-8"
-            >
-                <X className="w-3.5 h-3.5 mr-1" />
-                Cancel
-            </Button>
-        </div>
-    );
+    const handleDelete = async () => {
+        const res = await deleteItem(item.id, session?.backendToken);
+
+        if (res.ok) {
+            toast.success("Item deleted successfully");
+            router.push("/items");
+        } else {
+            toast.error("Failed to delete item");
+        }
+
+        setIsDeleting(false);
+    };
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
@@ -210,38 +157,24 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
                     <div className="hidden lg:block">
                         <h3 className="text-lg font-semibold mb-3">Description</h3>
 
-                        <Card
-                            className={cn(
-                                "group transition-colors",
-                                editingField === "description" && "ring-2 ring-ring"
-                            )}
-                        >
+                        <Card className={cn(
+                            "group transition-all duration-200",
+                            isEditing && "ring-2 ring-primary/20 shadow-sm"
+                        )}>
                             <CardContent className="p-6">
-                                {editingField === "description" ? (
-                                    <div className="space-y-3">
-                                        <Textarea
-                                            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-                                            value={fields.description}
-                                            onChange={(e) =>
-                                                setFields({ ...fields, description: e.target.value })
-                                            }
-                                            rows={6}
-                                            className="resize-none text-sm leading-relaxed"
-                                            disabled={loading}
-                                        />
-
-                                        <EditActions fieldName="description" />
-                                    </div>
+                                {isEditing ? (
+                                    <Textarea
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        rows={6}
+                                        className="resize-none text-sm leading-relaxed border-2 focus-visible:ring-2"
+                                        disabled={isSaving}
+                                        placeholder="Describe the item in detail..."
+                                    />
                                 ) : (
-                                    <div className="relative">
-                                        <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                                            {fields.description || "No description provided."}
-                                        </p>
-
-                                        <div className="absolute top-0 right-0">
-                                            <EditButton fieldName="description" />
-                                        </div>
-                                    </div>
+                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed break-words">
+                                        {formData.description || "No description provided."}
+                                    </p>
                                 )}
                             </CardContent>
                         </Card>
@@ -251,31 +184,76 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
                 {/* Right Column: Details & Actions */}
                 <div className="space-y-6">
                     <div>
-                        {/* Title */}
+                        {/* Title with Three-Dot Menu */}
                         <div className="mb-2">
-                            {editingField === "title" ? (
-                                <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-3">
+                                {isEditing ? (
                                     <Input
-                                        ref={inputRef as React.RefObject<HTMLInputElement>}
-                                        value={fields.title}
-                                        onChange={(e) => setFields({ ...fields, title: e.target.value })}
-                                        className="text-3xl font-bold h-auto py-2"
-                                        disabled={loading}
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        className="text-3xl font-bold h-auto py-2 flex-1 border-2 focus-visible:ring-2"
+                                        disabled={isSaving}
+                                        placeholder="Item title"
                                     />
-                                    <EditActions fieldName="title" />
-                                </div>
-                            ) : (
-                                <div className="group relative inline-flex items-center gap-2">
-                                    <h1 className="text-3xl font-bold leading-tight">
-                                        {fields.title}
+                                ) : (
+                                    <h1 className="text-3xl font-bold leading-tight flex-1 break-words">
+                                        {formData.title}
                                     </h1>
-                                    <EditButton fieldName="title" />
+                                )}
+
+                                {canEdit && !isEditing && (
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="shrink-0 hover:bg-muted transition-colors"
+                                            >
+                                                <MoreHorizontal className="h-5 w-5" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                                                <Pencil className="mr-2 h-4 w-4" />
+                                                Edit item
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                className="text-red-600 focus:text-red-600"
+                                                onClick={() => setIsDeleting(true)}
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Delete item
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                )}
+                            </div>
+
+                            {isEditing && (
+                                <div className="flex gap-2 my-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <Button
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                        className="shadow-sm"
+                                    >
+                                        {isSaving ? "Saving..." : "Save changes"}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleCancel}
+                                        disabled={isSaving}
+                                    >
+                                        Cancel
+                                    </Button>
                                 </div>
                             )}
                         </div>
 
                         {/* Metadata row: Posted date, Category, Visibility */}
-                        <div className="flex flex-wrap items-center gap-2 text-muted-foreground mb-6">
+                        <div className={cn(
+                            "flex flex-wrap items-center gap-2 text-muted-foreground mb-6 p-2 -ml-2 rounded-lg transition-colors",
+                            isEditing && "bg-muted/30"
+                        )}>
                             <span className="text-sm">
                                 Posted on {new Date(item.date).toLocaleDateString("en-GB").replace(/\//g, "-")}
                             </span>
@@ -283,65 +261,57 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
 
                             {/* Category Badge */}
                             <div className="group relative">
-                                {editingField === "category" ? (
-                                    <div className="flex items-center gap-2">
-                                        <Select
-                                            onValueChange={(v) => setFields({ ...fields, category: v })}
-                                            value={fields.category}
-                                            disabled={loading}
-                                        >
-                                            <SelectTrigger className="h-8 w-44">
-                                                <SelectValue placeholder="Category" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="electronics">Electronics</SelectItem>
-                                                <SelectItem value="clothing">Clothing</SelectItem>
-                                                <SelectItem value="bags">Bags</SelectItem>
-                                                <SelectItem value="keys-wallets">Keys & Wallets</SelectItem>
-                                                <SelectItem value="documents">Documents</SelectItem>
-                                                <SelectItem value="others">Others</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <EditActions fieldName="category" />
-                                    </div>
+                                {isEditing ? (
+                                    <Select
+                                        onValueChange={(v) => setFormData({ ...formData, category: v })}
+                                        value={formData.category}
+                                        disabled={isSaving}
+                                    >
+                                        <SelectTrigger className="h-8 w-44 border-2">
+                                            <SelectValue placeholder="Category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="electronics">Electronics</SelectItem>
+                                            <SelectItem value="clothing">Clothing</SelectItem>
+                                            <SelectItem value="bags">Bags</SelectItem>
+                                            <SelectItem value="keys-wallets">Keys & Wallets</SelectItem>
+                                            <SelectItem value="documents">Documents</SelectItem>
+                                            <SelectItem value="others">Others</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 ) : (
                                     <Badge variant="outline" className="font-normal inline-flex items-center gap-1.5">
-                                        <span>{fields.category}</span>
-                                        <EditButton fieldName="category" className="opacity-0 group-hover:opacity-100" />
+                                        <span>{formData.category}</span>
                                     </Badge>
                                 )}
                             </div>
 
                             {/* Visibility Badge */}
                             <div className="group relative">
-                                {editingField === "visibility" ? (
-                                    <div className="flex items-center gap-2">
-                                        <Select
-                                            onValueChange={(v) => setFields({ ...fields, visibility: v as "public" | "boys" | "girls" })}
-                                            value={fields.visibility}
-                                            disabled={loading}
-                                        >
-                                            <SelectTrigger className="h-8 w-36">
-                                                <SelectValue placeholder="Visibility" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="public">Public</SelectItem>
-                                                {session?.user.hostel === "boys" ? (
-                                                    <SelectItem value="boys">Boys Only</SelectItem>
-                                                ) : (
-                                                    <SelectItem value="girls">Girls Only</SelectItem>
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                        <EditActions fieldName="visibility" />
-                                    </div>
+                                {isEditing ? (
+                                    <Select
+                                        onValueChange={(v) => setFormData({ ...formData, visibility: v as "public" | "boys" | "girls" })}
+                                        value={formData.visibility}
+                                        disabled={isSaving}
+                                    >
+                                        <SelectTrigger className="h-8 w-36 border-2">
+                                            <SelectValue placeholder="Visibility" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="public">Public</SelectItem>
+                                            {session?.user.hostel === "boys" ? (
+                                                <SelectItem value="boys">Boys Only</SelectItem>
+                                            ) : (
+                                                <SelectItem value="girls">Girls Only</SelectItem>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
                                 ) : (
                                     <Badge variant="outline" className="font-normal inline-flex items-center gap-1.5">
                                         <span>
-                                            {fields.visibility}
-                                            {['boys', 'girls'].includes(fields.visibility) ? ' only' : ''}
+                                            {formData.visibility}
+                                            {['boys', 'girls'].includes(formData.visibility) ? ' only' : ''}
                                         </span>
-                                        <EditButton fieldName="visibility" className="opacity-0 group-hover:opacity-100" />
                                     </Badge>
                                 )}
                             </div>
@@ -351,29 +321,23 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
                         <div className="space-y-4 mb-6">
                             {/* Location */}
                             <div className={cn(
-                                "group flex items-start gap-3 p-3 rounded-lg bg-muted/30 border transition-colors",
-                                editingField === "location" && "ring-2 ring-ring"
+                                "group flex items-start gap-3 p-3 rounded-lg bg-muted/30 border transition-all duration-200",
+                                isEditing && "ring-2 ring-primary/20 bg-muted/50"
                             )}>
                                 <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <p className="font-medium text-sm">Location</p>
-                                        {!editingField && <EditButton fieldName="location" />}
-                                    </div>
-                                    {editingField === "location" ? (
-                                        <div className="space-y-2">
-                                            <Input
-                                                ref={inputRef as React.RefObject<HTMLInputElement>}
-                                                value={fields.location}
-                                                onChange={(e) => setFields({ ...fields, location: e.target.value })}
-                                                className="text-sm"
-                                                disabled={loading}
-                                            />
-                                            <EditActions fieldName="location" />
-                                        </div>
+                                    <p className="font-medium text-sm mb-1">Location</p>
+                                    {isEditing ? (
+                                        <Input
+                                            value={formData.location}
+                                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                            className="text-sm mt-1"
+                                            disabled={isSaving}
+                                            placeholder="Where was it lost/found?"
+                                        />
                                     ) : (
-                                        <p className="text-muted-foreground text-sm wrap-break-word">
-                                            {fields.location}
+                                        <p className="text-muted-foreground text-sm break-words">
+                                            {formData.location}
                                         </p>
                                     )}
                                 </div>
@@ -381,34 +345,27 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
 
                             {/* Date */}
                             <div className={cn(
-                                "group flex items-start gap-3 p-3 rounded-lg bg-muted/30 border transition-colors",
-                                editingField === "date" && "ring-2 ring-ring"
+                                "group flex items-start gap-3 p-3 rounded-lg bg-muted/30 border transition-all duration-200",
+                                isEditing && "ring-2 ring-primary/20 bg-muted/50"
                             )}>
                                 <Calendar className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <p className="font-medium text-sm">
-                                            Date {item.type === "lost" ? "Lost" : "Found"}
-                                        </p>
-                                        {!editingField && <EditButton fieldName="date" />}
-                                    </div>
-                                    {editingField === "date" ? (
-                                        <div className="space-y-2">
-                                            <Input
-                                                ref={inputRef as React.RefObject<HTMLInputElement>}
-                                                type="date"
-                                                value={fields.date}
-                                                min={new Date("2000-01-01").toISOString().slice(0, 10)}
-                                                max={new Date().toISOString().slice(0, 10)}
-                                                onChange={(e) => setFields({ ...fields, date: e.target.value })}
-                                                className="text-sm"
-                                                disabled={loading}
-                                            />
-                                            <EditActions fieldName="date" />
-                                        </div>
+                                    <p className="font-medium text-sm mb-1">
+                                        Date {item.type === "lost" ? "Lost" : "Found"}
+                                    </p>
+                                    {isEditing ? (
+                                        <Input
+                                            type="date"
+                                            value={formData.date}
+                                            min={new Date("2000-01-01").toISOString().slice(0, 10)}
+                                            max={new Date().toISOString().slice(0, 10)}
+                                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                            className="text-sm mt-1"
+                                            disabled={isSaving}
+                                        />
                                     ) : (
                                         <p className="text-muted-foreground text-sm">
-                                            {new Date(fields.date).toLocaleDateString("en-GB").replace(/\//g, "-")}
+                                            {new Date(formData.date).toLocaleDateString("en-GB").replace(/\//g, "-")}
                                         </p>
                                     )}
                                 </div>
@@ -474,6 +431,47 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-2">
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete your item
+                                    and remove it from our servers.
+                                </AlertDialogDescription>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 shrink-0"
+                                onClick={() => setIsDeleting(false)}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mt-6">
+                        <AlertDialogCancel asChild>
+                            <Button variant="outline">
+                                Cancel
+                            </Button>
+                        </AlertDialogCancel>
+
+                        <AlertDialogAction
+                            className="text-white bg-red-500 hover:bg-red-600"
+                            onClick={handleDelete}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete permanently
+                            {/* </Button> */}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div >
     );
 }

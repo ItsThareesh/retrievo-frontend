@@ -111,7 +111,7 @@ export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
                             <div className="bg-muted/30 p-4 rounded-full mb-4">
                                 <Search className="w-8 h-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold">No found items found</h3>
+                            <h3 className="text-lg font-semibold">No items found</h3>
                             <p className="text-muted-foreground max-w-sm mt-2">
                                 We couldn't find any found items matching your search criteria. Try adjusting your filters.
                             </p>
@@ -134,7 +134,7 @@ export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
                             <div className="bg-muted/30 p-4 rounded-full mb-4">
                                 <Search className="w-8 h-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold">No found items found</h3>
+                            <h3 className="text-lg font-semibold">No items found</h3>
                             <p className="text-muted-foreground max-w-sm mt-2">
                                 We couldn't find any found items matching your search criteria. Try adjusting your filters.
                             </p>
@@ -157,7 +157,7 @@ export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
                             <div className="bg-muted/30 p-4 rounded-full mb-4">
                                 <Search className="w-8 h-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold">No lost items found</h3>
+                            <h3 className="text-lg font-semibold">No items found</h3>
                             <p className="text-muted-foreground max-w-sm mt-2">
                                 We couldn't find any lost items matching your search criteria. Try adjusting your filters.
                             </p>

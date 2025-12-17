@@ -224,6 +224,32 @@ export async function updateItem(itemId: string, data: Record<string, any>, toke
     }
 }
 
+// DELETE: Delete an item
+export async function deleteItem(itemId: string, token?: string) {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}`, {
+            method: "DELETE",
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        });
+
+        if (res.status === 401) throw new UnauthorizedError();
+
+        if (!res.ok) {
+            console.error("deleteItem failed:", res.status);
+            return { ok: false, status: res.status };
+        }
+
+        return { ok: true };
+    } catch (err) {
+        if (err instanceof UnauthorizedError) throw err;
+
+        console.error("deleteItem error:", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
 // POST: Set User Hostel
 export const setHostel = async (hostel: string, token?: string) => {
     try {
