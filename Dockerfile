@@ -9,6 +9,10 @@ RUN npm ci
 # Copy source
 COPY . .
 
+# Accept build arg with default value for local development
+ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+
 # Build with envs injected by Docker
 RUN npm run build
 

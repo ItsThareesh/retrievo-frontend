@@ -15,15 +15,29 @@ async function safeJson(res: Response) {
     }
 }
 
+// Helper function to get the correct backend URL
+// For server-side requests in Docker, use internal service name
+// For client-side requests, always use the public URL
+export function getBackendUrl() {
+    const publicUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+    // Check if we're running server-side in Docker
+    if (typeof window === "undefined" && process.env.DOCKER === "true") {
+        // Server-side in Docker: use internal service name
+        return "http://backend:8000";
+    }
+
+    // Client-side or local development: use public URL
+    return publicUrl;
+}
+
 // POST: Lost or Found Item
 export async function postLostFoundItem(
     formData: FormData,
     token?: string
 ) {
-    const endpoint = `${process.env.NEXT_PUBLIC_BACKEND_URL}/items/`
-
     try {
-        const res = await fetch(endpoint, {
+        const res = await fetch(`${getBackendUrl()}/items/`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -50,7 +64,7 @@ export async function postLostFoundItem(
 // GET: All Items
 export async function fetchAllItems(token?: string) {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/items/all`, {
+        const res = await fetch(`${getBackendUrl()}/items/all`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
@@ -81,7 +95,7 @@ export async function fetchAllItems(token?: string) {
 export async function fetchItem(itemId: string, token?: string) {
     try {
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}`, {
+            `${getBackendUrl()}/items/${itemId}`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             }
@@ -102,7 +116,7 @@ export async function fetchItem(itemId: string, token?: string) {
 // GET: All Items for a Specific User
 export async function fetchAllUserItems(token?: string) {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/profile/my-items`, {
+        const res = await fetch(`${getBackendUrl()}/profile/my-items`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -133,7 +147,7 @@ export async function fetchAllUserItems(token?: string) {
 // GET: User Profile Information
 export const fetchUserProfile = async (user_id?: string) => {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/profile/${user_id}`);
+        const res = await fetch(`${getBackendUrl()}/profile/${user_id}`);
 
         if (!res.ok) {
             console.error("fetchUserProfile failed:", res.status);
@@ -158,7 +172,7 @@ export const fetchUserProfile = async (user_id?: string) => {
 // PATCH: Update single item fields
 export async function updateItem(itemId: string, data: Record<string, any>, token?: string) {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}`, {
+        const res = await fetch(`${getBackendUrl()}/items/${itemId}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -186,7 +200,7 @@ export async function updateItem(itemId: string, data: Record<string, any>, toke
 // DELETE: Delete an item
 export async function deleteItem(itemId: string, token?: string) {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}`, {
+        const res = await fetch(`${getBackendUrl()}/items/${itemId}`, {
             method: "DELETE",
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -212,7 +226,7 @@ export async function deleteItem(itemId: string, token?: string) {
 // POST: Set User Hostel
 export const setHostel = async (hostel: string, token?: string) => {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/profile/set-hostel/${hostel}`, {
+        const res = await fetch(`${getBackendUrl()}/profile/set-hostel/${hostel}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

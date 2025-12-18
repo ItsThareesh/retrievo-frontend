@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import { getBackendUrl } from "./lib/api";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -27,7 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             try {
                 // Returns access token and user ID from backend
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google`, {
+                const res = await fetch(`${getBackendUrl()}/auth/google`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id_token: account.id_token })
@@ -65,7 +66,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             try {
                 if (session.backendToken) {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/profile/me`, {
+                    const res = await fetch(`${getBackendUrl()}/profile/me`, {
                         headers: { Authorization: `Bearer ${session.backendToken}` },
                     });
 

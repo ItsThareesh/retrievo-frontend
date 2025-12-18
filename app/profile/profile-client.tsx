@@ -60,8 +60,6 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
         try {
             const res = await setHostel(hostelType, currentSession.backendToken);
 
-            console.log(res);
-
             // Refresh the session to get updated gender field
             if (res.ok) {
                 await update();
