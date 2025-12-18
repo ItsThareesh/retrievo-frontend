@@ -150,8 +150,8 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
                     <Tabs defaultValue="all" className="w-full">
                         <TabsList className="flex w-full max-w-md mx-auto mb-8">
                             <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
-                            <TabsTrigger value="lost" className="flex-1">Lost</TabsTrigger>
                             <TabsTrigger value="found" className="flex-1">Found</TabsTrigger>
+                            <TabsTrigger value="lost" className="flex-1">Lost</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="all" className="space-y-6 animate-in fade-in-50 duration-500">

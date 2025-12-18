@@ -57,7 +57,7 @@ export function ItemCard({ item, type }: ItemCardProps) {
             <CardFooter className="p-5 pt-0">
                 <Button asChild className="w-full group/btn" variant="outline">
                     <Link
-                        href={`/items/${item.id}/${type}`}
+                        href={`/items/${item.id}`}
                         className="flex items-center justify-center gap-2"
                     >
                         View Details

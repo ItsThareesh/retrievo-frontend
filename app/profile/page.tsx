@@ -4,6 +4,7 @@ import { fetchAllUserItems, UnauthorizedError } from '@/lib/api';
 import { Item } from '@/types/item';
 import { redirect } from 'next/navigation';
 import { SessionProvider } from 'next-auth/react';
+import { formatDate } from '@/lib/date-formatting';
 
 export default async function ProfilePage() {
     const session = await auth();
@@ -19,8 +20,8 @@ export default async function ProfilePage() {
         // Returns all items for a user in a single array
         const res = await fetchAllUserItems(session.backendToken);
 
-        lostItems = res.data.lost_items;
-        foundItems = res.data.found_items;
+        lostItems = res.data.lost_items.map(formatDate);
+        foundItems = res.data.found_items.map(formatDate);
     } catch (err) {
         if (err instanceof UnauthorizedError) {
             redirect('/auth/signin?callbackUrl=/profile');

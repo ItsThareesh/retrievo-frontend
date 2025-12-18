@@ -31,6 +31,15 @@ export async function Navbar() {
                     </div>
                 </div>
 
+                <div className="flex md:hidden items-center gap-8">
+                    <Button asChild size="sm" className="gap-2">
+                        <Link href="/report">
+                            <PlusCircle className="w-4 h-4" />
+                            Report Item
+                        </Link>
+                    </Button>
+                </div>
+
                 <div className="flex items-center gap-4">
                     <LoginButton session={session} />
                 </div>

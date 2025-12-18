@@ -14,18 +14,6 @@ interface ItemsBrowseProps {
     foundItems: Item[];
 }
 
-// Helper function to format item data
-function formatItem(item: Item) {
-    const formattedDate = new Date(item.date)
-        .toLocaleDateString("en-GB")
-        .replace(/\//g, "-");
-
-    return {
-        ...item,
-        date: formattedDate,
-    };
-}
-
 export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -44,8 +32,11 @@ export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
         });
     };
 
-    const filteredLostItems = filterItems(lostItems).map(formatItem);
-    const filteredFoundItems = filterItems(foundItems).map(formatItem);
+    const filteredLostItems = filterItems(lostItems);
+    const filteredFoundItems = filterItems(foundItems);
+
+    let userItems = [...filteredFoundItems, ...filteredLostItems];
+    userItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Sort by lost/found date in descending order
 
     return (
         <>
@@ -81,11 +72,43 @@ export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
                 </div>
             </div>
 
-            <Tabs defaultValue="found" className="w-full">
-                <TabsList className="grid w-full max-w-md grid-cols-2 mb-8 bg-muted/50 p-1 mx-auto">
-                    <TabsTrigger value="found" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Found Items</TabsTrigger>
-                    <TabsTrigger value="lost" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Lost Items</TabsTrigger>
+            <Tabs defaultValue="all" className="w-full">
+                <TabsList className="flex w-full max-w-md mx-auto mb-8">
+                    <TabsTrigger value="all" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                        All Items
+                    </TabsTrigger>
+                    <TabsTrigger value="found" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                        Found Items
+                    </TabsTrigger>
+                    <TabsTrigger value="lost" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                        Lost Items
+                    </TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="all" className="space-y-6 animate-in fade-in-50 duration-500">
+                    {userItems.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {userItems.map((item) => (
+                                <div key={item.id} className="relative group">
+                                    <ItemCard item={item} type={item.type} />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-muted/10 border-dashed">
+                            <div className="bg-muted/30 p-4 rounded-full mb-4">
+                                <Search className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-lg font-semibold">No items found</h3>
+                            <p className="text-muted-foreground max-w-sm mt-2">
+                                We couldn't find any found items matching your search criteria. Try adjusting your filters.
+                            </p>
+                            <Button variant="link" onClick={() => { setSearchQuery(''); setCategoryFilter('all') }} className="mt-4">
+                                Clear all filters
+                            </Button>
+                        </div>
+                    )}
+                </TabsContent>
 
                 <TabsContent value="found" className="space-y-4 animate-in fade-in-50 duration-500">
                     {filteredFoundItems.length > 0 ? (
@@ -99,7 +122,7 @@ export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
                             <div className="bg-muted/30 p-4 rounded-full mb-4">
                                 <Search className="w-8 h-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold">No found items found</h3>
+                            <h3 className="text-lg font-semibold">No items found</h3>
                             <p className="text-muted-foreground max-w-sm mt-2">
                                 We couldn't find any found items matching your search criteria. Try adjusting your filters.
                             </p>
@@ -122,7 +145,7 @@ export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
                             <div className="bg-muted/30 p-4 rounded-full mb-4">
                                 <Search className="w-8 h-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-semibold">No lost items found</h3>
+                            <h3 className="text-lg font-semibold">No items found</h3>
                             <p className="text-muted-foreground max-w-sm mt-2">
                                 We couldn't find any lost items matching your search criteria. Try adjusting your filters.
                             </p>

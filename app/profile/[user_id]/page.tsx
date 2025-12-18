@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchUserProfile } from '@/lib/api';
+import { formatDate } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
 import { User } from '@/types/user';
 
@@ -17,10 +18,9 @@ export default async function UserPage({ params }: { params: Promise<{ user_id: 
         // Returns all details for a user with items in a single array
         const res = await fetchUserProfile(user_id);
 
-        user = res.user;
-        const allItems: Item[] = res.items ?? [];
-        foundItems = allItems.filter(item => item.type === 'found');
-        lostItems = allItems.filter(item => item.type === 'lost');
+        user = res.data.user;
+        foundItems = res.data.found_items.map(formatDate);
+        lostItems = res.data.lost_items.map(formatDate);
     } catch (err) {
         console.error("Error fetching user profile items:", err);
         throw err;
@@ -70,8 +70,8 @@ export default async function UserPage({ params }: { params: Promise<{ user_id: 
                     <Tabs defaultValue="all" className="w-full">
                         <TabsList className="flex w-full max-w-md mx-auto mb-8">
                             <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
-                            <TabsTrigger value="lost" className="flex-1">Lost</TabsTrigger>
                             <TabsTrigger value="found" className="flex-1">Found</TabsTrigger>
+                            <TabsTrigger value="lost" className="flex-1">Lost</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="all" className="space-y-6 animate-in fade-in-50 duration-500">
@@ -90,20 +90,6 @@ export default async function UserPage({ params }: { params: Promise<{ user_id: 
                             )}
                         </TabsContent>
 
-                        <TabsContent value="lost" className="space-y-6 animate-in fade-in-50 duration-500">
-                            {lostItems.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {lostItems.map((item) => (
-                                        <ItemCard key={item.id} item={item} type="lost" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
-                                    <p className="text-muted-foreground">No lost items reported.</p>
-                                </div>
-                            )}
-                        </TabsContent>
-
                         <TabsContent value="found" className="space-y-6 animate-in fade-in-50 duration-500">
                             {foundItems.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -114,6 +100,20 @@ export default async function UserPage({ params }: { params: Promise<{ user_id: 
                             ) : (
                                 <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
                                     <p className="text-muted-foreground">No found items reported.</p>
+                                </div>
+                            )}
+                        </TabsContent>
+
+                        <TabsContent value="lost" className="space-y-6 animate-in fade-in-50 duration-500">
+                            {lostItems.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {lostItems.map((item) => (
+                                        <ItemCard key={item.id} item={item} type="lost" />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                    <p className="text-muted-foreground">No lost items reported.</p>
                                 </div>
                             )}
                         </TabsContent>

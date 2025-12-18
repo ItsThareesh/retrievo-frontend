@@ -60,7 +60,7 @@ export async function fetchAllItems(token?: string) {
             console.error("fetchAllItems failed:", res.status);
             return {
                 ok: false,
-                data: { lost_items: [], found_items: [] },
+                data: { items: [] },
                 status: res.status,
             };
         }
@@ -71,17 +71,17 @@ export async function fetchAllItems(token?: string) {
 
         return {
             ok: false,
-            data: { lost_items: [], found_items: [] },
+            data: { items: [] },
             error: String(err),
         };
     }
 }
 
 // GET: Single Item by ID and Type along with Reporter Info
-export async function fetchItem(itemId: string, itemType: string, token?: string) {
+export async function fetchItem(itemId: string, token?: string) {
     try {
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}/${itemType}`, {
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             }
@@ -89,13 +89,13 @@ export async function fetchItem(itemId: string, itemType: string, token?: string
 
         if (!res.ok) {
             console.error("fetchItem failed:", res.status);
-            return null;
+            return { ok: false, data: null, status: res.status };
         }
 
-        return await safeJson(res);
+        return { ok: true, data: await safeJson(res) };
     } catch (err) {
         console.error("fetchItem error:", err);
-        return null;
+        return { ok: false, data: null, error: String(err) };
     }
 }
 
@@ -130,47 +130,6 @@ export async function fetchAllUserItems(token?: string) {
     }
 }
 
-// GET: Found Items by Category for a Specific User
-export async function fetchFoundUserItems(
-    lostItemCategory: string,
-    token?: string
-) {
-    const VALID_CATEGORIES = [
-        "electronics",
-        "clothing",
-        "bags",
-        "keys-wallets",
-        "documents",
-        "others",
-    ];
-
-    if (!VALID_CATEGORIES.includes(lostItemCategory)) {
-        console.error("Invalid category:", lostItemCategory);
-        return { items: [] };
-    }
-
-    try {
-        const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/profile/found-items?category=${lostItemCategory}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (res.status === 401) throw new UnauthorizedError();
-
-        if (!res.ok) {
-            console.error("fetchFoundUserItems failed:", res.status);
-            return { items: [] };
-        }
-
-        return await safeJson(res);
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("fetchFoundUserItems error:", err);
-        return { items: [] };
-    }
-}
-
 // GET: User Profile Information
 export const fetchUserProfile = async (user_id?: string) => {
     try {
@@ -178,13 +137,75 @@ export const fetchUserProfile = async (user_id?: string) => {
 
         if (!res.ok) {
             console.error("fetchUserProfile failed:", res.status);
-            return null;
+            return {
+                ok: false,
+                data: {
+                    user: null,
+                    lost_items: [],
+                    found_items: [],
+                },
+                status: res.status,
+            }
         }
 
-        return await safeJson(res);
+        return { ok: true, data: await safeJson(res) };
     } catch (err) {
         console.error("fetchUserProfile error:", err);
-        return null;
+        return { ok: false, data: null, error: String(err) };
+    }
+}
+
+// PATCH: Update single item fields
+export async function updateItem(itemId: string, data: Record<string, any>, token?: string) {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (res.status === 401) throw new UnauthorizedError();
+
+        if (!res.ok) {
+            console.error("updateItem failed:", res.status);
+            return { ok: false, status: res.status };
+        }
+
+        return { ok: true, data: await safeJson(res) };
+    } catch (err) {
+        if (err instanceof UnauthorizedError) throw err;
+
+        console.error("updateItem error:", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+// DELETE: Delete an item
+export async function deleteItem(itemId: string, token?: string) {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/items/${itemId}`, {
+            method: "DELETE",
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        });
+
+        if (res.status === 401) throw new UnauthorizedError();
+
+        if (!res.ok) {
+            console.error("deleteItem failed:", res.status);
+            return { ok: false, status: res.status };
+        }
+
+        return { ok: true };
+    } catch (err) {
+        if (err instanceof UnauthorizedError) throw err;
+
+        console.error("deleteItem error:", err);
+        return { ok: false, error: String(err) };
     }
 }
 

@@ -99,10 +99,10 @@ export function ItemFormClient({ session }: ItemFormClientProps) {
             }
 
             alert("Item reported successfully!");
-            router.push(`/items/${res.data}/${values.item_type}`);
+            router.push(`/items/${res.data}`);
         } catch (error) {
             if (error instanceof UnauthorizedError) {
-                router.push(`/auth/signin?callbackUrl=/${values.item_type}/new`);
+                router.push("/auth/signin?callbackUrl=/report");
             }
             throw error;
         } finally {
