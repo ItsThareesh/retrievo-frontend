@@ -45,11 +45,11 @@ import { stat } from "fs";
 interface ItemEditableProps {
     item: Item;
     reporter: UserType;
-    status: 'none' | 'pending' | 'approved' | 'rejected';
+    claim_status: 'none' | 'pending' | 'approved' | 'rejected';
     session: Session | null;
 }
 
-export default function ItemEditable({ item, reporter, status, session }: ItemEditableProps) {
+export default function ItemEditable({ item, reporter, claim_status, session }: ItemEditableProps) {
     const router = useRouter();
 
     const [isEditing, setIsEditing] = useState(false);
@@ -60,7 +60,7 @@ export default function ItemEditable({ item, reporter, status, session }: ItemEd
     const [claimText, setClaimText] = useState("")
     const [isSubmittingClaim, setIsSubmittingClaim] = useState(false)
 
-    const [myClaimStatus, setMyClaimStatus] = useState(status);
+    const [myClaimStatus, setMyClaimStatus] = useState(claim_status);
 
     const [formData, setFormData] = useState({
         title: item.title ?? "",
@@ -72,7 +72,7 @@ export default function ItemEditable({ item, reporter, status, session }: ItemEd
     });
 
     const canEdit = !!session && reporter.public_id === session.user?.public_id;
-    const canClaim = item.type === "found" && !canEdit && myClaimStatus === 'none';
+    const canClaim = item.type === "found" && myClaimStatus === "none";
 
     const handleSave = async () => {
         setIsSaving(true);
