@@ -75,6 +75,7 @@ export function NotificationsDropdown({ count: initialCount }: NotificationsDrop
         if (res.ok) {
             // Success toast
             toast.success("All notifications marked as read");
+            setIsOpen(false);
         }
     }
 
