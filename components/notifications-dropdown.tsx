@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Bell, Check, Info, AlertTriangle, Ban, X, CheckCheck, Inbox } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Bell, Check, Info, AlertTriangle, Ban, X, CheckCheck, Inbox, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -15,67 +15,67 @@ import { cn } from "@/lib/utils"
 import { Notification, NotificationType } from "@/types/notification"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { getNotifications, readAllNotifications, readNotification } from "@/lib/api/client"
+import { toast } from "sonner"
 
-// Mock data generator
-const MOCK_NOTIFICATIONS: Notification[] = [
-    {
-        id: "1",
-        type: "claim_approved",
-        title: "Claim Approved",
-        message: "Your claim for 'Blue Umbrella' has been approved. You can pick it up at the Student Center.",
-        item_id: "item-123",
-        is_read: false,
-        created_at: new Date().toISOString(),
-    },
-    {
-        id: "2",
-        type: "system_notice",
-        title: "Maintenance Scheduled",
-        message: "The platform will be down for maintenance on Saturday from 2 AM to 4 AM.",
-        is_read: false,
-        created_at: new Date(Date.now() - 3600000 * 5).toISOString(), // 5 hours ago
-    },
-    {
-        id: "3",
-        type: "claim_rejected",
-        title: "Claim Rejected",
-        message: "Your claim for 'Calculus Textbook' was rejected. Please provide more proof of ownership.",
-        item_id: "item-456",
-        is_read: true,
-        created_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-    },
-    {
-        id: "4",
-        type: "ban_warning",
-        title: "Account Warning",
-        message: "Multiple failed claim attempts detected. Please review our community guidelines.",
-        is_read: false,
-        created_at: new Date(Date.now() - 86400000 * 0.5).toISOString(), // 12 hours ago
-    },
-    {
-        id: "5",
-        type: "claim_created",
-        title: "New Claim Submitted",
-        message: "A new claim has been submitted for your reported item 'Red Backpack'.",
-        item_id: "item-789",
-        is_read: false,
-        created_at: new Date(Date.now() - 3600000 * 10).toISOString(), // 10 hours ago
+interface NotificationsDropdownProps {
+    count: number
+}
+
+export function NotificationsDropdown({ count: initialCount }: NotificationsDropdownProps) {
+    const [isOpen, setIsOpen] = useState(false)
+    const [notifications, setNotifications] = useState<Notification[]>([])
+    const [isLoading, setIsLoading] = useState(false)
+    const [unreadCount, setUnreadCount] = useState(initialCount)
+    const [hasFetched, setHasFetched] = useState(false)
+
+    // Sync unread count if initialCount changes from parent (SSR)
+    useEffect(() => {
+        setUnreadCount(initialCount)
+    }, [initialCount])
+
+    const fetchNotifications = async () => {
+        if (hasFetched) return
+
+        setIsLoading(true)
+        try {
+            const res = await getNotifications();
+
+            setNotifications(res.data.notifications);
+            setHasFetched(true);
+        } catch (error) {
+            console.error("Failed to fetch notifications", error);
+        } finally {
+            setIsLoading(false);
+        }
     }
-]
 
-export function NotificationsDropdown() {
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
+    const onOpenChange = (open: boolean) => {
+        setIsOpen(open)
+        if (open) {
+            fetchNotifications()
+        }
+    }
 
-    const unreadCount = notifications.filter((n) => !n.is_read).length
-
-    const markAsRead = (id: string) => {
+    const markAsRead = async (id: string) => {
         setNotifications((prev) =>
             prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
         )
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+
+        await readNotification(id);
     }
 
-    const markAllAsRead = () => {
+    const markAllAsRead = async () => {
         setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+        setUnreadCount(0);
+
+        const res = await readAllNotifications();
+
+        if (res.ok) {
+            // Success toast
+            toast.success("All notifications marked as read");
+        }
     }
 
     const getIcon = (type: NotificationType) => {
@@ -99,7 +99,9 @@ export function NotificationsDropdown() {
                 "flex items-start gap-3 p-3 cursor-pointer focus:bg-muted/50 rounded-lg my-1 transition-colors",
                 !notification.is_read && "bg-muted/30"
             )}
-            onClick={() => markAsRead(notification.id)}
+            onClick={(e) => {
+                markAsRead(notification.id)
+            }}
         >
             <div className="mt-0.5 shrink-0">
                 {getIcon(notification.type)}
@@ -134,24 +136,26 @@ export function NotificationsDropdown() {
         </DropdownMenuItem>
     )
 
-    const EmptyState = ({ type }: { type: 'all' | 'unread' }) => (
+    const EmptyState = ({ message }: { message: string }) => (
         <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-2">
             <div className="bg-muted/50 p-3 rounded-full">
                 <Inbox className="h-6 w-6 text-muted-foreground/50" />
             </div>
             <p className="text-sm font-medium text-muted-foreground">
-                {type === 'all' ? "No notifications yet" : "No unread notifications"}
+                {message}
             </p>
-            {type === 'unread' && (
-                <Button variant="link" size="sm" className="text-xs h-auto p-0">
-                    View all notifications
-                </Button>
-            )}
+        </div>
+    )
+
+    const LoadingState = () => (
+        <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-2">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />
+            <p className="text-xs text-muted-foreground">Loading notifications...</p>
         </div>
     )
 
     return (
-        <DropdownMenu>
+        <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
@@ -162,22 +166,17 @@ export function NotificationsDropdown() {
 
                     {unreadCount > 0 && (
                         unreadCount < 10 ? (
-                            <span className="absolute -top-0.5 -right-0.5 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-medium flex items-center justify-center ring-2 ring-background">
+                            <span className="absolute -top-0.5 -right-0.5 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-medium flex items-center justify-center ring-2 ring-background animate-in zoom-in duration-300">
                                 {unreadCount}
                             </span>
                         ) : (
-                            <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background" />
+                            <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background animate-in zoom-in duration-300" />
                         )
                     )}
-
-                    <span className="sr-only">
-                        {unreadCount > 0
-                            ? `You have ${unreadCount} unread notifications`
-                            : "Notifications"}
-                    </span>
+                    <span className="sr-only">Notifications</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[380px] p-0 overflow-hidden shadow-lg border-border/60">
+            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-[380px] p-0 overflow-hidden shadow-lg border-border/60">
                 <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/10">
                     <h2 className="font-semibold text-sm">Notifications</h2>
                     {unreadCount > 0 && (
@@ -209,9 +208,11 @@ export function NotificationsDropdown() {
                     </div>
 
                     <TabsContent value="all" className="mt-0">
-                        <div className="max-h-[400px] overflow-y-auto px-2 py-1">
-                            {notifications.length === 0 ? (
-                                <EmptyState type="all" />
+                        <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto px-2 py-1 custom-scrollbar">
+                            {isLoading && !hasFetched ? (
+                                <LoadingState />
+                            ) : notifications.length === 0 ? (
+                                <EmptyState message="No notifications yet" />
                             ) : (
                                 notifications.map((notification) => (
                                     <NotificationItem key={notification.id} notification={notification} />
@@ -221,9 +222,11 @@ export function NotificationsDropdown() {
                     </TabsContent>
 
                     <TabsContent value="unread" className="mt-0">
-                        <div className="max-h-[400px] overflow-y-auto px-2 py-1">
-                            {notifications.filter((n) => !n.is_read).length === 0 ? (
-                                <EmptyState type="unread" />
+                        <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto px-2 py-1 custom-scrollbar">
+                            {isLoading && !hasFetched ? (
+                                <LoadingState />
+                            ) : notifications.filter((n) => !n.is_read).length === 0 ? (
+                                <EmptyState message="No unread notifications" />
                             ) : (
                                 notifications
                                     .filter((n) => !n.is_read)

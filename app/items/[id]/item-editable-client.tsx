@@ -72,7 +72,7 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
     });
 
     const canEdit = !!session && reporter.public_id === session.user?.public_id;
-    const canClaim = item.type === "found" && myClaimStatus === "none";
+    const canClaim = item.type === "found" && myClaimStatus === "none" && !canEdit;
 
     const handleSave = async () => {
         setIsSaving(true);

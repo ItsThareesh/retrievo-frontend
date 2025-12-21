@@ -9,9 +9,6 @@ RUN npm ci
 # Copy source
 COPY . .
 
-ARG NEXT_PUBLIC_BACKEND_URL
-ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
-
 # Build with envs injected by Docker
 RUN npm run build
 
