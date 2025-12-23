@@ -23,10 +23,11 @@ export function ImageViewer({ src, alt, children }: ImageViewerProps) {
                     {children}
                 </div>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] max-h-[95vh] min-w-[60vw] min-h-[60vh] w-auto h-auto p-0 bg-transparent border-none shadow-none flex items-center justify-center overflow-hidden" showCloseButton={false}>
+            <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center" showCloseButton={false}>
                 <DialogTitle className="sr-only">Image Viewer</DialogTitle>
-                <div className="relative flex items-center justify-center w-full h-full">
-                    <DialogClose className="absolute top-4 right-4 z-50 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition-colors cursor-pointer">
+
+                <div className="relative inline-flex items-center justify-center">
+                    <DialogClose className="absolute top-3 right-3 z-50 rounded-full bg-black/60 p-2 text-white hover:bg-black/80 transition-colors">
                         <X className="h-5 w-5" />
                         <span className="sr-only">Close</span>
                     </DialogClose>
@@ -34,10 +35,10 @@ export function ImageViewer({ src, alt, children }: ImageViewerProps) {
                     <img
                         src={src}
                         alt={alt}
-                        className="max-w-full max-h-[90vh] object-contain rounded-md shadow-2xl"
+                        className="object-contain max-w-[min(800px,90vw)] max-h-[min(600px,85vh)] rounded-md shadow-2xl"
                     />
                 </div>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     )
 }

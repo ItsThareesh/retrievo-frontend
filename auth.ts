@@ -14,11 +14,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (!profile?.email) return "/auth/error?error=NoEmail";
 
             // Domain check
-            const email = profile.email.toLowerCase();
+            // const email = profile.email.toLowerCase();
 
-            if (!email.endsWith('nitc.ac.in')) {
-                return "/auth/error?error=AccessDenied";
-            }
+            // if (!email.endsWith('nitc.ac.in')) {
+            //     return "/auth/error?error=AccessDenied";
+            // }
 
             // ID must exist for secure backend verification
             if (!account?.id_token) {
@@ -42,6 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // Attach to account (will be available in jwt callback)
                 account.backendToken = data.access_token;
+                account.tokenExpires = data.expires_at;
 
                 return true;
             }
@@ -55,6 +56,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // On initial sign in, account and profile are available
             if (account && profile) {
                 token.backendToken = account.backendToken;
+                token.tokenExpires = account.tokenExpires;
+            }
+
+            // Check if token needs refresh (refresh 10 minutes before expiry)
+            if (token.backendToken && token.tokenExpires) {
+                const now = Math.floor(Date.now() / 1000);
+                const timeUntilExpiry = Number(token.tokenExpires) - now;
+                const REFRESH_WINDOW = 10 * 60; // 10 minutes
+
+                // If token expires in less than 10 minutes, refresh it
+                if (timeUntilExpiry <= REFRESH_WINDOW) {
+                    try {
+                        const res = await fetch(`${process.env.INTERNAL_BACKEND_URL}/auth/refresh`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ token: token.backendToken })
+                        });
+
+                        if (res.ok) {
+                            const data = await res.json();
+                            token.backendToken = data.access_token;
+                            token.tokenExpires = data.expires_at;
+                        } else {
+                            console.error("Token refresh failed:", res.status);
+                            // Token refresh failed - keep existing token
+                        }
+                    } catch (err) {
+                        console.error("Token refresh error:", err);
+                        // On error, keep existing token
+                    }
+                }
             }
 
             return token;
@@ -62,6 +94,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         async session({ session, token }) {
             session.backendToken = token.backendToken as string;
+            session.tokenExpires = token.tokenExpires as number;
+
+            if (!session.backendToken) {
+                return session;
+            }
 
             try {
                 if (session.backendToken) {

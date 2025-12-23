@@ -1,16 +1,16 @@
 import { auth } from '@/auth';
-import { ItemFormClient } from '@/components/item-form-client';
+import { ItemFormClient } from './item-form-client';
 import { redirect } from 'next/navigation';
 
 export default async function ReportPage() {
     const session = await auth();
 
-    if (session?.user.hostel === null) {
-        redirect(`/profile?reason=hostel_required`);
-    }
-
     if (!session) {
         redirect(`/auth/signin?callbackUrl=/report`);
+    }
+
+    if (session?.user.hostel === null) {
+        redirect(`/profile?reason=hostel_required`);
     }
 
     return (

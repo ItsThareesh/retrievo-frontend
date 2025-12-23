@@ -1,9 +1,11 @@
 import { safeJson, UnauthorizedError } from "./helpers";
 
+const BACKEND_URL = process.env.INTERNAL_BACKEND_URL;
+
 // GET: All Items
 export async function fetchAllItems(token?: string) {
     try {
-        const res = await fetch(`${process.env.INTERNAL_BACKEND_URL}/items/all`, {
+        const res = await fetch(`${BACKEND_URL}/items/all`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
@@ -30,11 +32,11 @@ export async function fetchAllItems(token?: string) {
     }
 }
 
-// GET: Single Item by ID and Type along with Reporter Info
+// GET: Single Item by ID along with Reporter Info and Claim Status
 export async function fetchItem(itemId: string, token?: string) {
     try {
         const res = await fetch(
-            `${process.env.INTERNAL_BACKEND_URL}/items/${itemId}`, {
+            `${BACKEND_URL}/items/${itemId}`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             }
@@ -52,10 +54,10 @@ export async function fetchItem(itemId: string, token?: string) {
     }
 }
 
-// GET: All Items for a Specific User
+// GET: All Items for a Current User
 export async function fetchAllUserItems(token?: string) {
     try {
-        const res = await fetch(`${process.env.INTERNAL_BACKEND_URL}/profile/my-items`, {
+        const res = await fetch(`${BACKEND_URL}/profile/items`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -84,9 +86,11 @@ export async function fetchAllUserItems(token?: string) {
 }
 
 // GET: User Profile Information
-export const fetchUserProfile = async (user_id?: string) => {
+export async function fetchUserProfile(public_id: string, token?: string) {
     try {
-        const res = await fetch(`${process.env.INTERNAL_BACKEND_URL}/profile/${user_id}`);
+        const res = await fetch(`${BACKEND_URL}/profile/${public_id}`, {
+            headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
 
         if (!res.ok) {
             console.error("fetchUserProfile failed:", res.status);
@@ -105,5 +109,25 @@ export const fetchUserProfile = async (user_id?: string) => {
     } catch (err) {
         console.error("fetchUserProfile error:", err);
         return { ok: false, data: null, error: String(err) };
+    }
+}
+
+export async function getNotificationsCount(token?: string) {
+    try {
+        const res = await fetch(`${BACKEND_URL}/notifications/count`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+            console.error("getNotificationsCount failed:", res.status);
+            return {
+                ok: false, data: { count: 0 }, status: res.status
+            };
+        }
+
+        return { ok: true, data: await safeJson(res) };
+    } catch (err) {
+        console.error("getNotificationsCount error:", err);
+        return { ok: false, data: { count: 0 }, error: String(err) };
     }
 }

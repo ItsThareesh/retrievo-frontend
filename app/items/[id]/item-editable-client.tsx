@@ -11,17 +11,17 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { MoreHorizontal, Trash2, Calendar, MapPin, Flag, Share2, User, Pencil, X } from "lucide-react";
-import { updateItem, deleteItem } from "@/lib/api/client";
+import { updateItem, deleteItem, createResolution } from "@/lib/api/client";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { ImageViewer } from "@/components/image-viewer";
+import { Textarea } from "@/components/ui/textarea";
 import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Card, CardContent } from "./ui/card";
-import { ImageViewer } from "./image-viewer";
-import { Textarea } from "./ui/textarea";
 import { User as UserType } from "@/types/user";
 import {
     DropdownMenu,
@@ -44,14 +44,22 @@ import { useRouter } from "next/navigation";
 interface ItemEditableProps {
     item: Item;
     reporter: UserType;
+    claim_status: "none" | "pending" | "approved";
     session: Session | null;
 }
 
-export default function ItemEditable({ item, reporter, session }: ItemEditableProps) {
+export default function ItemEditable({ item, reporter, claim_status, session }: ItemEditableProps) {
     const router = useRouter();
+
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    const [isClaiming, setIsClaiming] = useState(false)
+    const [claimText, setClaimText] = useState("")
+    const [isSubmittingClaim, setIsSubmittingClaim] = useState(false)
+
+    const [myClaimStatus, setMyClaimStatus] = useState(claim_status);
 
     const [formData, setFormData] = useState({
         title: item.title ?? "",
@@ -63,8 +71,9 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
     });
 
     const canEdit = !!session && reporter.public_id === session.user?.public_id;
+    const canClaim = item.type === "found" && myClaimStatus === "none" && !canEdit;
 
-    const handleSave = async () => {
+    async function handleSave() {
         setIsSaving(true);
 
         // Calculate diff - only send changed fields
@@ -74,10 +83,9 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
         for (const key of Object.keys(formData) as (keyof typeof formData)[]) {
             const newValue = formData[key];
 
-            const oldValue =
-                key === "date"
-                    ? new Date(item.date).toISOString().slice(0, 10)
-                    : item[key] ?? "";
+            const oldValue = key === "date"
+                ? new Date(item.date).toISOString().slice(0, 10)
+                : item[key] ?? "";
 
             if (newValue !== oldValue) {
                 updates[key] =
@@ -92,7 +100,7 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
             return;
         }
 
-        const res = await updateItem(item.id, updates, session?.backendToken);
+        const res = await updateItem(item.id, updates);
 
         if (res.ok) {
             toast.success("Item updated successfully");
@@ -103,9 +111,9 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
         }
 
         setIsSaving(false);
-    };
+    }
 
-    const handleCancel = () => {
+    function handleCancel() {
         setFormData({
             title: item.title ?? "",
             location: item.location ?? "",
@@ -117,8 +125,8 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
         setIsEditing(false);
     };
 
-    const handleDelete = async () => {
-        const res = await deleteItem(item.id, session?.backendToken);
+    async function handleDelete() {
+        const res = await deleteItem(item.id);
 
         if (res.ok) {
             toast.success("Item deleted successfully");
@@ -128,7 +136,18 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
         }
 
         setIsDeleting(false);
-    };
+    }
+
+    function mapClaimStatusToText(status: string) {
+        switch (status) {
+            case "pending":
+                return "Claim Pending";
+            case "approved":
+                return "Claim Approved";
+            case "rejected":
+                return "Claim Rejected";
+        }
+    }
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
@@ -142,15 +161,23 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
                                 alt={item.title}
                                 className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
                             />
-                            <div className="absolute top-4 left-4">
+                            <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
                                 <Badge
                                     className={`text-lg px-4 py-1.5 shadow-md text-white ${item.type === "lost"
-                                        ? "bg-red-500 hover:bg-red-600 border-red-600"
-                                        : "bg-emerald-500 hover:bg-emerald-600 border-emerald-600"
+                                        ? "bg-red-500 hover:bg-red-600"
+                                        : "bg-emerald-500 hover:bg-emerald-600"
                                         }`}
                                 >
                                     {item.type === "lost" ? "Lost" : "Found"}
                                 </Badge>
+
+                                {claim_status !== "none" && (
+                                    <Badge
+                                        className="text-lg px-4 py-1.5 shadow-md bg-amber-500 text-white hover:bg-amber-600"
+                                    >
+                                        {mapClaimStatusToText(myClaimStatus)}
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                     </ImageViewer>
@@ -406,8 +433,18 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
                         </div>
                     </div>
                     <div className="space-y-3">
-                        {item.type === "found" && !canEdit ? (
-                            <Button size="lg" className="w-full h-12 text-lg shadow-sm mb-6">
+                        {canClaim ? (
+                            <Button
+                                size="lg"
+                                className="w-full h-12 text-lg shadow-sm mb-6"
+                                onClick={() => {
+                                    if (!session) {
+                                        router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
+                                        return
+                                    }
+                                    setIsClaiming(true)
+                                }}
+                            >
                                 This is Mine!
                             </Button>
                         ) : null}
@@ -469,6 +506,62 @@ export default function ItemEditable({ item, reporter, session }: ItemEditablePr
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete permanently
                             {/* </Button> */}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={isClaiming} onOpenChange={setIsClaiming}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Claim this item</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Describe details that prove this item belongs to you.
+                            These details will be shared only with the finder.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <Textarea
+                        value={claimText}
+                        onChange={(e) => setClaimText(e.target.value)}
+                        placeholder="Describe details that prove this item is yours (marks, contents, damage, when you lost it, etc.). Minimum 20 characters."
+                        className="min-h-[120px] resize-none mt-4"
+                        disabled={isSubmittingClaim}
+                    />
+
+                    <AlertDialogFooter className="mt-6">
+                        <AlertDialogCancel asChild>
+                            <Button variant="outline" disabled={isSubmittingClaim}>
+                                Cancel
+                            </Button>
+                        </AlertDialogCancel>
+
+                        <AlertDialogAction
+                            disabled={claimText.trim().length < 20 || isSubmittingClaim}
+                            onClick={async () => {
+                                try {
+                                    setIsSubmittingClaim(true)
+
+                                    const res = await createResolution(item.id, claimText)
+
+                                    if (res.ok) {
+                                        toast.success("Claim sent to finder for verification")
+                                        setMyClaimStatus("pending");
+                                        setIsClaiming(false)
+                                        setClaimText("")
+                                    } else if (res.status == 409) {
+                                        toast.error("You have already submitted a claim for this item.")
+                                    } else {
+                                        toast.error("Failed to submit claim. Please try again.")
+                                    }
+                                } catch {
+                                    toast.error("Failed to submit claim. Please try again.")
+                                } finally {
+                                    setIsSubmittingClaim(false)
+                                }
+                            }}
+                        >
+                            Submit claim
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

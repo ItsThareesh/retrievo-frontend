@@ -11,15 +11,18 @@ declare module "next-auth" {
         } & DefaultSession["user"];
 
         backendToken?: string;
+        tokenExpires?: number;
     }
 
     interface Account {
         backendToken?: string;
+        tokenExpires?: number;
     }
 }
 
 declare module "next-auth/jwt" {
     interface JWT {
         backendToken?: string;
+        tokenExpires?: number;
     }
 }

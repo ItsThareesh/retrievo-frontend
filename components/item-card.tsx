@@ -22,8 +22,8 @@ export function ItemCard({ item, type }: ItemCardProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <Badge
                     className={`absolute top-3 right-3 shadow-sm ${type === 'lost'
-                        ? 'bg-red-500 hover:bg-red-600 text-white border-red-600'
-                        : 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600'
+                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                         }`}
                 >
                     {type === 'lost' ? 'Lost' : 'Found'}

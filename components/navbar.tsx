@@ -3,9 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Search, PlusCircle } from 'lucide-react';
 import { auth } from "@/auth";
 import { LoginButton } from './login-button';
+import { NotificationsDropdown } from './notifications-dropdown';
+import { getNotificationsCount } from '@/lib/api/server';
 
 export async function Navbar() {
     const session = await auth();
+
+    let unreadCount = 0;
+
+    if (session?.backendToken) {
+        const res = await getNotificationsCount(session?.backendToken);
+        unreadCount = res.data.count;
+    }
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -41,6 +50,7 @@ export async function Navbar() {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {session?.user && <NotificationsDropdown count={unreadCount} />}
                     <LoginButton session={session} />
                 </div>
             </div>
