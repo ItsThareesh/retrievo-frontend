@@ -88,8 +88,13 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                 : item[key] ?? "";
 
             if (newValue !== oldValue) {
-                updates[key] =
-                    key === "date" ? new Date(newValue).toISOString() : newValue;
+                if (newValue.trim() === "") {
+                    toast.error(`Field "${key.charAt(0).toUpperCase() + key.slice(1)}" cannot be empty.`);
+                    setIsSaving(false);
+                    return;
+                }
+
+                updates[key] = key === "date" ? new Date(newValue).toISOString() : newValue;
                 hasChanges = true;
             }
         }

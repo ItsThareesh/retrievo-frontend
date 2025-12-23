@@ -1,3 +1,4 @@
+import { auth } from '@/auth';
 import { ItemCard } from '@/components/item-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,8 @@ import { Item } from '@/types/item';
 import { User } from '@/types/user';
 
 export default async function UserPage({ params }: { params: Promise<{ user_id: string; }> }) {
+    const session = await auth();
+
     const { user_id } = await params;
 
     let user: User;
@@ -16,7 +19,9 @@ export default async function UserPage({ params }: { params: Promise<{ user_id: 
 
     try {
         // Returns all details for a user with items in a single array
-        const res = await fetchUserProfile(user_id);
+        const res = await fetchUserProfile(user_id, session?.backendToken);
+
+        console.log(res.data);
 
         user = res.data.user;
         foundItems = res.data.found_items.map(formatDate);
