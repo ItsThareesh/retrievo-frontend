@@ -28,6 +28,7 @@ interface FinderReviewContentProps {
 
 export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
     const router = useRouter();
+
     const [showApproveConfirm, setShowApproveConfirm] = useState(false);
     const [showRejectForm, setShowRejectForm] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
@@ -54,11 +55,6 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
         // Show contact details after approval
         setShowContactDetails(true);
         setShowApproveConfirm(false);
-
-        // Redirect after a short delay
-        setTimeout(() => {
-            router.push("/items");
-        }, 3000);
     }
 
     async function handleReject() {
@@ -178,14 +174,7 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
                                     <h3 className="text-xl font-bold mb-1">{item.title}</h3>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <div>
-                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                            Category
-                                        </p>
-                                        <Badge variant="outline">{item.category}</Badge>
-                                    </div>
-
+                                <div className="space-y-3">
                                     <div>
                                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             Location

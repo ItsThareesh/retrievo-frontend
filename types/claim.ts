@@ -18,5 +18,5 @@ export interface Claim {
 export interface FinderContact {
     name: string;
     email: string;
-    image: string;
+    phone?: string | null;
 }

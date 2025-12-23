@@ -39,8 +39,6 @@ export function NotificationsDropdown({ count: initialCount }: NotificationsDrop
         try {
             const res = await getNotifications();
 
-            console.log(res.data);
-
             setNotifications(res.data.notifications);
             setHasFetched(true);
         } catch (error) {

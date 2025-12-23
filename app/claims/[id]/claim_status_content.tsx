@@ -1,12 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Claim, FinderContact } from "@/types/claim";
 import { Item } from "@/types/item";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, X, Clock, Mail } from "lucide-react";
+import { CheckCircle2, X, Clock, Mail, Phone } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -17,8 +14,6 @@ interface ClaimStatusContentProps {
 }
 
 export function ClaimStatusContent({ claim, item, finderContact }: ClaimStatusContentProps) {
-    const router = useRouter();
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 py-8 px-4">
             <div className="max-w-2xl mx-auto">
@@ -85,19 +80,19 @@ export function ClaimStatusContent({ claim, item, finderContact }: ClaimStatusCo
                                 {/* Contact Card */}
                                 <div className="bg-white dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg p-4 space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <Avatar className="h-12 w-12">
+                                        {/* <Avatar className="h-12 w-12">
                                             <AvatarImage src={finderContact.image} alt={finderContact.name} />
                                             <AvatarFallback className="bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-100">
                                                 {finderContact.name.charAt(0).toUpperCase()}
                                             </AvatarFallback>
-                                        </Avatar>
+                                        </Avatar> */}
                                         <div>
                                             <p className="font-semibold text-green-900 dark:text-green-50">
                                                 {finderContact.name}
                                             </p>
-                                            <p className="text-xs text-green-700 dark:text-green-200">
+                                            {/* <p className="text-xs text-green-700 dark:text-green-200">
                                                 Item Finder
-                                            </p>
+                                            </p> */}
                                         </div>
                                     </div>
 
@@ -111,11 +106,23 @@ export function ClaimStatusContent({ claim, item, finderContact }: ClaimStatusCo
                                                 {finderContact.email}
                                             </a>
                                         </div>
+
+                                        {finderContact.phone && (
+                                            <div className="flex items-center gap-2">
+                                                <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                                <a
+                                                    href={`tel:${finderContact.phone}`}
+                                                    className="text-sm text-green-900 dark:text-green-100 hover:underline"
+                                                >
+                                                    {finderContact.phone}
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 <p className="text-xs text-green-700 dark:text-green-200 mt-3">
-                                    💡 Be respectful and coordinate a safe, public meeting place.
+                                    Be respectful and coordinate a safe, public meeting place.
                                 </p>
                             </div>
                         </div>

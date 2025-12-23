@@ -55,7 +55,7 @@ export async function fetchItem(itemId: string, token?: string) {
 }
 
 // GET: All Items for a Current User
-export async function fetchAllUserItems(token: string) {
+export async function fetchAllUserItems(token?: string) {
     try {
         const res = await fetch(`${BACKEND_URL}/profile/items`, {
             headers: { Authorization: `Bearer ${token}` },
