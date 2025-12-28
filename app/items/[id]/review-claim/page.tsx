@@ -21,7 +21,7 @@ export default async function FinderReviewPage({ params }: { params: Promise<{ i
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">No Pending Claims</h1>
                     <p className="text-muted-foreground mb-6">
-                        There are no pending claims for this item, or you don't have permission to review them.
+                        There are no pending claims for this item, or you already reviewed and resolved it.
                     </p>
                     <a
                         href="/items"

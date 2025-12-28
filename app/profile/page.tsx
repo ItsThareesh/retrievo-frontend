@@ -10,7 +10,9 @@ import { UnauthorizedError } from '@/lib/api/helpers';
 export default async function ProfilePage() {
     const session = await auth();
 
-    if (!session) {
+    const isAuthenticated = session?.user && session.tokenExpires && Date.now() < session.tokenExpires;
+
+    if (!isAuthenticated) {
         redirect('/auth/signin?callbackUrl=/profile');
     }
 

@@ -64,6 +64,8 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
             if (res.ok) {
                 await update();
                 toast.success("Hostel set successfully!");
+
+                console.log("Hostel set to:", session?.user);
             } else {
                 alert("Failed to set hostel. Please try again.");
             }

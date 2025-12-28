@@ -113,12 +113,13 @@ export async function setHostel(hostel: string) {
     }
 
     try {
-        const res = await fetch(`${BACKEND_URL}/profile/set-hostel/${hostel}`, {
+        const res = await fetch(`${BACKEND_URL}/profile/set-hostel`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${session.backendToken}`,
             },
+            body: JSON.stringify({ hostel }),
         });
 
         if (!res.ok) {
@@ -170,7 +171,7 @@ export async function getNotifications() {
     }
 
     try {
-        const res = await fetch(`${BACKEND_URL}/notifications`, {
+        const res = await fetch(`${BACKEND_URL}/notifications/all`, {
             headers: {
                 Authorization: `Bearer ${session.backendToken}`,
             },
@@ -258,7 +259,7 @@ export async function getClaimForReview(itemID: string) {
     }
 
     try {
-        const res = await fetch(`${BACKEND_URL}/resolutions/item/${itemID}`, {
+        const res = await fetch(`${BACKEND_URL}/resolutions/review/${itemID}`, {
             headers: {
                 Authorization: `Bearer ${session.backendToken}`,
             },
@@ -296,7 +297,7 @@ export async function getResolutionStatus(resolutionId: string) {
     }
 
     try {
-        const res = await fetch(`${BACKEND_URL}/resolutions/${resolutionId}`, {
+        const res = await fetch(`${BACKEND_URL}/resolutions/status/${resolutionId}`, {
             headers: {
                 Authorization: `Bearer ${session.backendToken}`,
             },
@@ -365,13 +366,13 @@ export async function rejectClaim(resolutionID: string, rejectionReason: string)
     }
 
     try {
-        const res = await fetch(`${BACKEND_URL}/resolutions/reject`, {
+        const res = await fetch(`${BACKEND_URL}/resolutions/${resolutionID}/reject`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${session.backendToken}`,
             },
-            body: JSON.stringify({ resolutionID: resolutionID, rejection_reason: rejectionReason }),
+            body: JSON.stringify({ rejection_reason: rejectionReason }),
         });
 
         if (!res.ok) {

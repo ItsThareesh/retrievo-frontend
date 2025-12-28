@@ -9,10 +9,12 @@ import { getNotificationsCount } from '@/lib/api/server';
 export async function Navbar() {
     const session = await auth();
 
+    const isAuthenticated = session?.user && session.tokenExpires && Date.now() < session.tokenExpires;
+
     let unreadCount = 0;
 
-    if (session?.backendToken) {
-        const res = await getNotificationsCount(session?.backendToken);
+    if (isAuthenticated && session.backendToken) {
+        const res = await getNotificationsCount(session.backendToken);
         unreadCount = res.data.count;
     }
 
