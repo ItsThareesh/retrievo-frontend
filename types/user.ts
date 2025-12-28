@@ -5,4 +5,5 @@ export interface User {
     public_id: string;
     created_at: string;
     hostel?: string;
+    phone?: string;
 }

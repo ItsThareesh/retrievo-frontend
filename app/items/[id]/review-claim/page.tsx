@@ -10,6 +10,10 @@ export default async function FinderReviewPage({ params }: { params: Promise<{ i
         redirect('/auth/signin?callbackUrl=/items/' + (await params).id + '/review-claim');
     }
 
+    if (!session?.user.phone) {
+        redirect(`/profile?reason=phone_required`);
+    }
+
     const { id: itemId } = await params;
 
     // Fetch the claim for this item - checks current status regardless of notification timestamp

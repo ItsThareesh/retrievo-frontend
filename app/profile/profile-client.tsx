@@ -10,10 +10,11 @@ import { signOut, useSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { Item } from '@/types/item';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { setHostel } from '@/lib/api/client';
+import { setHostel, setPhoneNumber } from '@/lib/api/client';
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 interface ProfileClientProps {
     session: Session;
@@ -23,8 +24,13 @@ interface ProfileClientProps {
 
 export function ProfileClient({ session: initialSession, lostItems, foundItems }: ProfileClientProps) {
     const { data: session, update } = useSession();
-    const [isSettingHostel, setIsSettingHostel] = useState(false);
-    const toastShownRef = useRef(false);
+
+    const [isSavingHostel, isSettingHostel] = useState(false);
+    const [isSavingPhone, isSettingPhone] = useState(false);
+
+    const [phone, setPhone] = useState("");
+
+    const toastShownRef = useRef(false); // To prevent multiple toasts
 
     const params = useSearchParams();
     const reason = params.get("reason");
@@ -33,6 +39,11 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
         if (reason === "hostel_required" && !toastShownRef.current) {
             toast.error("Hostel Required", {
                 description: "Please set your hostel before reporting items.",
+            });
+            toastShownRef.current = true;
+        } else if (reason === "phone_required" && !toastShownRef.current) {
+            toast.error("Phone Number Required", {
+                description: "Please add your phone number before reporting items.",
             });
             toastShownRef.current = true;
         }
@@ -55,24 +66,54 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
     );
 
     const handleSetHostel = async (hostelType: string) => {
-        setIsSettingHostel(true);
+        isSettingHostel(true);
 
         try {
             const res = await setHostel(hostelType);
 
-            if (res.ok) {
-                await update({ hostel: hostelType });
-                toast.success("Hostel set successfully!");
-            } else {
+
+            if (!res.ok) {
                 toast.error("Failed to set hostel. Please try again.");
+                return;
             }
+
+            // It doesn't matter on what data we pass, because we are fetching from backend again to ensure correctness
+            await update({ hostel: hostelType });
+            toast.success("Hostel set successfully!");
         } catch (error) {
             console.error("Error setting hostel:", error);
             toast.error("An error occurred. Please try again.");
         } finally {
-            setIsSettingHostel(false);
+            isSettingHostel(false);
         }
     };
+
+    const handleSetPhone = async () => {
+        if (!phone) {
+            toast.error("Enter a valid phone number");
+            return;
+        }
+
+        isSettingPhone(true);
+
+        try {
+            const res = await setPhoneNumber(phone);
+
+            if (!res.ok) {
+                toast.error("Failed to save phone number. Please try again.");
+                return;
+            }
+
+            // It doesn't matter on what data we pass, because we are fetching from backend again to ensure correctness
+            await update({ phone: phone });
+            toast.success("Phone number saved successfully!");
+        } catch (error) {
+            toast.error("An error occurred. Please try again.");
+            console.error("Error saving phone number:", error);
+        } finally {
+            isSettingPhone(false);
+        }
+    }
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
@@ -107,14 +148,14 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
                                             <Button
                                                 size="sm"
                                                 onClick={() => handleSetHostel("boys")}
-                                                disabled={isSettingHostel}
+                                                disabled={isSavingHostel}
                                             >
                                                 Boys
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 onClick={() => handleSetHostel("girls")}
-                                                disabled={isSettingHostel}
+                                                disabled={isSavingHostel}
                                             >
                                                 Girls
                                             </Button>
@@ -122,6 +163,29 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
 
                                         <p className="text-xs text-muted-foreground leading-tight">
                                             <b>Note:</b> This is for clothing visibility restrictions. It cannot be changed later.
+                                        </p>
+                                    </div>
+                                )}
+                                {!currentSession.user.phone && (
+                                    <div className="border p-3 rounded-md space-y-3">
+                                        <p className="text-sm font-medium">Add Phone Number</p>
+
+                                        <Input
+                                            placeholder="+91xxxxxxxxxx"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                        />
+
+                                        <Button
+                                            size="sm"
+                                            onClick={handleSetPhone}
+                                            disabled={isSavingPhone}
+                                        >
+                                            Save
+                                        </Button>
+
+                                        <p className="text-xs text-muted-foreground">
+                                            This number will be shared only after you accept a claim. <b>It cannot be changed later</b>
                                         </p>
                                     </div>
                                 )}

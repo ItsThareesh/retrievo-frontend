@@ -134,6 +134,37 @@ export async function setHostel(hostel: string) {
     }
 }
 
+// POST: Set User Phone Number
+export async function setPhoneNumber(phone: string) {
+    const session = await auth();
+
+    if (!session?.backendToken) {
+        throw new UnauthorizedError();
+    }
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/profile/set-phone`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.backendToken}`,
+            },
+            body: JSON.stringify({ phone }),
+        });
+
+        if (!res.ok) {
+            console.error("setPhoneNumber failed:", res.status);
+            return { ok: false, status: res.status };
+        }
+
+        return { ok: true };
+    } catch (err) {
+        console.error("setPhoneNumber error:", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+// POST: Create a resolution (claim) for a found item
 export async function createResolution(itemId: string, description: string) {
     const session = await auth();
 

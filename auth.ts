@@ -74,7 +74,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         },
 
-        async jwt({ token, account, profile, trigger, session }) {
+        async jwt({ token, account, profile, trigger }) {
             // On initial sign in, account and profile are available
             if (account && profile) {
                 token.backendToken = account.backendToken;
@@ -106,7 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 }
             }
 
-            // If update() was called, refresh user data from backend containing hostel update
+            // If update() was called, refresh user data from backend containing hostel/phone update
             if (trigger === "update") {
                 if (token.backendToken) {
                     try {
@@ -127,6 +127,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 email: userData.email,
                                 image: userData.image,
                                 hostel: userData.hostel || null,
+                                phone: userData.phone || null,
                             };
                         } else {
                             console.error("Failed to fetch user data, status:", res.status);
@@ -193,6 +194,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     email: string;
                     image: string;
                     hostel: "boys" | "girls" | null;
+                    phone: string | null;
                 };
 
                 session.user = {
@@ -202,6 +204,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     email: userData.email,
                     image: userData.image,
                     hostel: userData.hostel,
+                    phone: userData.phone
                 };
 
                 return session;

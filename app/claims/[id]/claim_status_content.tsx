@@ -90,9 +90,6 @@ export function ClaimStatusContent({ claim, item, finderContact }: ClaimStatusCo
                                             <p className="font-semibold text-green-900 dark:text-green-50">
                                                 {finderContact.name}
                                             </p>
-                                            {/* <p className="text-xs text-green-700 dark:text-green-200">
-                                                Item Finder
-                                            </p> */}
                                         </div>
                                     </div>
 
@@ -107,17 +104,15 @@ export function ClaimStatusContent({ claim, item, finderContact }: ClaimStatusCo
                                             </a>
                                         </div>
 
-                                        {finderContact.phone && (
-                                            <div className="flex items-center gap-2">
-                                                <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                                <a
-                                                    href={`tel:${finderContact.phone}`}
-                                                    className="text-sm text-green-900 dark:text-green-100 hover:underline"
-                                                >
-                                                    {finderContact.phone}
-                                                </a>
-                                            </div>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                            <a
+                                                href={`tel:${finderContact.phone}`}
+                                                className="text-sm text-green-900 dark:text-green-100 hover:underline"
+                                            >
+                                                {finderContact.phone}
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
 
