@@ -74,7 +74,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         },
 
-        async jwt({ token, account, profile }) {
+        async jwt({ token, account, profile, trigger, session }) {
             // On initial sign in, account and profile are available
             if (account && profile) {
                 token.backendToken = account.backendToken;
@@ -103,6 +103,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     }
                 } catch (err) {
                     console.error("Failed to fetch user profile during initial sign-in:", err);
+                }
+            }
+
+            // If update() was called, refresh user data from backend containing hostel update
+            if (trigger === "update") {
+                if (token.backendToken) {
+                    try {
+                        const res = await fetchWithTimeout(
+                            `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
+                            {
+                                headers: { Authorization: `Bearer ${token.backendToken}` },
+                            },
+                            5000
+                        );
+
+                        if (res.ok) {
+                            const userData = await res.json();
+
+                            token.user = {
+                                public_id: userData.public_id,
+                                name: userData.name,
+                                email: userData.email,
+                                image: userData.image,
+                                hostel: userData.hostel || null,
+                            };
+                        } else {
+                            console.error("Failed to fetch user data, status:", res.status);
+                        }
+                    } catch (err) {
+                        console.error("Failed to refresh user profile:", err);
+                    }
                 }
             }
 

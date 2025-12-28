@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ItemCard } from '@/components/item-card';
 import { LogOut } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';  // Add useSession
+import { signOut, useSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { Item } from '@/types/item';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -60,18 +60,15 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
         try {
             const res = await setHostel(hostelType);
 
-            // Refresh the session to get updated gender field
             if (res.ok) {
-                await update();
+                await update({ hostel: hostelType });
                 toast.success("Hostel set successfully!");
-
-                console.log("Hostel set to:", session?.user);
             } else {
-                alert("Failed to set hostel. Please try again.");
+                toast.error("Failed to set hostel. Please try again.");
             }
         } catch (error) {
             console.error("Error setting hostel:", error);
-            alert("An error occurred. Please try again.");
+            toast.error("An error occurred. Please try again.");
         } finally {
             setIsSettingHostel(false);
         }
