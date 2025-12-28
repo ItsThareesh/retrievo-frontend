@@ -6,7 +6,10 @@ import { FinderReviewContent } from "./finder_review_content";
 export default async function FinderReviewPage({ params }: { params: Promise<{ id: string }>; }) {
     const session = await auth();
 
-    if (!session) {
+    const isAuthenticated =
+        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+
+    if (!isAuthenticated) {
         redirect('/auth/signin?callbackUrl=/items/' + (await params).id + '/review-claim');
     }
 

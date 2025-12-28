@@ -5,7 +5,10 @@ import { redirect } from 'next/navigation';
 export default async function ReportPage() {
     const session = await auth();
 
-    if (!session) {
+    const isAuthenticated =
+        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+
+    if (!isAuthenticated) {
         redirect(`/auth/signin?callbackUrl=/report`);
     }
 

@@ -9,7 +9,8 @@ import { getNotificationsCount } from '@/lib/api/server';
 export async function Navbar() {
     const session = await auth();
 
-    const isAuthenticated = session?.user && session.tokenExpires && Date.now() < session.tokenExpires;
+    const isAuthenticated =
+        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
 
     let unreadCount = 0;
 

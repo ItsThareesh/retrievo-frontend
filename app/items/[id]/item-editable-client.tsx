@@ -40,6 +40,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { is } from "date-fns/locale";
 
 interface ItemEditableProps {
     item: Item;
@@ -438,7 +439,10 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                                 size="lg"
                                 className="w-full h-12 text-lg shadow-sm mb-6"
                                 onClick={() => {
-                                    if (!session) {
+                                    const isAuthenticated =
+                                        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+
+                                    if (!isAuthenticated) {
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
                                         return
                                     }
