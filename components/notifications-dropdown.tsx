@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
-import { Bell, Check, Info, AlertTriangle, Ban, X, CheckCheck, Inbox, Loader2 } from "lucide-react"
+import { useState } from "react"
+import { Bell, Check, Info, AlertTriangle, X, CheckCheck, Inbox, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -13,69 +13,40 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { Notification, NotificationType } from "@/types/notification"
-import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
-import { getNotifications, readAllNotifications, readNotification } from "@/lib/api/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useNotifications } from "@/lib/hooks/use-notifications"
 
-interface NotificationsDropdownProps {
-    count: number
-}
-
-export function NotificationsDropdown({ count: initialCount }: NotificationsDropdownProps) {
+export function NotificationsDropdown() {
     const router = useRouter();
+    const [isOpen, setIsOpen] = useState(false);
 
-    const [isOpen, setIsOpen] = useState(false)
-    const [notifications, setNotifications] = useState<Notification[]>([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [unreadCount, setUnreadCount] = useState(initialCount)
-    const [hasFetched, setHasFetched] = useState(false)
+    const {
+        notifications,
+        unreadCount,
+        isLoading,
+        loadNotifications,
+        markAsRead,
+        markAllAsRead,
+    } = useNotifications();
 
-    const fetchNotifications = async () => {
-        if (hasFetched) return
-
-        setIsLoading(true)
-        try {
-            const res = await getNotifications();
-
-            setNotifications(res.data.notifications);
-            setHasFetched(true);
-        } catch (error) {
-            console.error("Failed to fetch notifications", error);
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    const onOpenChange = (open: boolean) => {
-        setIsOpen(open)
+    const handleOpenChange = (open: boolean) => {
+        setIsOpen(open);
         if (open) {
-            fetchNotifications()
+            // Load full notifications when dropdown opens
+            loadNotifications();
         }
-    }
+    };
 
-    const markAsRead = async (id: string) => {
-        setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-        )
-        setUnreadCount((prev) => Math.max(0, prev - 1));
-
-        await readNotification(id);
-    }
-
-    const markAllAsRead = async () => {
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-        setUnreadCount(0);
-
-        const res = await readAllNotifications();
+    const handleMarkAllAsRead = async () => {
+        const res = await markAllAsRead();
 
         if (res.ok) {
-            // Success toast
             toast.success("All notifications marked as read");
             setIsOpen(false);
         }
-    }
+    };
 
     const getIcon = (type: NotificationType) => {
         switch (type) {
@@ -166,7 +137,7 @@ export function NotificationsDropdown({ count: initialCount }: NotificationsDrop
     )
 
     return (
-        <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
+        <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
@@ -195,7 +166,7 @@ export function NotificationsDropdown({ count: initialCount }: NotificationsDrop
                             variant="ghost"
                             size="sm"
                             className="h-auto px-2 text-xs text-muted-foreground hover:text-primary hover:bg-transparent gap-1.5"
-                            onClick={markAllAsRead}
+                            onClick={handleMarkAllAsRead}
                         >
                             <CheckCheck className="h-3.5 w-3.5" />
                             Mark all as read
@@ -220,7 +191,7 @@ export function NotificationsDropdown({ count: initialCount }: NotificationsDrop
 
                     <TabsContent value="all" className="mt-0">
                         <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto px-2 py-1 custom-scrollbar">
-                            {isLoading && !hasFetched ? (
+                            {isLoading ? (
                                 <LoadingState />
                             ) : notifications.length === 0 ? (
                                 <EmptyState message="No notifications yet" />
@@ -234,7 +205,7 @@ export function NotificationsDropdown({ count: initialCount }: NotificationsDrop
 
                     <TabsContent value="unread" className="mt-0">
                         <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto px-2 py-1 custom-scrollbar">
-                            {isLoading && !hasFetched ? (
+                            {isLoading ? (
                                 <LoadingState />
                             ) : notifications.filter((n) => !n.is_read).length === 0 ? (
                                 <EmptyState message="No unread notifications" />
@@ -251,7 +222,7 @@ export function NotificationsDropdown({ count: initialCount }: NotificationsDrop
 
                 <div className="p-2 border-t bg-muted/10 text-center">
                     <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground h-7 hover:bg-transparent" disabled>
-                        Notifications are automatically deleted after 30 days
+                        Notifications are automatically deleted after 14 days
                     </Button>
                 </div>
             </DropdownMenuContent>

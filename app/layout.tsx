@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { SWRProvider } from "./swr-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,11 +30,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <ThemeProvider>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Toaster />
+          <SWRProvider>
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Toaster />
+          </SWRProvider>
         </ThemeProvider>
       </body>
     </html>

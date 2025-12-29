@@ -78,7 +78,6 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         if (res.ok) {
             toast.success("Item updated successfully");
             setIsEditing(false);
-            router.refresh();
         } else {
             toast.error("Failed to update item");
         }
