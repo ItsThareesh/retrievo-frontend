@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Loading from "../loading";
+import Loading from "./loading";
 import { notFound } from "next/navigation";
 import { fetchItem } from "@/lib/api/server";
 import { auth } from "@/auth";
