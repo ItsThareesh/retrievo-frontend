@@ -194,6 +194,36 @@ export async function createResolution(itemId: string, description: string) {
     }
 }
 
+export async function getNotificationsCount() {
+    const session = await auth();
+
+    if (!session?.backendToken) {
+        throw new UnauthorizedError();
+    }
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/notifications/count`, {
+            headers: {
+                Authorization: `Bearer ${session.backendToken}`,
+            },
+        });
+
+        if (!res.ok) {
+            console.error("getNotificationsCount failed:", res.status);
+            return {
+                ok: false, data: { count: 0 }, status: res.status
+            };
+        }
+
+        return { ok: true, data: await safeJson(res) };
+    } catch (err) {
+        console.error("getNotificationsCount error:", err);
+        return {
+            ok: false, data: { count: 0 }, error: String(err)
+        };
+    }
+}
+
 export async function getNotifications() {
     const session = await auth();
 

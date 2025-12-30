@@ -15,14 +15,14 @@ import { User, LogOut } from 'lucide-react';
 
 interface UserMenuProps {
     user: {
-        name: string;
-        email: string;
-        image: string;
-    };
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+    } | null;
 }
 
 export function UserMenu({ user }: UserMenuProps) {
-    const initials = user.name
+    const initials = user?.name
         ?.split(' ')
         .map(n => n[0])
         .join('')
@@ -32,16 +32,16 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
                 <Avatar className="h-9 w-9 border-2 border-background ring-2 ring-muted hover:ring-primary transition-all cursor-pointer">
-                    <AvatarImage src={user.image} alt={user.name} />
+                    {user?.image && user?.name && <AvatarImage src={user?.image} alt={user?.name} />}
                     <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-sm font-medium leading-none">{user?.name}</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                            {user.email}
+                            {user?.email}
                         </p>
                     </div>
                 </DropdownMenuLabel>

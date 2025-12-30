@@ -99,6 +99,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             email: userData.email,
                             image: userData.image,
                             hostel: userData.hostel || null,
+                            phone: userData.phone || null,
                         };
                     }
                 } catch (err) {
@@ -163,7 +164,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     if (!res.ok) {
                         console.error("Token refresh failed, forcing logout");
-                        return {}; // force logout
+                        return null; // force logout
                     }
 
                     const data = await res.json();
@@ -171,7 +172,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     token.tokenExpires = data.expires_at * 1000; // Convert to ms
                 } catch (err) {
                     console.error("Token refresh error:", err);
-                    return {}; // force logout
+                    return null;
                 }
             }
 

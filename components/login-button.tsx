@@ -3,13 +3,25 @@
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { UserMenu } from "./user-menu"
+import { Session } from "next-auth"
 
-export function LoginButton({ session }: { session: any }) {
+type LoginButtonProps = {
+    session: Session | null;
+    isAuthenticated: boolean;
+};
+
+export function LoginButton({ session, isAuthenticated }: LoginButtonProps) {
     return (
         <div className="flex items-center gap-4" >
             {
-                session?.user ? (
-                    <UserMenu user={session.user} />
+                isAuthenticated ? (
+                    <UserMenu
+                        user={{
+                            name: session?.user?.name ?? null,
+                            email: session?.user?.email ?? null,
+                            image: session?.user?.image ?? null,
+                        }}
+                    />
                 ) : (
                     <Button
                         className="cursor-pointer"
