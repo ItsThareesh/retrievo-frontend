@@ -246,6 +246,7 @@ export function ReportButton({onReportSubmit, reasons}: ReportButtonProps) {
           
           <AlertDialogAction 
             onClick={handleSubmit}
+            disabled = {reason===''}
             className="bg-red-700 hover:bg-red-800 text-white cursor-pointer"
           >
             Submit

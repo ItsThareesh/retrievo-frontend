@@ -115,14 +115,11 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
                 {showContactDetails && (
                     <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 p-6 mb-6">
                         <div className="flex items-start gap-3">
-                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                            <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
                             <div>
-                                <h3 className="font-semibold text-green-900 dark:text-green-50 mb-2">
+                                <h2 className="font-semibold text-green-900 dark:text-green-50 mb-2">
                                     Claim Approved!
-                                </h3>
-                                <p className="text-sm text-green-800 dark:text-green-100 mb-4">
-                                    Your contact details have been shared with the claimant. They will reach out to you to arrange the handover.
-                                </p>
+                                </h2>
                                 <div className="bg-green-100 dark:bg-green-900/50 border border-green-300 dark:border-green-700 rounded-md p-3">
                                     <p className="text-xs font-medium text-green-900 dark:text-green-100 mb-1">
                                         Details shared with claimant:
