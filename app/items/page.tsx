@@ -1,20 +1,9 @@
-import { fetchAllItems } from '@/lib/api/server';
-import { ItemsClient } from './items-browsing-client';
-import { Item } from '@/types/item';
-import { auth } from '@/auth';
-import { formatDate } from '@/lib/date-formatting';
+import { ItemsLoadingSkeleton } from './items-loading-skeleton';
+import { ItemsDataLoader } from './items-data-loader';
+import { Suspense } from 'react';
 
 
-export default async function BrowseItemsPage() {
-    const session = await auth();
-
-    // Returns all items in a single array
-    const res = await fetchAllItems(session?.backendToken);
-    const items = res.data.items;
-
-    const lostItems = items.filter((i: Item) => i.type === "lost").map(formatDate);
-    const foundItems = items.filter((i: Item) => i.type === "found").map(formatDate);
-
+export default function BrowseItemsPage() {
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col gap-6 mb-8">
@@ -28,7 +17,9 @@ export default async function BrowseItemsPage() {
                 </div>
             </div>
 
-            <ItemsClient lostItems={lostItems} foundItems={foundItems} />
+            <Suspense fallback={<ItemsLoadingSkeleton />}>
+                <ItemsDataLoader />
+            </Suspense>
         </div>
     );
 }

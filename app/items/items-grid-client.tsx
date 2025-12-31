@@ -14,7 +14,7 @@ interface ItemsBrowseProps {
     foundItems: Item[];
 }
 
-export function ItemsClient({ lostItems, foundItems }: ItemsBrowseProps) {
+export function ItemsGridClient({ lostItems, foundItems }: ItemsBrowseProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
 
