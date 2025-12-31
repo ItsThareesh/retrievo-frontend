@@ -11,10 +11,10 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
     const { id } = await params;
 
     // Fetch item data
-    const item_reporter_details = await fetchItem(id, session?.backendToken);
-    if (!item_reporter_details.ok) notFound();
+    const res = await fetchItem(id, session?.backendToken);
+    if (!res.ok) notFound();
 
-    const { item, reporter, claim_status } = item_reporter_details.data;
+    const { item, reporter, claim_status } = res.data;
 
     return (
         <Suspense fallback={<Loading />}>

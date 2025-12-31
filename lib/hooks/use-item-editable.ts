@@ -160,7 +160,7 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
                 toast.success("Link copied to clipboard");
             }
         } catch (err: any) {
-            // User cancelled → silently ignore
+            // User cancelled, then silently ignore
             if (err?.name === "AbortError") return;
 
             // Real failure
