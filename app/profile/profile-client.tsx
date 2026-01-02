@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ItemCard } from '@/components/item-card';
-import { LogOut , ChevronDown} from 'lucide-react';
+import { LogOut, ChevronDown } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { Item } from '@/types/item';
@@ -16,10 +16,10 @@ import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
 interface ProfileClientProps {
@@ -103,7 +103,7 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
         isSettingPhone(true);
 
         try {
-            const res = await setPhoneNumber(country_code+phone);
+            const res = await setPhoneNumber(country_code + phone);
 
             if (!res.ok) {
                 toast.error("Failed to save phone number. Please try again.");
@@ -111,7 +111,7 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
             }
 
             // It doesn't matter on what data we pass, because we are fetching from backend again to ensure correctness
-            await update({ phone: country_code+phone });
+            await update({ phone: country_code + phone });
             toast.success("Phone number saved successfully!");
         } catch (error) {
             toast.error("An error occurred. Please try again.");
@@ -121,20 +121,20 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
         }
     }
     const codes = [
-        { value: "+91", label:"IN" },
-        { value: "+971", label:"UAE" }, 
-        { value: "+966", label:"SA" },
-        { value: "+974", label:"QA" }, 
-        { value: "+965", label:"KW" }, 
-        { value: "+968", label:"OM" }, 
-        { value: "+973", label:"BH" }, 
-        { value: "+1", label:"US/CA" },  
-        { value: "+44", label:"UK" }, 
-        { value: "+61", label:"AU" },  
-        { value: "+64", label:"NZ" },
-        { value: "+353", label:"IE" },
-        { value: "+49", label:"DE" }, 
-    ] 
+        { value: "+91", label: "IN" },
+        { value: "+971", label: "UAE" },
+        { value: "+966", label: "SA" },
+        { value: "+974", label: "QA" },
+        { value: "+965", label: "KW" },
+        { value: "+968", label: "OM" },
+        { value: "+973", label: "BH" },
+        { value: "+1", label: "US/CA" },
+        { value: "+44", label: "UK" },
+        { value: "+61", label: "AU" },
+        { value: "+64", label: "NZ" },
+        { value: "+353", label: "IE" },
+        { value: "+49", label: "DE" },
+    ]
     const [country_code, setCountrycode] = useState("+91")
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
@@ -190,40 +190,41 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
                                 {!currentSession.user.phone && (
                                     <div className="border p-3 rounded-md space-y-3">
                                         <p className="text-sm font-medium">Add Phone Number</p>
-                                        <div className="flex flex-row gap-2">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                role="combobox"
-                                                className="w-full justify-between font-normal text-left max-w-[70px]"
-                                            >
-                                                {/* Show selected label or placeholder text */}
-                                                <span className={!reason ? "text-muted-foreground" : ""}>
-                                                {country_code ||  "Select a reason..."}
-                                                </span>
-                                                <ChevronDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
-                                            </Button>
-                                            </DropdownMenuTrigger>
-                                            
-                                            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[200px] ">
-                                            {codes.map((item) => (
-                                                <DropdownMenuItem
-                                                key={item.value}
-                                                onSelect={() => setCountrycode(item.value)}
-                                                className="cursor-pointer flex justify-between "
-                                                >
-                                                <div>{item.value}</div>
-                                                <div>{item.label}</div>
-                                                </DropdownMenuItem>
-                                            ))}
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                        <Input
-                                            placeholder="xxxxxxxxxx"
-                                            value={phone}
-                                            onChange={(e) =>setPhone(e.target.value)}
-                                        />
+                                        <div className="flex gap-2">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        className="w-[70px] [font-variant-numeric:tabular-nums]"
+                                                    >
+                                                        <span className="w-[28px] text-center">
+                                                            {country_code}
+                                                        </span>
+                                                        <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+
+                                                <DropdownMenuContent className="min-w-[200px]">
+                                                    {codes.map((item) => (
+                                                        <DropdownMenuItem
+                                                            key={item.value}
+                                                            onSelect={() => setCountrycode(item.value)}
+                                                            className="cursor-pointer flex justify-between"
+                                                        >
+                                                            <div>{item.value}</div>
+                                                            <div>{item.label}</div>
+                                                        </DropdownMenuItem>
+                                                    ))}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+
+                                            <Input
+                                                className="flex-1 min-w-0"
+                                                placeholder="xxxxxxxxxx"
+                                                value={phone}
+                                                onChange={(e) => setPhone(e.target.value)}
+                                            />
                                         </div>
                                         <Button
                                             size="sm"

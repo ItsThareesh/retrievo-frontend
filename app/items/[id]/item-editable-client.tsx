@@ -77,7 +77,8 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
         handleCancel,
         handleDelete,
         handleClaimSubmit,
-        handleShare
+        handleShare,
+        handleReport
     } = useItemEditable({ item, reporter, claim_status, session });
 
     function mapClaimStatusToText(status: string) {
@@ -519,22 +520,26 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                             <Button
                                 variant="outline"
                                 role="combobox"
-                                className="w-full justify-between font-normal text-left"
+                                className="w-full flex items-center justify-between font-normal text-left"
                             >
-                                {/* Show selected label or placeholder text */}
-                                <span className={!reason ? "text-muted-foreground" : ""}>
+                                <span
+                                    className={cn(
+                                        "truncate",
+                                        !reason && "text-muted-foreground"
+                                    )}
+                                >
                                     {reasons_map.find(r => r.value === reason)?.label || "Select a reason..."}
                                 </span>
                                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </DropdownMenuTrigger>
 
-                        <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[200px]">
+                        <DropdownMenuContent className="w-full min-w-[200px]">
                             {reasons_map.map((item) => (
                                 <DropdownMenuItem
                                     key={item.value}
                                     onSelect={() => setReason(item.value)}
-                                    className="cursor-pointer"
+                                    className="w-full cursor-pointer justify-start"
                                 >
                                     {item.label}
                                 </DropdownMenuItem>
@@ -549,6 +554,7 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                         <AlertDialogAction
                             disabled={reason === ''}
                             className="text-white bg-red-600 hover:bg-red-600"
+                            onClick={handleReport}
                         >
                             Submit
                         </AlertDialogAction>

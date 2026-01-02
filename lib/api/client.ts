@@ -449,3 +449,32 @@ export async function rejectClaim(resolutionID: string, rejectionReason: string)
         return { ok: false, error: String(err) };
     }
 }
+
+export async function reportItem(itemId: string, reason: string) {
+    const session = await auth();
+
+    if (!session?.backendToken) {
+        throw new UnauthorizedError();
+    }
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/items/${itemId}/report`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.backendToken}`,
+            },
+            body: JSON.stringify({ reason }),
+        });
+
+        if (!res.ok) {
+            console.error("reportItem failed:", res.status);
+            return { ok: false, status: res.status };
+        }
+
+        return { ok: true };
+    } catch (err) {
+        console.error("reportItem error:", err);
+        return { ok: false, error: String(err) };
+    }
+}

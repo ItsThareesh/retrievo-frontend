@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import { User as UserType } from "@/types/user";
-import { updateItem, createResolution, deleteItem } from "@/lib/api/client";
+import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/client";
 import { validateForm } from "@/lib/utils/validation";
 
 interface UseItemEditableProps {
@@ -18,7 +18,7 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
     const router = useRouter();
 
     const reasons_map = [
-        { value: "spam", label: "It is spam" },
+        { value: "spam", label: "Spam post" },
         { value: "harassment", label: "Harassment or bullying" },
         { value: "inappropriate", label: "Inappropriate content" },
         { value: "fake", label: "Fake information" },
@@ -180,6 +180,24 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         }
     }
 
+    async function handleReport() {
+        setIsReporting(true);
+
+        try {
+            const res = await reportItem(item.id, reason);
+
+            if (res.ok) {
+                toast.success("Item reported successfully");
+                setIsReporting(false);
+            } else {
+                toast.error("Failed to report item");
+                setIsReporting(false);
+            }
+        } finally {
+            setIsReporting(false);
+        }
+    }
+
     return {
         reason,
         setReason,
@@ -208,6 +226,7 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         handleCancel,
         handleDelete,
         handleClaimSubmit,
-        handleShare
+        handleShare,
+        handleReport
     };
 }
