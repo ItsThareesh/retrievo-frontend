@@ -1,3 +1,5 @@
+import { auth } from "@/auth";
+
 // Custom Error for Unauthorized Access
 export class UnauthorizedError extends Error {
     constructor(message = "Unauthorized") {
@@ -13,4 +15,29 @@ export async function safeJson(res: Response) {
     } catch {
         return null;
     }
+}
+
+export async function authFetch(
+    input: RequestInfo,
+    init: RequestInit = {}
+) {
+    const session = await auth();
+
+    if (!session?.backendToken) {
+        throw new UnauthorizedError();
+    }
+
+    const res = await fetch(input, {
+        ...init,
+        headers: {
+            ...(init.headers || {}),
+            Authorization: `Bearer ${session.backendToken}`,
+        },
+    });
+
+    if (res.status === 401) {
+        throw new UnauthorizedError();
+    }
+
+    return res;
 }

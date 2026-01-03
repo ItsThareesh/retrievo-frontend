@@ -191,6 +191,8 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
             } else {
                 if (res.status === 409) {
                     toast.error("You have already reported this item");
+                } else if (res.status === 400) {
+                    toast.error("Cannot self-report reason");
                 } else {
                     toast.error("Failed to report item");
                 }
