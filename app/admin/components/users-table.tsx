@@ -36,7 +36,7 @@ function getInitials(name: string) {
         .slice(0, 2);
 }
 
-export function UsersTable({ users }: { users: UserDetail[] }) {
+export function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => void }) {
     const router = useRouter();
     const [actionDialog, setActionDialog] = useState<{
         open: boolean;
@@ -52,7 +52,7 @@ export function UsersTable({ users }: { users: UserDetail[] }) {
     ) => {
         try {
             await moderateUser(userId, { action, reason, ban_days: 7 });
-            router.refresh();
+            onUpdate();
         } catch (error) {
             console.error("Failed to moderate user:", error);
         }

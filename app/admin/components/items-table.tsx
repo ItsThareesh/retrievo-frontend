@@ -26,7 +26,7 @@ import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { moderateItem } from "@/lib/api/admin";
 import { ReportedItemDetail } from "@/types/admin";
 
-export function ItemsTable({ items }: { items: ReportedItemDetail[] }) {
+export function ItemsTable({ items, onUpdate }: { items: ReportedItemDetail[], onUpdate: () => void }) {
     const router = useRouter();
     const [actionDialog, setActionDialog] = useState<{
         open: boolean;
@@ -42,7 +42,7 @@ export function ItemsTable({ items }: { items: ReportedItemDetail[] }) {
     ) => {
         try {
             await moderateItem(itemId, { action, reason });
-            router.refresh();
+            onUpdate();
         } catch (error) {
             console.error("Failed to moderate item:", error);
         }

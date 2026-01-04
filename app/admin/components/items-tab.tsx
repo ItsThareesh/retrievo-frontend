@@ -8,7 +8,7 @@ import { ItemsSkeleton } from "./skeletons";
 import { fetchData } from "@/lib/utils/swrHelper";
 
 export function ItemsTab() {
-    const { data: items, isLoading } = useSWR(['items', 50, 0], () => fetchData(() => getReportedItems(50, 0)));
+    const { data: items, isLoading, mutate } = useSWR(['items', 50, 0], () => fetchData(() => getReportedItems(50, 0)));
 
     if (isLoading) {
         return <ItemsSkeleton />;
@@ -21,7 +21,7 @@ export function ItemsTab() {
                 <CardDescription>Review and moderate flagged content</CardDescription>
             </CardHeader>
             <CardContent className="px-6 pb-6">
-                <ItemsTable items={items || []} />
+                <ItemsTable items={items || []} onUpdate={mutate} />
             </CardContent>
         </Card>
     );
