@@ -18,8 +18,8 @@ export default function Home() {
           const scrollY = window.scrollY;
           const factor = Math.min(scrollY / 400, 1);
 
-          glow.style.height = `${300 - factor * 100}px`;
-          glow.style.opacity = `${1 - factor * 0.5}`;
+          glow.style.height = `${400 - factor * 200}px`;
+          glow.style.opacity = `${1 - factor * 0.7}`;
 
           ticking = false;
         });
@@ -57,21 +57,21 @@ export default function Home() {
             Simple, fast, and community-driven recovery.
           </p>
 
-          {/* <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-            <Button asChild size="lg" className="h-14 px-8 text-lg gap-2 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 bg-red-500 hover:bg-red-600 dark:bg-red-600 text-white border-0">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+            <Button asChild size="lg" className="h-14 px-8 text-lg gap-2 hover:shadow-xl transition-all hover:-translate-y-1 bg-red-600 dark:bg-red-700 hover:bg-red-500  text-white border-0">
               <Link href="/report?type=lost">
                 <AlertCircle className="w-5 h-5" />
                 I Lost Something
               </Link>
             </Button>
 
-            <Button asChild size="lg" className="h-14 px-8 text-lg gap-2 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 bg-emerald-500 hover:bg-emerald-600 text-white border-0">
+            <Button asChild size="lg" className="h-14 px-8 text-lg gap-2 hover:shadow-xl transition-all hover:-translate-y-1 bg-green-600 hover:bg-green-500 dark:bg-green-700 text-white border-0">
               <Link href="/report?type=found">
                 <CheckCircle2 className="w-5 h-5" />
                 I Found Something
               </Link>
             </Button>
-          </div> */}
+          </div>
 
           <div className="pt-4">
             <Button asChild variant="link" className="text-muted-foreground hover:text-primary gap-1">
@@ -87,11 +87,11 @@ export default function Home() {
           className="
             pointer-events-none
             absolute bottom-0 left-1/2 -translate-x-1/2
-            w-[120%] h-[300px]
-            origin-bottom
-            dark:bg-[radial-gradient(ellipse_at_bottom,rgba(93,96,241,0.35),transparent_70%)]
-            blur-3xl opacity-100
-          "
+            w-[140%] h-[360px]
+            dark:bg-indigo-700/20
+            blur-3xl
+            dark:[mask-image:radial-gradient(ellipse_at_bottom,black_20%,transparent_70%)]
+            transition-all "
         ></div>
       </section>
 
@@ -100,8 +100,8 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-            <div className="group p-8 rounded-2xl bg-background border shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-              <div className="w-14 h-14 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="group p-8 rounded-2xl bg-popover border shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+              <div className="w-14 h-14 bg-red-100 dark:bg-red-900/20 text-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <AlertCircle className="w-7 h-7" />
               </div>
               <h3 className="text-xl font-bold mb-3">Report Lost Items</h3>
@@ -110,8 +110,8 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="group p-8 rounded-2xl bg-background border shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-              <div className="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="group p-8 rounded-2xl bg-popover border shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+              <div className="w-14 h-14 bg-green-100 dark:bg-green-900/20 text-green-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <h3 className="text-xl font-bold mb-3">Report Found Items</h3>
@@ -120,8 +120,8 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="group p-8 rounded-2xl bg-background border shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-              <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="group p-8 rounded-2xl bg-popover border shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+              <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/20 text-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Search className="w-7 h-7" />
               </div>
               <h3 className="text-xl font-bold mb-3">Smart Matching</h3>
