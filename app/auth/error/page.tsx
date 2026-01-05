@@ -36,6 +36,11 @@ function AuthErrorContent() {
                 variant: "outline"
             }
         },
+        UserBanned: {
+            title: "Account Banned",
+            message: "Your account has been banned from accessing this platform. Please contact support for more information.",
+            icon: AlertCircle,
+        },
         Verification: {
             title: "Verification Error",
             message: "The sign in link is no longer valid. It may have been used already or expired.",

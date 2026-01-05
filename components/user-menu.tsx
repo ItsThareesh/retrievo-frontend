@@ -11,13 +11,14 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, ShieldCheck } from 'lucide-react';
 
 interface UserMenuProps {
     user: {
         name?: string | null;
         email?: string | null;
         image?: string | null;
+        role?: "user" | "admin" | null;
     } | null;
 }
 
@@ -53,6 +54,17 @@ export function UserMenu({ user }: UserMenuProps) {
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                {user?.role === "admin" && (
+                    <>
+                        <DropdownMenuItem asChild>
+                            <Link href="/admin" className="cursor-pointer">
+                                <ShieldCheck className="mr-2 h-4 w-4" />
+                                Administration
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                    </>
+                )}
                 <DropdownMenuItem
                     className="text-destructive focus:text-destructive cursor-pointer"
                     onClick={() => signOut({

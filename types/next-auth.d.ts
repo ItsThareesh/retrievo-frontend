@@ -11,6 +11,7 @@ declare module "next-auth" {
             image: string;
             hostel: "boys" | "girls" | null;
             phone: string | null;
+            role: "user" | "admin";
         } & DefaultSession["user"];
     }
 
@@ -31,6 +32,7 @@ declare module "next-auth/jwt" {
             image: string;
             hostel: "boys" | "girls" | null;
             phone: string | null;
+            role: "user" | "admin";
         };
     }
 }

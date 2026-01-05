@@ -1,23 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-
-// Fetch with timeout utility
-async function fetchWithTimeout(url: string, options: RequestInit, timeout = 5000): Promise<Response> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    try {
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        return response;
-    } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
-    }
-}
+import { fetchWithTimeout } from "./lib/api/helpers";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -56,6 +39,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 );
 
                 // Backend reachable, but rejected
+                if (res.status === 403) {
+                    return "/auth/error?error=UserBanned";
+                }
+
                 if (!res.ok) {
                     return "/auth/error?error=Default";
                 }
@@ -100,6 +87,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             image: userData.image,
                             hostel: userData.hostel || null,
                             phone: userData.phone || null,
+                            role: userData.role
                         };
                     }
                 } catch (err) {
@@ -129,6 +117,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 image: userData.image,
                                 hostel: userData.hostel || null,
                                 phone: userData.phone || null,
+                                role: userData.role
                             };
                         } else {
                             console.error("Failed to fetch user data, status:", res.status);
@@ -196,6 +185,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     image: string;
                     hostel: "boys" | "girls" | null;
                     phone: string | null;
+                    role: "user" | "admin";
                 };
 
                 session.user = {
@@ -205,7 +195,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     email: userData.email,
                     image: userData.image,
                     hostel: userData.hostel,
-                    phone: userData.phone
+                    phone: userData.phone,
+                    role: userData.role
                 };
 
                 return session;

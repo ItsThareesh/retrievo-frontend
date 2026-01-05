@@ -92,8 +92,6 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
         }
     }
 
-
-
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -549,7 +547,11 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
 
                     {/*Close & Submit Buttons */}
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel
+                            onClick={() => setReason("")}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
 
                         <AlertDialogAction
                             disabled={reason === ''}

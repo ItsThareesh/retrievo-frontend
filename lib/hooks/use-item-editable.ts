@@ -99,10 +99,12 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         const res = await updateItem(item.id, updates);
 
         if (res.ok) {
-            toast.success("Item updated successfully");
+            toast.success("Item updated successfully.");
             setIsEditing(false);
+        } else if (res.status === 400) {
+            toast.error("This item cannot be updated because a claim is in progress or has been approved.");
         } else {
-            toast.error("Failed to update item");
+            toast.error("Unable to update the item. Please try again later.");
         }
 
         setIsSaving(false);
@@ -134,6 +136,14 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
 
     async function handleClaimSubmit() {
         try {
+            if (claimText.trim().length < 20) {
+                toast.error("Claim description must be at least 20 characters long.");
+                return;
+            } else if (claimText.trim().length > 280) {
+                toast.error("Claim description must be at most 280 characters long.");
+                return;
+            }
+
             setIsSubmittingClaim(true);
 
             const res = await createResolution(item.id, claimText);
@@ -191,6 +201,8 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
             } else {
                 if (res.status === 409) {
                     toast.error("You have already reported this item");
+                } else if (res.status === 400) {
+                    toast.error("Cannot self-report reason");
                 } else {
                     toast.error("Failed to report item");
                 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Check, Info, AlertTriangle, X, CheckCheck, Inbox, Loader2 } from "lucide-react"
+import { Bell, Check, Info, X, CheckCheck, Inbox, Loader2, AlertOctagon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -54,8 +54,10 @@ export function NotificationsDropdown() {
                 return <div className="rounded-full bg-green-100 p-1.5 dark:bg-green-900/30"><Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /></div>
             case "claim_rejected":
                 return <div className="rounded-full bg-red-100 p-1.5 dark:bg-red-900/30"><X className="h-3.5 w-3.5 text-red-600 dark:text-red-400" /></div>
-            case "ban_warning":
-                return <div className="rounded-full bg-orange-100 p-1.5 dark:bg-orange-900/30"><AlertTriangle className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" /></div>
+            case "warning_issued":
+                return <div className="rounded-full bg-orange-200 p-1.5 dark:bg-orange-900/40">
+                    <AlertOctagon className="h-3.5 w-3.5 text-orange-700 dark:text-orange-300" />
+                </div>
             case "claim_created":
             case "system_notice":
             default:
