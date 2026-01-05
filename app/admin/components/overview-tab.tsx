@@ -10,21 +10,45 @@ import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { fetchData } from "@/lib/utils/swrHelper";
 
 function getTrendIndicator(current: number, previous: number) {
+    if (previous === 0 && current === 0) {
+        return <span className="text-sm text-muted-foreground">No activity</span>;
+    }
+
+    if (previous === 0 && current > 0) {
+        return (
+            <span className="flex items-center gap-1 text-sm text-green-600">
+                <TrendingUp className="h-4 w-4" />
+                New
+            </span>
+        );
+    }
+
+    if (current === 0 && previous > 0) {
+        return (
+            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                No activity yet
+            </span>
+        );
+    }
+
     if (current > previous) {
         return (
             <span className="flex items-center gap-1 text-sm text-green-600">
                 <TrendingUp className="h-4 w-4" />
-                {previous > 0 ? `+${Math.round(((current - previous) / previous) * 100)}%` : "New"}
-            </span>
-        );
-    } else if (current < previous) {
-        return (
-            <span className="flex items-center gap-1 text-sm text-red-600">
-                <TrendingDown className="h-4 w-4" />
-                {previous > 0 ? `-${Math.round(((previous - current) / previous) * 100)}%` : ""}
+                +{Math.round(((current - previous) / previous) * 100)}%
             </span>
         );
     }
+
+    if (current < previous) {
+        return (
+            <span className="flex items-center gap-1 text-sm text-red-600">
+                <TrendingDown className="h-4 w-4" />
+                -{Math.round(((previous - current) / previous) * 100)}%
+            </span>
+        );
+    }
+
     return <span className="text-sm text-muted-foreground">No change</span>;
 }
 

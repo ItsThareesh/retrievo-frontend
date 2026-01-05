@@ -99,10 +99,12 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         const res = await updateItem(item.id, updates);
 
         if (res.ok) {
-            toast.success("Item updated successfully");
+            toast.success("Item updated successfully.");
             setIsEditing(false);
+        } else if (res.status === 400) {
+            toast.error("This item cannot be updated because a claim is in progress or has been approved.");
         } else {
-            toast.error("Failed to update item");
+            toast.error("Unable to update the item. Please try again later.");
         }
 
         setIsSaving(false);

@@ -2,14 +2,20 @@ export interface OverviewStats {
     total_items: number;
     items_this_month: number;
     items_last_month: number;
+
     claims_approved_this_month: number;
+    claims_approved_last_month: number;
     claims_rejected_this_month: number;
+    claims_rejected_last_month: number;
     claims_pending: number;
+
     active_reports: number;
     reports_this_month: number;
     reports_last_month: number;
+
     total_users: number;
     users_this_month: number;
+    users_last_month: number;
 }
 
 export interface ActivityItem {
