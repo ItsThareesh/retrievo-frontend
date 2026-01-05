@@ -28,7 +28,7 @@ export async function postLostFoundItem(formData: FormData) {
 // PATCH: Update single item fields
 export async function updateItem(itemId: string, data: Record<string, any>) {
     try {
-        const res = await authFetch('/items/${itemId}', {
+        const res = await authFetch(`/items/${itemId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),

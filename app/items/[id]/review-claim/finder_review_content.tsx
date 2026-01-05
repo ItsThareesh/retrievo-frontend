@@ -60,17 +60,15 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
     async function handleReject() {
         const reason = rejectionReason.trim();
 
+        // Validate reason length
         if (reason.length < 20) {
             setError("Rejection reason must be at least 20 characters.");
             return;
-        }
-
-        if (reason.length > 280) {
+        } else if (reason.length > 280) {
             setError("Rejection reason must be at most 280 characters.");
             return;
         }
 
-        setIsProcessing(true);
         setError(null);
 
         const res = await rejectClaim(claim.id, reason);

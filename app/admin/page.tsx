@@ -5,11 +5,7 @@ import { AdminView } from "./components/admin-view";
 // Force dynamic rendering for admin dashboard
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboard({
-    searchParams,
-}: {
-    searchParams: Promise<{ tab?: string }>;
-}) {
+export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
     // Check admin access by trying to fetch stats
     // If this fails with 401/403, the API client should handle redirection or we catch it here
     try {

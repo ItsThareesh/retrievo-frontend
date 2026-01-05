@@ -134,6 +134,14 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
 
     async function handleClaimSubmit() {
         try {
+            if (claimText.trim().length < 20) {
+                toast.error("Claim description must be at least 20 characters long.");
+                return;
+            } else if (claimText.trim().length > 280) {
+                toast.error("Claim description must be at most 280 characters long.");
+                return;
+            }
+
             setIsSubmittingClaim(true);
 
             const res = await createResolution(item.id, claimText);

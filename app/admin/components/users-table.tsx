@@ -62,6 +62,65 @@ export function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate:
         setActionDialog({ open: true, action, title, description });
     };
 
+    const banButton = (user: UserDetail) => {
+        if (!user.is_banned) {
+            return (
+                <>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                            confirmAction(
+                                () => handleModerateUser(user.id, "warn"),
+                                "Warn User",
+                                `Add a warning to ${user.name}'s account?`
+                            )
+                        }
+                    >
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Warn
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600"
+                        onClick={() =>
+                            confirmAction(
+                                () =>
+                                    handleModerateUser(
+                                        user.id,
+                                        "temp_ban",
+                                        "Temporary ban - admin action"
+                                    ),
+                                "Temporary Ban",
+                                `Temporarily ban ${user.name} for 7 days?`
+                            )
+                        }
+                    >
+                        <Ban className="h-3 w-3 mr-1" />
+                        Ban
+                    </Button>
+                </>
+            );
+        }
+
+        return (
+            <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                    confirmAction(
+                        () => handleModerateUser(user.id, "unban"),
+                        "Unban User",
+                        `Remove ban from ${user.name}?`
+                    )
+                }
+            >
+                Unban
+            </Button>
+        );
+    };
+
     return (
         <>
             <Table>
@@ -131,58 +190,7 @@ export function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate:
                                 </TableCell>
                                 <TableCell className="px-4 py-5">
                                     <div className="flex gap-2">
-                                        {!user.is_banned ? (
-                                            <>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        confirmAction(
-                                                            () => handleModerateUser(user.id, "warn"),
-                                                            "Warn User",
-                                                            `Add a warning to ${user.name}'s account?`
-                                                        )
-                                                    }
-                                                >
-                                                    <AlertCircle className="h-3 w-3 mr-1" />
-                                                    Warn
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-red-600"
-                                                    onClick={() =>
-                                                        confirmAction(
-                                                            () =>
-                                                                handleModerateUser(
-                                                                    user.id,
-                                                                    "temp_ban",
-                                                                    "Temporary ban - admin action"
-                                                                ),
-                                                            "Temporary Ban",
-                                                            `Temporarily ban ${user.name} for 7 days?`
-                                                        )
-                                                    }
-                                                >
-                                                    <Ban className="h-3 w-3 mr-1" />
-                                                    Ban
-                                                </Button>
-                                            </>
-                                        ) : (
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() =>
-                                                    confirmAction(
-                                                        () => handleModerateUser(user.id, "unban"),
-                                                        "Unban User",
-                                                        `Remove ban from ${user.name}?`
-                                                    )
-                                                }
-                                            >
-                                                Unban
-                                            </Button>
-                                        )}
+                                        {banButton(user)}
                                     </div>
                                 </TableCell>
                             </TableRow>

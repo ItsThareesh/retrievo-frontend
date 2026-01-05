@@ -1,23 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-
-// Fetch with timeout utility
-async function fetchWithTimeout(url: string, options: RequestInit, timeout = 5000): Promise<Response> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    try {
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        return response;
-    } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
-    }
-}
+import { fetchWithTimeout } from "./lib/api/helpers";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -56,6 +39,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 );
 
                 // Backend reachable, but rejected
+                if (res.status === 403) {
+                    return "/auth/error?error=UserBanned";
+                }
+
                 if (!res.ok) {
                     return "/auth/error?error=Default";
                 }
