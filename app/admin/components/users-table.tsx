@@ -90,7 +90,7 @@ export function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate:
                                     handleModerateUser(
                                         user.id,
                                         "temp_ban",
-                                        "Temporary ban - admin action"
+                                        "Temporary ban - Admin action"
                                     ),
                                 "Temporary Ban",
                                 `Temporarily ban ${user.name} for 7 days?`

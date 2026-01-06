@@ -105,5 +105,4 @@ export interface ModerateUserRequest {
 
 export interface ModerateItemRequest {
     action: "hide" | "restore" | "delete";
-    reason?: string;
 }

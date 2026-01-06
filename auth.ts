@@ -101,9 +101,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     try {
                         const res = await fetchWithTimeout(
                             `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
-                            {
-                                headers: { Authorization: `Bearer ${token.backendToken}` },
-                            },
+                            { headers: { Authorization: `Bearer ${token.backendToken}` } },
                             5000
                         );
 
@@ -126,6 +124,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         console.error("Failed to refresh user profile:", err);
                     }
                 }
+
+                return token;
             }
 
             // Only check refresh if we have a token and expiry time

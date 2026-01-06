@@ -35,22 +35,18 @@ export function ItemsTable({ items, onUpdate }: { items: ReportedItemDetail[], o
         description: string;
     }>({ open: false, action: async () => { }, title: "", description: "" });
 
-    const handleModerateItem = async (
-        itemId: string,
-        action: "hide" | "restore" | "delete",
-        reason?: string
-    ) => {
+    async function handleModerateItem(itemId: string, action: "hide" | "restore" | "delete") {
         try {
-            await moderateItem(itemId, { action, reason });
+            await moderateItem(itemId, { action });
             onUpdate();
         } catch (error) {
             console.error("Failed to moderate item:", error);
         }
-    };
+    }
 
-    const confirmAction = (action: () => Promise<void>, title: string, description: string) => {
+    function confirmAction(action: () => Promise<void>, title: string, description: string) {
         setActionDialog({ open: true, action, title, description });
-    };
+    }
 
     return (
         <>
@@ -120,12 +116,7 @@ export function ItemsTable({ items, onUpdate }: { items: ReportedItemDetail[], o
                                                 variant="outline"
                                                 onClick={() =>
                                                     confirmAction(
-                                                        () =>
-                                                            handleModerateItem(
-                                                                item.item_id,
-                                                                "hide",
-                                                                "Hidden by admin - multiple reports"
-                                                            ),
+                                                        () => handleModerateItem(item.item_id, "hide"),
                                                         "Hide Item",
                                                         `Hide "${item.item_title}" from public view?`
                                                     )

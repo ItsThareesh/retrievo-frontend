@@ -84,7 +84,7 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
                 return;
             }
 
-            // It doesn't matter on what data we pass, because we are fetching from backend again to ensure correctness
+            // It doesn't matter on what data we pass as params, because we are fetching from backend again to ensure correctness
             await update({ hostel: hostelType });
             toast.success("Hostel set successfully!");
         } catch (error) {
@@ -111,7 +111,7 @@ export function ProfileClient({ session: initialSession, lostItems, foundItems }
                 return;
             }
 
-            // It doesn't matter on what data we pass, because we are fetching from backend again to ensure correctness
+            // It doesn't matter on what data we pass as params, because we are fetching from backend again to ensure correctness
             await update({ phone: country_code + phone });
             toast.success("Phone number saved successfully!");
         } catch (error) {
