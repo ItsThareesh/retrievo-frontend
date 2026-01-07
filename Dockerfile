@@ -16,6 +16,9 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
+RUN addgroup -S appuser \
+    && adduser -S appuser -G appuser -h /app
+
 # Copy contents of the standalone build into the runtime image
 COPY --from=builder /app/.next/standalone ./
 
@@ -23,6 +26,9 @@ COPY --from=builder /app/.next/standalone ./
 # Remove them during actual deployment if using a CDN
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static
+
+RUN chown -R appuser:appuser /app
+USER appuser
 
 EXPOSE 3000
 

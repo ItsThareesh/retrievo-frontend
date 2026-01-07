@@ -35,6 +35,7 @@ import { UnauthorizedError } from '@/lib/api/helpers';
 import { signIn } from "next-auth/react";
 import type { Session } from 'next-auth';
 import { ImageViewer } from '@/components/image-viewer';
+import { toast } from 'sonner';
 
 
 const formSchema = z.object({
@@ -110,19 +111,28 @@ export function ItemFormClient({ session }: ItemFormClientProps) {
 
             const res = await postLostFoundItem(formData);
 
-            if (!res.ok) {
-                alert("Failed to submit item. Please try again.");
+            if (res.status === 401) {
+                router.push("/auth/signin?callbackUrl=/report");
                 return;
             }
 
-            alert("Item reported successfully!");
+            if (res.status === 429) {
+                toast.error("You have reached your monthly limit for reporting items. Please try again later.");
+                return;
+            }
+
+            if (!res.ok) {
+                toast.error("Failed to submit item. Please try again.");
+                return;
+            }
+
+            toast.success("Item reported successfully!");
             router.push(`/items/${res.data}`);
         } catch (error) {
-            if (error instanceof UnauthorizedError) {
-                router.push("/auth/signin?callbackUrl=/report");
-            }
-            throw error;
-        } finally {
+            console.error(error);
+            toast.error("Something went wrong. Please try again.");
+        }
+        finally {
             setIsSubmitting(false);
         }
     }
