@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ItemCard } from '@/components/item-card';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Item } from '@/types/item';
-import useSWR from 'swr';
-import { getAllItems } from '@/lib/api/swr-items';
+import useSWRInfinite from 'swr/infinite';
+import { getPaginatedItems } from '@/lib/api/swr-items';
 import { fetchData } from '@/lib/utils/swrHelper';
 import { formatDate } from '@/lib/date-formatting';
 import { ItemsLoadingSkeleton } from './items-loading-skeleton';
@@ -17,18 +17,57 @@ import { ItemsLoadingSkeleton } from './items-loading-skeleton';
 export function ItemsGridClient() {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
+    const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    const { data: items, isLoading } = useSWR('allItems', () => fetchData(() => getAllItems()));
+    function getKey(pageIndex: number, previousPageData: any) {
+        if (previousPageData && !previousPageData.has_more) return null;
+        return `items-page-${pageIndex + 1}`;
+    }
+
+    const { data, size, setSize, isLoading, isValidating } = useSWRInfinite(
+        getKey,
+        async function (key) {
+            const pageNumber = parseInt(key.split('-')[2]);
+            const result = await fetchData(() => getPaginatedItems(pageNumber));
+            return result;
+        },
+        {
+            revalidateFirstPage: false,
+            revalidateAll: false,
+        }
+    );
+
+    const allItems = useMemo(() => {
+        if (!data) return [];
+        return data.flatMap(page => page.items.map(formatDate));
+    }, [data]);
 
     const lostItems = useMemo(() => {
-        if (!items) return [];
-        return items.filter((i: Item) => i.type === "lost").map(formatDate);
-    }, [items]);
+        return allItems.filter((i: Item) => i.type === "lost");
+    }, [allItems]);
 
     const foundItems = useMemo(() => {
-        if (!items) return [];
-        return items.filter((i: Item) => i.type === "found").map(formatDate);
-    }, [items]);
+        return allItems.filter((i: Item) => i.type === "found");
+    }, [allItems]);
+
+    const hasMore = data?.[data.length - 1]?.has_more ?? false; // Check if there's more data to load from the last page
+
+    // Infinite scroll observer
+    useEffect(() => {
+        if (!loadMoreRef.current || !hasMore || isValidating) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !isValidating) {
+                    setSize(size + 1);
+                }
+            },
+            { rootMargin: '150px' }
+        );
+
+        observer.observe(loadMoreRef.current);
+        return () => observer.disconnect();
+    }, [hasMore, isValidating, setSize, size]);
 
     const filterItems = (items: any[]) => {
         return items.filter(item => {
@@ -103,13 +142,20 @@ export function ItemsGridClient() {
 
                 <TabsContent value="all" className="space-y-6 animate-in fade-in-50 duration-500">
                     {userItems.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {userItems.map((item) => (
-                                <div key={item.id} className="relative group">
-                                    <ItemCard item={item} type={item.type} />
+                        <>
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {userItems.map((item) => (
+                                    <div key={item.id} className="relative group">
+                                        <ItemCard item={item} type={item.type} />
+                                    </div>
+                                ))}
+                            </div>
+                            {hasMore && (
+                                <div ref={loadMoreRef} className="flex justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                                 </div>
-                            ))}
-                        </div>
+                            )}
+                        </>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-muted/10 border-dashed">
                             <div className="bg-muted/30 p-4 rounded-full mb-4">
@@ -125,14 +171,20 @@ export function ItemsGridClient() {
                         </div>
                     )}
                 </TabsContent>
-
                 <TabsContent value="found" className="space-y-4 animate-in fade-in-50 duration-500">
                     {filteredFoundItems.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {filteredFoundItems.map(item => (
-                                <ItemCard key={item.id} item={item} type="found" />
-                            ))}
-                        </div>
+                        <>
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {filteredFoundItems.map(item => (
+                                    <ItemCard key={item.id} item={item} type="found" />
+                                ))}
+                            </div>
+                            {hasMore && (
+                                <div ref={loadMoreRef} className="flex justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-muted/10 border-dashed">
                             <div className="bg-muted/30 p-4 rounded-full mb-4">
@@ -151,11 +203,18 @@ export function ItemsGridClient() {
 
                 <TabsContent value="lost" className="space-y-4 animate-in fade-in-50 duration-500">
                     {filteredLostItems.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {filteredLostItems.map(item => (
-                                <ItemCard key={item.id} item={item} type="lost" />
-                            ))}
-                        </div>
+                        <>
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {filteredLostItems.map(item => (
+                                    <ItemCard key={item.id} item={item} type="lost" />
+                                ))}
+                            </div>
+                            {hasMore && (
+                                <div ref={loadMoreRef} className="flex justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-muted/10 border-dashed">
                             <div className="bg-muted/30 p-4 rounded-full mb-4">

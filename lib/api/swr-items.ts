@@ -6,27 +6,35 @@ import { Item } from "@/types/item";
 
 const BACKEND_URL = process.env.INTERNAL_BACKEND_URL;
 
-// GET: All Items (works with or without authentication)
-export async function getAllItems() {
+// GET: Paginated Items (works with or without authentication)
+export async function getPaginatedItems(page: number = 1, limit: number = 12) {
     try {
         const session = await auth();
         const token = session?.backendToken;
 
-        const res = await fetch(`${BACKEND_URL}/items/all`, {
+        const res = await fetch(`${BACKEND_URL}/items/all?page=${page}&limit=${limit}`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         });
 
         if (!res.ok) {
-            console.error("getAllItems failed:", res.status);
+            console.error("getPaginatedItems failed:", res.status);
             return { ok: false, status: res.status };
         }
 
         const data = await safeJson(res);
-        return { ok: true, data: data.items as Item[] };
+        return {
+            ok: true,
+            data: {
+                items: data.items as Item[],
+                page: data.page,
+                limit: data.limit,
+                has_more: data.has_more
+            }
+        };
     } catch (err) {
-        console.error("getAllItems error:", err);
+        console.error("getPaginatedItems error:", err);
         return { ok: false, error: String(err) };
     }
 }
