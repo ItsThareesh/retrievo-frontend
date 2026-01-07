@@ -7,7 +7,7 @@ export default async function FinderReviewPage({ params }: { params: Promise<{ i
     const session = await auth();
 
     const isAuthenticated =
-        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+        !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
     if (!isAuthenticated) {
         redirect('/auth/signin?callbackUrl=/items/' + (await params).id + '/review-claim');

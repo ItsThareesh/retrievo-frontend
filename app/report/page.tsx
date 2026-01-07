@@ -6,7 +6,7 @@ export default async function ReportPage() {
     const session = await auth();
 
     const isAuthenticated =
-        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+        !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
     if (!isAuthenticated) {
         redirect(`/auth/signin?callbackUrl=/report`);

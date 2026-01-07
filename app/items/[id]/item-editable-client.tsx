@@ -382,7 +382,7 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                                 className="w-full h-12 text-lg shadow-sm mb-6"
                                 onClick={() => {
                                     const isAuthenticated =
-                                        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
                                     if (!isAuthenticated) {
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
@@ -410,7 +410,7 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                                 className="w-full text-muted-foreground hover:text-destructive py-3"
                                 onClick={() => {
                                     const isAuthenticated =
-                                        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
                                     if (!isAuthenticated) {
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)

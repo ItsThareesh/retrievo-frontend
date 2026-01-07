@@ -9,7 +9,7 @@ export async function Navbar() {
     const session = await auth();
 
     const isAuthenticated =
-        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+        !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

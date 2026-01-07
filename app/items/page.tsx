@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { ItemsGridClient } from './items-grid-client';
 
 
-export default function BrowseItemsPage() {
+export default async function BrowseItemsPage() {
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col gap-6 mb-8">

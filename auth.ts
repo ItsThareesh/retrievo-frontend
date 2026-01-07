@@ -51,7 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // Attach to account (will be available in jwt callback)
                 account.backendToken = data.access_token;
-                account.tokenExpires = data.expires_at * 1000; // Convert to ms for JS Date
+                account.expires_at = data.expires_at * 1000; // Convert to ms for JS Date
 
                 return true;
             }
@@ -65,7 +65,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // On initial sign in, account and profile are available
             if (account && profile) {
                 token.backendToken = account.backendToken;
-                token.tokenExpires = account.tokenExpires;
+                token.expires_at = account.expires_at;
 
                 // Fetch and cache user profile data in JWT on initial sign-in
                 try {
@@ -129,13 +129,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
 
             // Only check refresh if we have a token and expiry time
-            if (!token.backendToken || !token.tokenExpires) {
+            if (!token.backendToken || !token.expires_at) {
                 return token;
             }
 
             // Check if token needs refresh (refresh 10 minutes before expiry)
             const now = Date.now();
-            const timeUntilExpiry = Number(token.tokenExpires) - now;
+            const timeUntilExpiry = Number(token.expires_at) - now;
             const REFRESH_WINDOW = 10 * 60 * 1000; // 10 minutes
 
             // If token expires in less than 10 minutes, refresh it
@@ -148,7 +148,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ token: token.backendToken })
                         },
-                        5000
                     );
 
                     if (!res.ok) {
@@ -158,7 +157,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     const data = await res.json();
                     token.backendToken = data.access_token;
-                    token.tokenExpires = data.expires_at * 1000; // Convert to ms
+                    token.expires_at = data.expires_at * 1000; // Convert to ms
                 } catch (err) {
                     console.error("Token refresh error:", err);
                     return null;
@@ -170,7 +169,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         async session({ session, token }) {
             session.backendToken = token.backendToken as string;
-            session.tokenExpires = token.tokenExpires as number;
+            session.expires_at = token.expires_at as number;
 
             if (!session.backendToken) {
                 return session;

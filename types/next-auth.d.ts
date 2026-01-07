@@ -3,7 +3,8 @@ import { DefaultSession } from "next-auth";
 declare module "next-auth" {
     interface Session {
         backendToken?: string;
-        tokenExpires?: number;
+        expires_at?: number;
+
         user: {
             public_id: string;
             email: string;
@@ -17,14 +18,14 @@ declare module "next-auth" {
 
     interface Account {
         backendToken?: string;
-        tokenExpires?: number;
+        expires_at?: number;
     }
 }
 
 declare module "next-auth/jwt" {
     interface JWT {
         backendToken?: string;
-        tokenExpires?: number;
+        expires_at?: number;
         user?: {
             public_id: string;
             email: string;

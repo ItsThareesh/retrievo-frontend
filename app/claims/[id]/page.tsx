@@ -6,7 +6,7 @@ import { ClaimStatusContent } from "./claim_status_content";
 export default async function ClaimStatusPage({ params }: { params: Promise<{ id: string }>; }) {
     const session = await auth();
     const isAuthenticated =
-        !!session?.user && Date.now() < (session?.tokenExpires ?? 0);
+        !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
     if (!isAuthenticated) {
         redirect('/auth/signin?callbackUrl=/claims/' + (await params).id);
