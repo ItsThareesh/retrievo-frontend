@@ -16,8 +16,9 @@ RUN npm run build
 FROM node:20-slim AS runner
 WORKDIR /app
 
-RUN addgroup -S appuser \
-    && adduser -S appuser -G appuser -h /app
+# Create a non-root user for security
+RUN groupadd -r appuser \
+    && useradd -r -g appuser -d /app -s /usr/sbin/nologin appuser
 
 # Copy contents of the standalone build into the runtime image
 COPY --from=builder /app/.next/standalone ./
@@ -27,6 +28,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static
 
+# Ensure correct ownership
 RUN chown -R appuser:appuser /app
 USER appuser
 
