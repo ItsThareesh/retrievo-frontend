@@ -101,14 +101,14 @@ export function ItemsGridClient() {
                     <Input
                         type="search"
                         placeholder="Search by keyword..."
-                        className="pl-9 bg-background border-muted-foreground/20"
+                        className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <div className="flex gap-2 w-full md:w-auto">
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="w-full md:w-[180px] bg-background border-muted-foreground/20">
+                        <SelectTrigger className="w-full md:w-[180px] bg-background border-muted-foreground/20 cursor-pointer">
                             <div className="flex items-center gap-2">
                                 <Filter className="w-4 h-4" />
                                 <SelectValue placeholder="Category" />
@@ -129,13 +129,13 @@ export function ItemsGridClient() {
 
             <Tabs defaultValue="all" className="w-full">
                 <TabsList className="flex w-full max-w-md mx-auto mb-8">
-                    <TabsTrigger value="all" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                        All Items
+                    <TabsTrigger value="all" className="data-[state=active]:bg-background data-[state=active]:shadow-lg active:scale-98  cursor-pointer">
+                        All items
                     </TabsTrigger>
-                    <TabsTrigger value="found" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <TabsTrigger value="found" className="data-[state=active]:bg-background data-[state=active]:shadow-lg active:scale-98  cursor-pointer">
                         Found Items
                     </TabsTrigger>
-                    <TabsTrigger value="lost" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    <TabsTrigger value="lost" className="data-[state=active]:bg-background data-[state=active]:shadow-lg active:scale-98  cursor-pointer">
                         Lost Items
                     </TabsTrigger>
                 </TabsList>
