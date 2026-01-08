@@ -9,7 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, Trash2, Calendar, MapPin, Share2, User, Pencil, X, Flag, ChevronDown } from "lucide-react";
+import { MoreHorizontal, Trash2, Calendar, MapPin, Flag, Share2, User, Pencil, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,31 +48,22 @@ interface ItemEditableProps {
 
 export default function ItemEditable({ item, reporter, claim_status, session }: ItemEditableProps) {
     const router = useRouter();
-
     const {
-        reason,
-        setReason,
-        reasons_map,
-
         isEditing,
         setIsEditing,
         isDeleting,
         setIsDeleting,
         isSaving,
-        isReporting,
-        setIsReporting,
         isClaiming,
         setIsClaiming,
         claimText,
         setClaimText,
         isSubmittingClaim,
         myClaimStatus,
-
         formData,
         setFormData,
         canEdit,
         canClaim,
-
         handleSave,
         handleCancel,
         handleDelete,
@@ -91,6 +82,19 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                 return "Claim Rejected";
         }
     }
+<<<<<<< Updated upstream
+=======
+    function mapClaimStatusBg(status: string) {
+        switch (status) {
+            case "pending":
+                return "bg-neutral-500";
+            case "approved":
+                return "bg-emerald-500";
+            case "rejected":
+                return "bg-red-600";
+        }
+    }
+>>>>>>> Stashed changes
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
@@ -107,8 +111,8 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                             <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
                                 <Badge
                                     className={`text-lg px-4 py-1.5 shadow-md text-white ${item.type === "lost"
-                                        ? "bg-red-500 hover:bg-red-600"
-                                        : "bg-emerald-500 hover:bg-emerald-600"
+                                        ? "bg-red-500"
+                                        : "bg-amber-500"
                                         }`}
                                 >
                                     {item.type === "lost" ? "Lost" : "Found"}
@@ -116,7 +120,7 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
 
                                 {claim_status !== "none" && (
                                     <Badge
-                                        className="text-lg px-4 py-1.5 shadow-md bg-amber-500 text-white hover:bg-amber-600"
+                                        className={`text-lg px-3 py-1 shadow-md bg-amber-500 text-white ${mapClaimStatusBg(myClaimStatus)}`}
                                     >
                                         {mapClaimStatusToText(myClaimStatus)}
                                     </Badge>
@@ -503,6 +507,7 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+<<<<<<< Updated upstream
 
             <AlertDialog open={isReporting} onOpenChange={setIsReporting}>
                 <AlertDialogContent>
@@ -563,6 +568,8 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+=======
+>>>>>>> Stashed changes
         </div >
     );
 }
