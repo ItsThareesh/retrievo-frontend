@@ -16,10 +16,10 @@ export default function Home() {
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const scrollY = window.scrollY;
-          const factor = Math.min(scrollY / 400, 1);
+          const factor = Math.min(scrollY / 600, 1);
 
-          glow.style.height = `${400 - factor * 200}px`;
-          glow.style.opacity = `${1 - factor * 0.7}`;
+          glow.style.transform = `translate(-50%, ${factor * 150}px) scale(${1 - factor * 0.3})`;
+          glow.style.opacity = `${1 - factor}`;
 
           ticking = false;
         });
@@ -57,7 +57,7 @@ export default function Home() {
             Simple, fast, and community-driven recovery.
           </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
             <Button asChild size="lg" className="h-14 px-8 text-lg gap-2 hover:shadow-xl transition-all hover:-translate-y-1 bg-red-600 dark:bg-red-700 hover:bg-red-500  text-white border-0">
               <Link href="/report?type=lost">
                 <AlertCircle className="w-5 h-5" />
@@ -86,13 +86,22 @@ export default function Home() {
           id="scrollGlow"
           className="
             pointer-events-none
-            absolute bottom-0 left-1/2 -translate-x-1/2
-            w-[140%] h-[360px]
-            dark:bg-indigo-700/20
-            blur-3xl
-            dark:[mask-image:radial-gradient(ellipse_at_bottom,black_20%,transparent_70%)]
-            transition-all "
-        ></div>
+            absolute bottom-[-10%] left-1/2 -translate-x-1/2
+            w-[1200px] h-[600px]
+            blur-[100px]
+            opacity-70
+            transition-opacity duration-300
+            will-change-transform
+          "
+          style={{
+            background: `radial-gradient(circle at center, 
+              rgba(99, 102, 241, 0.4) 0%, 
+              rgba(99, 102, 241, 0.15) 35%, 
+              rgba(99, 102, 241, 0.05) 55%, 
+              transparent 70%)`,
+            transform: 'translate(-50%, 0) scale(1)'
+          }}
+        />
       </section>
 
       {/* Features Section */}

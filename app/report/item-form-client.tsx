@@ -76,9 +76,10 @@ const formSchema = z.object({
 
 interface ItemFormClientProps {
     session: Session;
+    type: "lost" | "found";
 }
 
-export function ItemFormClient({ session }: ItemFormClientProps) {
+export function ItemFormClient({ session, type }: ItemFormClientProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
@@ -91,7 +92,7 @@ export function ItemFormClient({ session }: ItemFormClientProps) {
             location: "",
             visibility: "public",
             category: "",
-            item_type: "lost",
+            item_type: type,
         },
     });
 
@@ -112,7 +113,7 @@ export function ItemFormClient({ session }: ItemFormClientProps) {
             const res = await postLostFoundItem(formData);
 
             if (res.status === 401) {
-                router.push("/auth/signin?callbackUrl=/report");
+                router.push(`/auth/signin?callbackUrl=/report?type=${type}`);
                 return;
             }
 
