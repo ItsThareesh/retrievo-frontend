@@ -1,10 +1,8 @@
 "use server"
 
 import { auth } from "@/auth";
-import { safeJson, UnauthorizedError } from "./helpers";
+import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
 import { Item } from "@/types/item";
-
-const BACKEND_URL = process.env.INTERNAL_BACKEND_URL;
 
 // GET: Paginated Items (works with or without authentication)
 export async function getPaginatedItems(page: number = 1, limit: number = 12) {
@@ -12,7 +10,8 @@ export async function getPaginatedItems(page: number = 1, limit: number = 12) {
         const session = await auth();
         const token = session?.backendToken;
 
-        const res = await fetch(`${BACKEND_URL}/items/all?page=${page}&limit=${limit}`, {
+        const res = await publicFetch(
+            `/items/all?page=${page}&limit=${limit}`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
@@ -42,17 +41,7 @@ export async function getPaginatedItems(page: number = 1, limit: number = 12) {
 // GET: All Items for Current User (requires authentication)
 export async function getUserItems() {
     try {
-        const session = await auth();
-
-        if (!session?.backendToken) {
-            throw new UnauthorizedError();
-        }
-
-        const res = await fetch(`${BACKEND_URL}/profile/items`, {
-            headers: { Authorization: `Bearer ${session.backendToken}` },
-        });
-
-        if (res.status === 401) throw new UnauthorizedError();
+        const res = await authFetch(`/profile/items`);
 
         if (!res.ok) {
             console.error("getUserItems failed:", res.status);
@@ -86,7 +75,8 @@ export async function getUserProfile(public_id: string) {
         const session = await auth();
         const token = session?.backendToken;
 
-        const res = await fetch(`${BACKEND_URL}/profile/${public_id}`, {
+        const res = await publicFetch(
+            `/profile/${public_id}`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
