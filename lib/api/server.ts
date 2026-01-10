@@ -1,15 +1,14 @@
-import { safeJson } from "./helpers";
-
-const BACKEND_URL = process.env.INTERNAL_BACKEND_URL;
+import { publicFetch, safeJson } from "./helpers";
 
 // GET: Single Item by ID along with Reporter Info and Claim Status
 export async function fetchItem(itemId: string, token?: string) {
     try {
-        const res = await fetch(
-            `${BACKEND_URL}/items/${itemId}`, {
+        const res = await publicFetch(
+            `/items/${itemId}`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            }
+            },
+            next: { revalidate: 180 },
         });
 
         if (!res.ok) {

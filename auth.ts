@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-import { fetchWithTimeout } from "./lib/api/helpers";
+import { internalFetchWithTimeout } from "./lib/api/helpers";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -28,7 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             try {
                 // Returns access token and user ID from backend
-                const res = await fetchWithTimeout(
+                const res = await internalFetchWithTimeout(
                     `${process.env.INTERNAL_BACKEND_URL}/auth/google`,
                     {
                         method: "POST",
@@ -69,11 +69,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // Fetch and cache user profile data in JWT on initial sign-in
                 try {
-                    const res = await fetchWithTimeout(
+                    const res = await internalFetchWithTimeout(
                         `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
-                        {
-                            headers: { Authorization: `Bearer ${token.backendToken}` },
-                        },
+                        { headers: { Authorization: `Bearer ${token.backendToken}` } },
                         5000
                     );
 
@@ -99,7 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (trigger === "update") {
                 if (token.backendToken) {
                     try {
-                        const res = await fetchWithTimeout(
+                        const res = await internalFetchWithTimeout(
                             `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
                             { headers: { Authorization: `Bearer ${token.backendToken}` } },
                             5000
@@ -138,10 +136,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             const timeUntilExpiry = Number(token.expires_at) - now;
             const REFRESH_WINDOW = 10 * 60 * 1000; // 10 minutes
 
+            // Already expired, then force logout
+            if (timeUntilExpiry <= 0) {
+                token.backendToken = null;
+                token.expires_at = null;
+                token.user = null;
+
+                return token;
+            }
+
             // If token expires in less than 10 minutes, refresh it
             if (timeUntilExpiry <= REFRESH_WINDOW) {
                 try {
-                    const res = await fetchWithTimeout(
+                    const res = await internalFetchWithTimeout(
                         `${process.env.INTERNAL_BACKEND_URL}/auth/refresh`,
                         {
                             method: "POST",
@@ -152,7 +159,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     if (!res.ok) {
                         console.error("Token refresh failed, forcing logout");
-                        return null; // force logout
+                        token.backendToken = null;
+                        token.expires_at = null;
+                        token.user = null;
+
+                        return token;
                     }
 
                     const data = await res.json();
@@ -160,7 +171,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     token.expires_at = data.expires_at * 1000; // Convert to ms
                 } catch (err) {
                     console.error("Token refresh error:", err);
-                    return null;
+                    token.backendToken = null;
+                    token.expires_at = null;
+                    token.user = null;
+
+                    return token;
                 }
             }
 
@@ -168,12 +183,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
 
         async session({ session, token }) {
-            session.backendToken = token.backendToken as string;
-            session.expires_at = token.expires_at as number;
-
-            if (!session.backendToken) {
+            if (!token.backendToken) {
                 return session;
             }
+
+            // Attach backend token and expiry to session
+            session.backendToken = token.backendToken as string;
+            session.expires_at = token.expires_at as number;
 
             // Use cached user data from JWT token if available
             if (token.user) {
