@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function Home() {
+  
   useEffect(() => {
     const glow = document.getElementById("scrollGlow");
     if (!glow) return;
@@ -18,8 +19,8 @@ export default function Home() {
           const scrollY = window.scrollY;
           const factor = Math.min(scrollY / 600, 1);
 
-          glow.style.transform = `translate(-50%, ${factor * 150}px) scale(${1 - factor * 0.3})`;
-          glow.style.opacity = `${1 - factor}`;
+          glow.style.height = `${600 - factor * 500}px`;
+          glow.style.opacity = `${1 - factor * 0.5}`;
 
           ticking = false;
         });
@@ -39,8 +40,8 @@ export default function Home() {
     <div className="flex flex-col min-h-[calc(100vh-4rem)]">
 
       {/* Hero Section */}
-      <section className="relative flex-1 flex flex-col items-center justify-center py-24 px-4 text-center overflow-hidden">
-        <div className="max-w-4xl space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      <section className="relative flex-1 flex flex-col items-center justify-center py-26 px-4 text-center overflow-hidden ">
+        <div className="max-w-4xl space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 flex justify-center flex-col items-center">
           {/* <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/10 text-primary hover:bg-primary/20 mb-4">
             New: Community Rewards Program
           </div> */}
@@ -57,7 +58,7 @@ export default function Home() {
             Simple, fast, and community-driven recovery.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+          <div className="flex flex-col md:flex-row gap-4 justify-center pt-8 w-4/5 md:w-full">
             <Button asChild size="lg" className="h-14 px-8 text-lg gap-2 hover:shadow-xl transition-all hover:-translate-y-1 bg-red-600 dark:bg-red-700 hover:bg-red-500  text-white border-0">
               <Link href="/report?type=lost">
                 <AlertCircle className="w-5 h-5" />
@@ -86,22 +87,14 @@ export default function Home() {
           id="scrollGlow"
           className="
             pointer-events-none
-            absolute bottom-[-10%] left-1/2 -translate-x-1/2
-            w-[1200px] h-[600px]
-            blur-[100px]
-            opacity-70
-            transition-opacity duration-300
-            will-change-transform
+            absolute bottom-0 left-1/2 -translate-x-1/2
+            w-[120%] h-[600px]
+            origin-bottom
+            dark:bg-[radial-gradient(ellipse_at_bottom,rgba(93,96,241,0.35),transparent_50%)]
+            [mask-image:linear-gradient(to_top,black,transparent)]
+            blur-[100px] opacity-100
           "
-          style={{
-            background: `radial-gradient(circle at center, 
-              rgba(99, 102, 241, 0.4) 0%, 
-              rgba(99, 102, 241, 0.15) 35%, 
-              rgba(99, 102, 241, 0.05) 55%, 
-              transparent 70%)`,
-            transform: 'translate(-50%, 0) scale(1)'
-          }}
-        />
+        ></div>
       </section>
 
       {/* Features Section */}
