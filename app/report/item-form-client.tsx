@@ -109,33 +109,29 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             { value: "creative_zone", label: "Creative Zone" },
             { value: "main_ground", label: "Main Ground" },
             { value: "main_building", label: "Main Building" },
-            { value: "ccc", label: "CCC" },
             { value: "nlhc", label: "NLHC" },
             { value: "oat", label: "OAT" },
             { value: "elhc", label: "ELHC" },
             { value: "rajpath", label: "Rajpath" },
-            { value: "bb_court", label: "BasketBall court" },
+            { value: "bb_court", label: "Basketball court" },
             { value: "aryabhatta", label: "Aryabhatta hall" },
             { value: "bhaskara", label: "Bhaskara hall" },
             { value: "chanakya", label: "Chanakya hall" },
             { value: "hostel_office", label:"Hostel Office" },
             { value: "amphitheatre", label: "Amphitheatre" },
-            { value: "audi", label: "Badminton auditorium" },
+            { value: "audi", label: "Auditorium" },
             { value: "mini_canteen", label: "Mini Canteen" },
             { value: "97th_avenue", label:"97th Avenue" },
-            { value: "architecture", label: "Architecture Building" }
             ]
         },
         {
             category: "Labs",
             items: [
-                { value:"NSL", label:"NSL"},
-                { value:"SSL", label:"SSL"},
-                { value:"mech_lab", label:"Mechanical Lab"},
-                { value:"civil_lab", label:"Civil Lab"},
-                { value:"production_lab", label:"Production Lab"},
-                { value:"unwired", label:"Unwired workshop"},
-                { value:"rig", label:"RIG lab"},
+                { value: "ccc", label: "CCC" },
+                { value: "it_complex", label: "IT complex"},
+                { value: "mech_lab", label: "Mechanical Lab"},
+                { value: "civil_lab", label: "Civil Lab"},
+                { value: "production_lab", label: "Production Lab"},
             ]
         },
         {
@@ -146,6 +142,10 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                 { value:"eeed", label:"EEED building"},
                 { value:"med", label:"MED building"},
                 { value:"ched", label:"CHED building"},
+                { value:"ced", label:"CED building"},
+                { value:"biotech", label:"BSED building"},
+                { value:"production", label:"PED building"},
+                { value:"architecture", label: "Architecture building" },
                 { value:"maths", label:"Mathematics building"},
                 { value:"physics", label:"Physics building"},
                 { value:"material", label:"Material building"},
@@ -154,13 +154,13 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
         {
             category: "Hostels",
             items: [
-            { value:"a_hostel", label:"A hostel"},
-            { value:"b_hostel", label:"B hostel"},
-            { value:"c_hostel", label:"C hostel"},
-            { value:"d_hostel", label:"D hostel"},
-            { value:"e_hostel", label:"E hostel"},
-            { value:"f_hostel", label:"F hostel"},
-            { value:"g_hostel", label:"G hostel"},
+            { value:"hostel_a", label:"A hostel"},
+            { value:"hostel_b", label:"B hostel"},
+            { value:"hostel_c", label:"C hostel"},
+            { value:"hostel_d", label:"D hostel"},
+            { value:"hostel_e", label:"E hostel"},
+            { value:"hostel_f", label:"F hostel"},
+            { value:"hostel_g", label:"G hostel"},
             { value: "pg1", label: "PG hostel 1" },
             { value: "pg2", label: "PG hostel 2" },
             { value:"lh", label:"LH"},
@@ -266,7 +266,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                 <CardContent className="p-6 sm:p-8">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                 <FormField
                                     control={form.control}
                                     name="title"
@@ -332,6 +332,8 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                         </FormItem>
                                     )}
                                 />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                                 <FormField
                                     control={form.control}
                                     name="visibility"
@@ -360,6 +362,24 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                         </FormItem>
                                     )}
                                 />
+                                <FormField
+                                control={form.control}
+                                name="location"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Location</FormLabel>
+                                        <FormControl>
+                                            <Combobox 
+                                                groups={groupedLocations} 
+                                                value={selected} 
+                                                onChange={setSelected} 
+                                                placeholder="Select a location"
+                                                />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                                 <FormField
                                     control={form.control}
                                     name="date"
@@ -398,25 +418,10 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                         </FormItem>
                                     )}
                                 />
-                            </div>
-                            <FormField
-                                control={form.control}
-                                name="location"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Location</FormLabel>
-                                        <FormControl>
-                                            <Combobox 
-                                                groups={groupedLocations} 
-                                                value={selected} 
-                                                onChange={setSelected} 
-                                                placeholder="Select a location"
-                                                />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                
+                        </div>
+                            
+                            
                             <FormField
                                 control={form.control}
                                 name="description"

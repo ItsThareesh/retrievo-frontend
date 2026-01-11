@@ -29,7 +29,7 @@ export function Combobox({ groups =[], value, onChange }: any) {
       if (found) return found.label
     }
     return "Select location..."
-  }, [value, groups]);
+  }, [value, groups])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -38,7 +38,7 @@ export function Combobox({ groups =[], value, onChange }: any) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-full justify-between py-0"
         >
           {selectedLabel}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
