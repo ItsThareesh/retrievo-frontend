@@ -23,7 +23,7 @@ export function ImageViewer({ src, alt, children }: ImageViewerProps) {
                     {children}
                 </div>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center" showCloseButton={false}>
+            <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center [&>button]:hidden">
                 <DialogTitle className="sr-only">Image Viewer</DialogTitle>
 
                 <div className="relative inline-flex items-center justify-center">
