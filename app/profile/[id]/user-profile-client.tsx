@@ -58,7 +58,15 @@ export function UserProfileClient({ public_id }: UserProfileClientProps) {
                 <div className="w-full md:w-1/3 lg:w-1/4">
                     <div className="sticky top-24">
                         <Card className="overflow-hidden border-muted shadow-sm">
-                            <div className="h-24 bg-gradient-to-r from-primary/10 to-primary/30"></div>
+                            <div className="relative h-24 w-full overflow-hidden bg-muted/20">
+                                <img
+                                    src={user.image}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="
+                                    absolute inset-0 h-full w-full object-cover blur-3xl scale-125 opacity-50 saturate-300"
+                                />
+                            </div>
                             <CardHeader className="text-center -mt-12 relative z-10">
                                 <div className="mx-auto mb-4 p-1 bg-background rounded-full w-fit">
                                     <Avatar className="w-24 h-24 border-2 border-background">
