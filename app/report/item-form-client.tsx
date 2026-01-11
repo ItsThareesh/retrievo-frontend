@@ -363,24 +363,26 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                     )}
                                 />
                                 <FormField
-                                control={form.control}
-                                name="location"
-                                render={({ field }) => (
-                                    <FormItem>
+                                    control={form.control}
+                                    name="location"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
                                         <FormLabel>Location</FormLabel>
-                                        <FormControl>
-                                            <Combobox 
-                                                groups={groupedLocations} 
-                                                value={selected} 
-                                                onChange={setSelected} 
-                                                onValueChange={field.onChange}
-                                                placeholder="Select a location"
-                                                />
-                                        </FormControl>
+                                        <Popover>
+                                            <FormControl>
+                                            <Combobox
+                                                groups={groupedLocations}
+                                                // 1. Pass the form's value directly
+                                                value={field.value} 
+                                                // 2. Pass the form's updater directly to 'onChange'
+                                                onChange={field.onChange} 
+                                            />
+                                            </FormControl>
+                                        </Popover>
                                         <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                        </FormItem>
+                                    )}
+                                    />
                                 <FormField
                                     control={form.control}
                                     name="date"
