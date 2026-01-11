@@ -58,7 +58,7 @@ const formSchema = z.object({
 
     location: z
         .string()
-        .min(2, "Location must be at least 2 characters.")
+        .min(2, "Location is required")
         .max(30, "Location must be at most 30 characters."),
 
     image: z
@@ -104,7 +104,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             category: "Central Campus",
             items: [
             { value: "admin_block", label: "Admin Block" },
-            { value: "swadishtam", label: "Swadishtam Canteen" },
+            { value: "swadishtam", label: "Swadishtam" },
             { value: "coops", label: "Cooperative Store" },
             { value: "creative_zone", label: "Creative Zone" },
             { value: "main_ground", label: "Main Ground" },
@@ -373,6 +373,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                 groups={groupedLocations} 
                                                 value={selected} 
                                                 onChange={setSelected} 
+                                                onValueChange={field.onChange}
                                                 placeholder="Select a location"
                                                 />
                                         </FormControl>
