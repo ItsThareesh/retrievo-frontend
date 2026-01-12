@@ -56,8 +56,9 @@ export interface UserDetail {
 }
 
 export interface ReportedItemDetail {
-    item_id: string;
-    item_title: string;
+    id: string;
+    title: string;
+    visibility: string;
     owner_name: string;
     report_count: number;
     is_hidden: boolean;

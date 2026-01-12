@@ -77,11 +77,11 @@ export function ReportsTab() {
                             </div>
                         ) : (
                             reportedItems.map((item) => {
-                                const isExpanded = expandedItems.has(item.item_id);
+                                const isExpanded = expandedItems.has(item.id);
 
                                 return (
                                     <div
-                                        key={item.item_id}
+                                        key={item.id}
                                         className="rounded-lg border bg-card"
                                     >
                                         <div className="p-5">
@@ -94,12 +94,14 @@ export function ReportsTab() {
                                                     <div className="flex items-start justify-between gap-3 mb-2">
                                                         <div className="flex-1 min-w-0">
                                                             <button
-                                                                onClick={() => router.push(`/items/${item.item_id}`)}
+                                                                onClick={() => router.push(`/items/${item.id}`)}
                                                                 className="font-semibold text-base hover:underline flex items-center gap-2 group"
                                                             >
-                                                                <span className="truncate">{item.item_title}</span>
+                                                                <span className="truncate">{item.title}</span>
                                                                 <ExternalLink className="h-4 w-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                                                             </button>
+                                                            {/* TODO: Add visibility info
+                                                            Ensures that only same gender admins can moderate gender specific items. */}
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 <span className="text-sm text-muted-foreground">
                                                                     by {item.owner_name}
@@ -137,7 +139,7 @@ export function ReportsTab() {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => toggleExpanded(item.item_id)}
+                                                            onClick={() => toggleExpanded(item.id)}
                                                             className="gap-2"
                                                         >
                                                             {isExpanded ? (
@@ -157,7 +159,7 @@ export function ReportsTab() {
                                                             <Button
                                                                 variant="default"
                                                                 size="sm"
-                                                                onClick={() => handleModerateItem(item.item_id, "restore")}
+                                                                onClick={() => handleModerateItem(item.id, "restore")}
                                                                 className="gap-2"
                                                             >
                                                                 <Eye className="h-4 w-4" />
@@ -167,7 +169,7 @@ export function ReportsTab() {
                                                             <Button
                                                                 variant="destructive"
                                                                 size="sm"
-                                                                onClick={() => handleModerateItem(item.item_id, "hide")}
+                                                                onClick={() => handleModerateItem(item.id, "hide")}
                                                                 className="gap-2"
                                                             >
                                                                 <EyeOff className="h-4 w-4" />
@@ -178,7 +180,7 @@ export function ReportsTab() {
                                                         <Button
                                                             variant="destructive"
                                                             size="sm"
-                                                            onClick={() => setPendingDelete(item.item_id)}
+                                                            onClick={() => setPendingDelete(item.id)}
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                             Delete Item
@@ -227,7 +229,7 @@ export function ReportsTab() {
                         )}
                     </div>
                 </CardContent>
-            </Card>
+            </Card >
 
             <AlertDialog
                 open={pendingDelete !== null}

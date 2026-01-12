@@ -32,11 +32,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { postLostFoundItem } from '@/lib/api/client';
-import { UnauthorizedError } from '@/lib/api/helpers';
 import { signIn } from "next-auth/react";
 import type { Session } from 'next-auth';
 import { ImageViewer } from '@/components/image-viewer';
 import { toast } from 'sonner';
+import { LOCATION_MAP } from '../../lib/constants/locations';
 
 
 
@@ -82,7 +82,6 @@ interface ItemFormClientProps {
 }
 
 export function ItemFormClient({ session, type }: ItemFormClientProps) {
-    const [selected, setSelected] = useState("")
     const [preview, setPreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
@@ -99,102 +98,26 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
         },
     });
 
-    const groupedLocations = [
-        {
-            category: "Central Campus",
-            items: [
-            { value: "admin_block", label: "Admin Block" },
-            { value: "swadishtam", label: "Swadishtam" },
-            { value: "coops", label: "Cooperative Store" },
-            { value: "creative_zone", label: "Creative Zone" },
-            { value: "main_ground", label: "Main Ground" },
-            { value: "main_building", label: "Main Building" },
-            { value: "nlhc", label: "NLHC" },
-            { value: "oat", label: "OAT" },
-            { value: "elhc", label: "ELHC" },
-            { value: "rajpath", label: "Rajpath" },
-            { value: "bb_court", label: "Basketball court" },
-            { value: "aryabhatta", label: "Aryabhatta hall" },
-            { value: "bhaskara", label: "Bhaskara hall" },
-            { value: "chanakya", label: "Chanakya hall" },
-            { value: "hostel_office", label:"Hostel Office" },
-            { value: "amphitheatre", label: "Amphitheatre" },
-            { value: "audi", label: "Auditorium" },
-            { value: "mini_canteen", label: "Mini Canteen" },
-            { value: "97th_avenue", label:"97th Avenue" },
-            ]
-        },
-        {
-            category: "Labs",
-            items: [
-                { value: "ccc", label: "CCC" },
-                { value: "it_complex", label: "IT complex"},
-                { value: "mech_lab", label: "Mechanical Lab"},
-                { value: "civil_lab", label: "Civil Lab"},
-                { value: "production_lab", label: "Production Lab"},
-            ]
-        },
-        {
-            category: "Department buildings",
-            items: [
-                { value:"csed", label:"CSED building"},
-                { value:"eced", label:"ECED building"},
-                { value:"eeed", label:"EEED building"},
-                { value:"med", label:"MED building"},
-                { value:"ched", label:"CHED building"},
-                { value:"ced", label:"CED building"},
-                { value:"biotech", label:"BSED building"},
-                { value:"production", label:"PED building"},
-                { value:"architecture", label: "Architecture building" },
-                { value:"maths", label:"Mathematics building"},
-                { value:"physics", label:"Physics building"},
-                { value:"material", label:"Material building"},
-            ]
-        },
-        {
-            category: "Hostels",
-            items: [
-            { value:"hostel_a", label:"A hostel"},
-            { value:"hostel_b", label:"B hostel"},
-            { value:"hostel_c", label:"C hostel"},
-            { value:"hostel_d", label:"D hostel"},
-            { value:"hostel_e", label:"E hostel"},
-            { value:"hostel_f", label:"F hostel"},
-            { value:"hostel_g", label:"G hostel"},
-            { value: "pg1", label: "PG hostel 1" },
-            { value: "pg2", label: "PG hostel 2" },
-            { value:"lh", label:"LH"},
-            { value:"mlh", label:"MLH"},
-            { value:"mbh1", label:"MBH 1"},
-            { value:"mbh2", label:"MBH 2"},
-            ]
-        },
-        {
-            category: "East Campus",
-            items: [
-            { value: "eclhc", label: "ECLHC" },
-            { value: "sumedhyam", label: "Sumedhyam Canteen" },
-            ]
-        },
-        {
-            category: "West Campus",
-            items: [
-            { value:"library", label:"Central Library"},
-            { value:"guest_house", label:"Guest House"},
-            { value: "tbi", label: "TBI" },
-            { value: "swimming_pool", label: "Swimming Pool" },
-            { value: "bbc", label: "Bestie Beans Cafe" },
-            { value: "faculty_residency", label: "Faculty Residential Area" },
-            ]
-        },
-        {
-            category: "South Campus",
-            items: [
-            { value: "soms", label: "SOMS" },
-            { value: "mba_auditorium", label: "MBA Auditorium" },
-            ]
-        },
-        ];
+    const groupedLocations = (() => {
+        const groups: Record<string, { value: string; label: string }[]> = {};
+
+        Object.entries(LOCATION_MAP).forEach(([key, { label, category }]) => {
+            if (!groups[category]) groups[category] = [];
+            groups[category].push({ value: key, label });
+        });
+
+        // Apply constraint for hostels
+        if (groups["Hostels"]) {
+            groups["Hostels"] = groups["Hostels"].filter(item => {
+                if (item.value === "lh" || item.value === "mlh") {
+                    return session.user.hostel !== "boys";
+                }
+                return true;
+            });
+        }
+
+        return Object.entries(groups).map(([category, items]) => ({ category, items }));
+    })();
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
@@ -325,9 +248,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                     <SelectItem value="found">Found</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            <FormDescription>
-                                                Whether you lost or found this item.
-                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -355,9 +275,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            <FormDescription>
-                                                Who should see this item on the feed.
-                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -367,22 +284,22 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                     name="location"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
-                                        <FormLabel>Location</FormLabel>
-                                        <Popover>
-                                            <FormControl>
-                                            <Combobox
-                                                groups={groupedLocations}
-                                                // 1. Pass the form's value directly
-                                                value={field.value} 
-                                                // 2. Pass the form's updater directly to 'onChange'
-                                                onChange={field.onChange} 
-                                            />
-                                            </FormControl>
-                                        </Popover>
-                                        <FormMessage />
+                                            <FormLabel>Location</FormLabel>
+                                            <Popover>
+                                                <FormControl>
+                                                    <Combobox
+                                                        groups={groupedLocations}
+                                                        // Pass the form's value directly
+                                                        value={field.value}
+                                                        // Pass the form's updater directly to 'onChange'
+                                                        onChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                            </Popover>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
-                                    />
+                                />
                                 <FormField
                                     control={form.control}
                                     name="date"
@@ -421,10 +338,10 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                         </FormItem>
                                     )}
                                 />
-                                
-                        </div>
-                            
-                            
+
+                            </div>
+
+
                             <FormField
                                 control={form.control}
                                 name="description"

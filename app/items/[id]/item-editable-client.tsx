@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
+import { Combobox } from "@/components/ui/combo-box";
+import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
 
 interface ItemEditableProps {
     item: Item;
@@ -98,6 +100,27 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                 return "bg-emerald-500";
         }
     }
+
+    const groupedLocations = (() => {
+        const groups: Record<string, { value: string; label: string }[]> = {};
+
+        Object.entries(LOCATION_MAP).forEach(([key, { label, category }]) => {
+            if (!groups[category]) groups[category] = [];
+            groups[category].push({ value: key, label });
+        });
+
+        // Apply constraint for hostels
+        if (groups["Hostels"]) {
+            groups["Hostels"] = groups["Hostels"].filter(item => {
+                if (item.value === "lh" || item.value === "mlh") {
+                    return session?.user.hostel !== "boys";
+                }
+                return true;
+            });
+        }
+
+        return Object.entries(groups).map(([category, items]) => ({ category, items }));
+    })();
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
@@ -298,24 +321,29 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                         {/* Detail Cards */}
                         <div className="space-y-4 mb-6">
                             {/* Location */}
-                            <div className={cn(
-                                "group flex items-start gap-3 p-3 rounded-lg bg-muted/30 border transition-all duration-200",
-                                isEditing && "ring-2 ring-primary/20 bg-muted/50"
-                            )}>
+                            <div
+                                className={cn(
+                                    "group flex items-start gap-3 p-3 rounded-lg bg-muted/30 border transition-all duration-200",
+                                    isEditing && "ring-2 ring-primary/20 bg-muted/50"
+                                )}
+                            >
                                 <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+
                                 <div className="flex-1 min-w-0">
                                     <p className="font-medium text-sm mb-1">Location</p>
+
                                     {isEditing ? (
-                                        <Input
+                                        <Combobox
+                                            groups={groupedLocations}
                                             value={formData.location}
-                                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                            className="text-sm mt-1"
+                                            onChange={(value: LocationKey) =>
+                                                setFormData({ ...formData, location: value })
+                                            }
                                             disabled={isSaving}
-                                            placeholder="Where was it lost/found?"
                                         />
                                     ) : (
                                         <p className="text-muted-foreground text-sm break-words">
-                                            {formData.location}
+                                            {LOCATION_MAP[formData.location]?.label ?? formData.location}
                                         </p>
                                     )}
                                 </div>

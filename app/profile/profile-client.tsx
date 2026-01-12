@@ -25,6 +25,7 @@ import { fetchData } from '@/lib/utils/swrHelper';
 import { formatDate } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
 import { getUserItems } from '@/lib/api/swr-items';
+import { UserProfileLoading } from './user-profile-loading';
 
 interface ProfileClientProps {
     session: Session;
@@ -70,6 +71,10 @@ export function ProfileClient({ session: initialSession }: ProfileClientProps) {
             toastShownRef.current = true;
         }
     }, [reason]);
+
+    if (isLoading) {
+        return UserProfileLoading();
+    }
 
     const currentSession = session || initialSession;  // Fallback to initial session
 

@@ -1,3 +1,5 @@
+import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
+
 export interface Item {
     id: string;
     created_at: string;
@@ -6,7 +8,7 @@ export interface Item {
     description: string;
     category: string;
     date: string;
-    location: string;
+    location: LocationKey;
     image: string;
     type: 'lost' | 'found';
     visibility: 'public' | 'girls' | 'boys';
