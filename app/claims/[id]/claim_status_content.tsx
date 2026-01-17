@@ -1,14 +1,15 @@
 "use client";
 
-import { Claim, FinderContact } from "@/types/claim";
+import { Resolution, FinderContact } from "@/types/claim";
 import { Item } from "@/types/item";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, X, Clock, Mail, Phone } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+import { LOCATION_MAP } from "@/lib/constants/locations";
 
 interface ClaimStatusContentProps {
-    claim: Claim;
+    claim: Resolution;
     item: Item;
     finderContact: FinderContact | null;
 }
@@ -154,7 +155,7 @@ export function ClaimStatusContent({ claim, item, finderContact }: ClaimStatusCo
                 <Card className="p-6 mb-6 border-l-4 border-l-blue-500">
                     <h2 className="text-lg font-semibold mb-3">Your Description</h2>
                     <p className="text-base leading-relaxed text-foreground whitespace-pre-wrap">
-                        {claim.claim_description}
+                        {claim.description}
                     </p>
                     <p className="text-xs text-muted-foreground mt-4">
                         Submitted {formatDistanceToNow(new Date(claim.created_at), {
@@ -194,7 +195,7 @@ export function ClaimStatusContent({ claim, item, finderContact }: ClaimStatusCo
                                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             Location
                                         </p>
-                                        <p className="text-sm font-medium">{item.location}</p>
+                                        <p className="text-sm font-medium">{LOCATION_MAP[item.location]?.label}</p>
                                     </div>
 
                                     <div>

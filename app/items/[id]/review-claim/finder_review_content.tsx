@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Claim } from "@/types/claim";
+import { Resolution } from "@/types/claim";
 import { approveClaim, rejectClaim } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,17 +16,17 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Item } from "@/types/item";
+import { LOCATION_MAP } from "@/lib/constants/locations";
 
 interface FinderReviewContentProps {
-    claim: Claim;
+    resolution: Resolution;
     item: Item;
 }
 
-export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
+export function FinderReviewContent({ resolution, item }: FinderReviewContentProps) {
     const router = useRouter();
 
     const [showApproveConfirm, setShowApproveConfirm] = useState(false);
@@ -40,7 +40,7 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
         setIsProcessing(true);
         setError(null);
 
-        const result = await approveClaim(claim.id);
+        const result = await approveClaim(resolution.id);
 
         if (!result.ok) {
             setError(
@@ -71,7 +71,7 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
 
         setError(null);
 
-        const res = await rejectClaim(claim.id, reason);
+        const res = await rejectClaim(resolution.id, reason);
 
         if (!res.ok) {
             if (res.status === 422) {
@@ -115,17 +115,17 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
                         <div className="flex items-start gap-3">
                             <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
                             <div>
-                                <h2 className="font-semibold text-green-900 dark:text-green-50 mb-2">
+                                <h2 className="font-semibold text-green-900 dark:text-green-50">
                                     Claim Approved!
                                 </h2>
-                                <div className="bg-green-100 dark:bg-green-900/50 border border-green-300 dark:border-green-700 rounded-md p-3">
+                                {/* <div className="bg-green-100 dark:bg-green-900/50 border border-green-300 dark:border-green-700 rounded-md p-3">
                                     <p className="text-xs font-medium text-green-900 dark:text-green-100 mb-1">
                                         Details shared with claimant:
                                     </p>
                                     <p className="text-sm text-green-800 dark:text-green-200">
                                         Your email and phone number (from your profile)
                                     </p>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </Card>
@@ -135,10 +135,10 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
                 <Card className="p-6 mb-6 border-l-4 border-l-blue-500">
                     <h2 className="text-lg font-semibold mb-3">Claimant's Description</h2>
                     <p className="text-base leading-relaxed text-foreground whitespace-pre-wrap">
-                        {claim.claim_description}
+                        {resolution.description}
                     </p>
                     <p className="text-xs text-muted-foreground mt-4">
-                        Submitted {formatDistanceToNow(new Date(claim.created_at), {
+                        Submitted {formatDistanceToNow(new Date(resolution.created_at), {
                             addSuffix: true,
                         })}
                     </p>
@@ -174,7 +174,7 @@ export function FinderReviewContent({ claim, item }: FinderReviewContentProps) {
                                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             Location
                                         </p>
-                                        <p className="text-sm font-medium">{item.location}</p>
+                                        <p className="text-sm font-medium">{LOCATION_MAP[item.location]?.label}</p>
                                     </div>
 
                                     <div>

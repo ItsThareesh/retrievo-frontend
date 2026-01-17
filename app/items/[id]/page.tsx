@@ -18,7 +18,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
     return (
         <Suspense fallback={<Loading />}>
-            <ItemEditable item={item} reporter={reporter} claim_status={claim_status} session={session} />
+            <ItemEditable item={item} reporter={reporter} resolution_status={claim_status} session={session} />
         </Suspense>
     );
 }

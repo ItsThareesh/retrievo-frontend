@@ -1,13 +1,13 @@
 import { Item } from "./item";
 
-export type ClaimStatus = 'pending' | 'approved' | 'rejected';
+export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'invalidated';
 
-export interface Claim {
+export interface Resolution {
     id: string;
     item_id: string;
     claimant_id: string;
-    status: ClaimStatus;
-    claim_description: string;
+    status: ResolutionStatus;
+    description: string;
     rejection_reason?: string;
     created_at: string;
     decided_at: string;

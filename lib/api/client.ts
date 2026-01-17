@@ -116,7 +116,7 @@ export async function createResolution(itemId: string, description: string) {
         const res = await authFetch('/resolutions/create', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ found_item_id: itemId, claim_description: description }),
+            body: JSON.stringify({ item_id: itemId, description: description }),
         });
 
         if (!res.ok) {

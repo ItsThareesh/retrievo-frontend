@@ -42,12 +42,11 @@ export default async function FinderReviewPage({ params }: { params: Promise<{ i
         );
     }
 
-    const { resolution: claim, item } = res.data;
+    const { resolution, item } = res.data;
 
     // If claim is already resolved, show appropriate message
-    if (claim.status !== "pending") {
-        const isApproved = claim.status === "approved";
-
+    if (resolution.status !== "pending") {
+        const isApproved = resolution.status === "approved";
         return (
             <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-background">
                 <div className="text-center max-w-md">
@@ -60,10 +59,10 @@ export default async function FinderReviewPage({ params }: { params: Promise<{ i
                             : "This claim has already been reviewed and resolved."}
                     </p>
                     <p className="text-sm text-muted-foreground mb-6">
-                        Status: <span className="font-medium capitalize">{claim.status}</span>
-                        {claim.decided_at && (
+                        Status: <span className="font-medium capitalize">{resolution.status}</span>
+                        {resolution.decided_at && (
                             <span className="block mt-1">
-                                Resolved on {new Date(claim.decided_at).toLocaleDateString()}
+                                Resolved on {new Date(resolution.decided_at).toLocaleDateString()}
                             </span>
                         )}
                     </p>
@@ -81,7 +80,7 @@ export default async function FinderReviewPage({ params }: { params: Promise<{ i
     // Claim is still pending - show review interface
     return (
         <FinderReviewContent
-            claim={claim}
+            resolution={resolution}
             item={item}
         />
     );

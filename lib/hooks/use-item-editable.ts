@@ -7,15 +7,16 @@ import { User as UserType } from "@/types/user";
 import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/client";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
+import { ResolutionStatus } from "@/types/claim";
 
 interface UseItemEditableProps {
     item: Item;
     reporter: UserType;
-    claim_status: "none" | "pending" | "approved";
+    resolution_status: ResolutionStatus | "none";
     session: Session | null;
 }
 
-export function useItemEditable({ item, reporter, claim_status, session }: UseItemEditableProps) {
+export function useItemEditable({ item, reporter, resolution_status, session }: UseItemEditableProps) {
     const router = useRouter();
 
     const [reason, setReason] = useState("fake");
@@ -29,7 +30,7 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
     const [claimText, setClaimText] = useState("");
     const [isSubmittingClaim, setIsSubmittingClaim] = useState(false);
 
-    const [myClaimStatus, setMyClaimStatus] = useState(claim_status);
+    const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
 
     const [formData, setFormData] = useState({
         title: item.title ?? "",
@@ -40,12 +41,17 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         date: item.date ? new Date(item.date).toISOString().slice(0, 10) : "",
     });
 
-    // Determine permissions
-    const canEdit = !!session &&
-        reporter.public_id === session.user?.public_id &&
-        !["approved", "pending"].includes(claim_status); // Can't edit if claim is approved or pending
+    const isLoggedIn = !!session;
+    const isReporter = reporter.public_id === session?.user?.public_id;
+    const isFoundItem = item.type === "found";
+    const isLostItem = item.type === "lost";
+    const hasResolution = resolutionStatus !== "none";
 
-    const canClaim = item.type === "found" && myClaimStatus === "none" && !canEdit;
+    // Determine permissions
+    const canEdit = isLoggedIn && isReporter && !hasResolution;
+
+    const canClaim = isLoggedIn && isFoundItem && !isReporter && !hasResolution;
+    const canReturn = isLoggedIn && isLostItem && !isReporter && !hasResolution;
 
     async function handleSave() {
         setIsSaving(true);
@@ -105,6 +111,7 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         setIsSaving(false);
     }
 
+
     function handleCancel() {
         setFormData({
             title: item.title ?? "",
@@ -145,7 +152,7 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
 
             if (res.ok) {
                 toast.success("Claim sent to finder for verification");
-                setMyClaimStatus("pending");
+                setResolutionStatus("pending");
                 setIsClaiming(false);
                 setClaimText("");
             } else if (res.status == 409) {
@@ -224,13 +231,16 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         setIsClaiming,
         claimText,
         setClaimText,
+
         isSubmittingClaim,
-        myClaimStatus,
+        resolutionStatus,
 
         formData,
         setFormData,
+
         canEdit,
         canClaim,
+        canReturn,
 
         handleSave,
         handleCancel,

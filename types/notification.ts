@@ -1,4 +1,5 @@
-export type NotificationType = 'claim_created' | 'claim_approved' | 'claim_rejected' | 'warning_issued' | 'system_notice';
+export type NotificationType = 'resolution_created' | 'return_initiated' | 'resolution_completed' |
+    'resolution_approved' | 'resolution_rejected' | 'resolution_invalidated' | 'system_notice' | 'warning_issued';
 
 export interface Notification {
     id: string;

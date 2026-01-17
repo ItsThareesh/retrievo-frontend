@@ -40,15 +40,16 @@ import { useRouter } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
+import { ResolutionStatus } from "@/types/claim";
 
 interface ItemEditableProps {
     item: Item;
     reporter: UserType;
-    claim_status: "none" | "pending" | "approved";
+    resolution_status: ResolutionStatus | "none";
     session: Session | null;
 }
 
-export default function ItemEditable({ item, reporter, claim_status, session }: ItemEditableProps) {
+export default function ItemEditable({ item, reporter, resolution_status, session }: ItemEditableProps) {
     const router = useRouter();
 
     const {
@@ -67,13 +68,16 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
         setIsClaiming,
         claimText,
         setClaimText,
+
         isSubmittingClaim,
-        myClaimStatus,
+        resolutionStatus,
 
         formData,
         setFormData,
+
         canEdit,
         canClaim,
+        canReturn,
 
         handleSave,
         handleCancel,
@@ -81,23 +85,30 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
         handleClaimSubmit,
         handleShare,
         handleReport
-    } = useItemEditable({ item, reporter, claim_status, session });
+    } = useItemEditable({ item, reporter, resolution_status, session });
 
-    function mapClaimStatusToText(status: string) {
+    function mapClaimStatusToText(status: ResolutionStatus) {
         switch (status) {
             case "pending":
-                return "Claim Pending";
+                return "Pending";
             case "approved":
-                return "Claim Approved";
+                return "Approved";
+            case "completed":
+                return "Completed";
+            case "return_initiated":
+                return "Return Initiated";
         }
     }
 
-    function mapClaimStatusBg(status: string) {
+    function mapClaimStatusBg(status: ResolutionStatus) {
         switch (status) {
             case "pending":
                 return "bg-sky-500";
+            case "return_initiated":
             case "approved":
                 return "bg-emerald-500";
+            case "completed":
+                return "bg-green-600";
         }
     }
 
@@ -144,11 +155,11 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                                     {item.type === "lost" ? "Lost" : "Found"}
                                 </Badge>
 
-                                {claim_status !== "none" && (
+                                {resolutionStatus !== "none" && (
                                     <Badge
-                                        className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(claim_status)}`}
+                                        className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
                                     >
-                                        {mapClaimStatusToText(myClaimStatus)}
+                                        {mapClaimStatusToText(resolutionStatus)}
                                     </Badge>
                                 )}
                             </div>
@@ -427,6 +438,24 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                                 }}
                             >
                                 This is Mine!
+                            </Button>
+                        ) : null}
+                        {canReturn ? (
+                            <Button
+                                size="lg"
+                                className="w-full h-12 text-lg shadow-sm mb-6"
+                                onClick={() => {
+                                    // const isAuthenticated =
+                                    //     !!session?.user && Date.now() < (session?.expires_at ?? 0);
+
+                                    // if (!isAuthenticated) {
+                                    //     router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
+                                    //     return
+                                    // }
+                                    // setIsClaiming(true)
+                                }}
+                            >
+                                I Found This!
                             </Button>
                         ) : null}
                         <div className="grid grid-cols-2 gap-3">
