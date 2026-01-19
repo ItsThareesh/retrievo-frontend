@@ -40,7 +40,7 @@ import { useRouter } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
-import { ResolutionStatus } from "@/types/claim";
+import { ResolutionStatus } from "@/types/resolutions";
 
 interface ItemEditableProps {
     item: Item;

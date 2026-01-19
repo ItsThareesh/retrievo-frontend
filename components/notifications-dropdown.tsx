@@ -82,16 +82,8 @@ export function NotificationsDropdown() {
                     markAsRead(notification.id);
                 }
 
-                // Route based on notification type
-                if (notification.type === "resolution_created") {
-                    // Finder reviewing claim - go to item review page
-                    router.push(`/items/${notification.item_id}/review-claim`)
-                } else if (notification.type === "resolution_approved" || notification.type === "resolution_rejected") {
-                    // Claimant viewing status - go to claim status page
-                    router.push(`/claims/${notification.resolution_id}`)
-                } else if (notification.item_id) {
-                    // Default: go to item page
-                    router.push(`/items/${notification.item_id}`)
+                if (notification.type != "system_notice" && notification.type != "warning_issued") {
+                    router.push('/resolution/' + notification.resolution_id);
                 }
             }}
         >

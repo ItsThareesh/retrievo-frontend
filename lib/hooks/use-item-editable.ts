@@ -7,7 +7,7 @@ import { User as UserType } from "@/types/user";
 import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/client";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
-import { ResolutionStatus } from "@/types/claim";
+import { ResolutionStatus } from "@/types/resolutions";
 
 interface UseItemEditableProps {
     item: Item;
