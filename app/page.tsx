@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function Home() {
-  
+
   useEffect(() => {
     const glow = document.getElementById("scrollGlow");
     if (!glow) return;

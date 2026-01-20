@@ -1,5 +1,7 @@
 export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'invalidated';
 
+export type ResolutionType = 'owner-initiated' | 'finder-initiated';
+
 export interface Resolution {
     id: string;
     item_id: string;

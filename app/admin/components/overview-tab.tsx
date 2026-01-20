@@ -165,7 +165,7 @@ export function OverviewTab() {
                                         {(item.type === "resolution_rejected" || item.type === "resolution_invalidated") && (
                                             <XCircle className="h-5 w-5 text-red-600" />
                                         )}
-                                        {item.type === "resolution_pending" && (
+                                        {(item.type === "resolution_pending" || item.type === "resolution_return_initiated") && (
                                             <Clock className="h-5 w-5 text-yellow-600" />
                                         )}
                                         {item.type === "report_filed" && (

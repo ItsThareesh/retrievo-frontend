@@ -8,6 +8,7 @@ import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
 import { ResolutionStatus } from "@/types/resolutions";
+import { set } from "date-fns";
 
 interface UseItemEditableProps {
     item: Item;
@@ -28,7 +29,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
 
     const [isClaiming, setIsClaiming] = useState(false);
     const [claimText, setClaimText] = useState("");
-    const [isSubmittingClaim, setIsSubmittingClaim] = useState(false);
+    const [isSubmittingResolution, setIsSubmittingResolution] = useState(false);
 
     const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
 
@@ -136,34 +137,52 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         setIsDeleting(false);
     }
 
-    async function handleClaimSubmit() {
+    function validateResolutionInput(text: string): string | null {
+        const len = text.trim().length;
+
+        if (len < 20) return "Claim description must be at least 20 characters long.";
+        if (len > 280) return "Claim description must be at most 280 characters long.";
+
+        return null;
+    }
+
+    async function handleResolutionSubmit(item: Item) {
+        const error = validateResolutionInput(claimText);
+        if (error) {
+            toast.error(error);
+            return;
+        }
+
+        setIsSubmittingResolution(true);
+
         try {
-            if (claimText.trim().length < 20) {
-                toast.error("Claim description must be at least 20 characters long.");
-                return;
-            } else if (claimText.trim().length > 280) {
-                toast.error("Claim description must be at most 280 characters long.");
-                return;
-            }
-
-            setIsSubmittingClaim(true);
-
             const res = await createResolution(item.id, claimText);
 
-            if (res.ok) {
+            if (!res.ok) {
+                if (res.status === 409) {
+                    toast.error("You have already submitted a resolution for this item.");
+                } else {
+                    toast.error("Failed to submit request. Please try again.");
+                }
+                return;
+            }
+
+            // Success handling
+            if (item.type === "found") {
                 toast.success("Claim sent to finder for verification");
                 setResolutionStatus("pending");
-                setIsClaiming(false);
-                setClaimText("");
-            } else if (res.status == 409) {
-                toast.error("You have already submitted a claim for this item.");
             } else {
-                toast.error("Failed to submit claim. Please try again.");
+                toast.success("Return initiation request sent to owner");
+                setResolutionStatus("return_initiated");
             }
+
+            // Shared cleanup
+            setIsClaiming(false);
+            setClaimText("");
         } catch {
-            toast.error("Failed to submit claim. Please try again.");
+            toast.error("Failed to submit request. Please try again.");
         } finally {
-            setIsSubmittingClaim(false);
+            setIsSubmittingResolution(false);
         }
     }
 
@@ -232,7 +251,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         claimText,
         setClaimText,
 
-        isSubmittingClaim,
+        isSubmittingResolution,
         resolutionStatus,
 
         formData,
@@ -245,7 +264,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         handleSave,
         handleCancel,
         handleDelete,
-        handleClaimSubmit,
+        handleResolutionSubmit,
         handleShare,
         handleReport
     };

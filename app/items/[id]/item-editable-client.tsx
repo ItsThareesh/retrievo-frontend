@@ -26,21 +26,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
 import { ResolutionStatus } from "@/types/resolutions";
+import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
 
 interface ItemEditableProps {
     item: Item;
@@ -69,7 +60,7 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
         claimText,
         setClaimText,
 
-        isSubmittingClaim,
+        isSubmittingResolution,
         resolutionStatus,
 
         formData,
@@ -82,7 +73,7 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
         handleSave,
         handleCancel,
         handleDelete,
-        handleClaimSubmit,
+        handleResolutionSubmit,
         handleShare,
         handleReport
     } = useItemEditable({ item, reporter, resolution_status, session });
@@ -434,7 +425,8 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
                                         return
                                     }
-                                    setIsClaiming(true)
+
+                                    setIsClaiming(true);
                                 }}
                             >
                                 This is Mine!
@@ -444,15 +436,16 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                             <Button
                                 size="lg"
                                 className="w-full h-12 text-lg shadow-sm mb-6"
-                                onClick={() => {
-                                    // const isAuthenticated =
-                                    //     !!session?.user && Date.now() < (session?.expires_at ?? 0);
+                                onClick={async () => {
+                                    const isAuthenticated =
+                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
-                                    // if (!isAuthenticated) {
-                                    //     router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
-                                    //     return
-                                    // }
-                                    // setIsClaiming(true)
+                                    if (!isAuthenticated) {
+                                        router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
+                                        return
+                                    }
+
+                                    setIsClaiming(true);
                                 }}
                             >
                                 I Found This!
@@ -492,141 +485,30 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                 </div>
             </div>
 
-            {/* Delete Confirmation Dialog */}
-            <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-2">
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete your item
-                                    and remove it from our servers.
-                                </AlertDialogDescription>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 shrink-0"
-                                onClick={() => setIsDeleting(false)}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="mt-6">
-                        <AlertDialogCancel asChild>
-                            <Button variant="outline">
-                                Cancel
-                            </Button>
-                        </AlertDialogCancel>
+            <DeleteConfirmationDialog
+                isDeleting={isDeleting}
+                setIsDeleting={setIsDeleting}
+                handleDelete={handleDelete}
+            />
 
-                        <AlertDialogAction
-                            className="text-white bg-red-500 hover:bg-red-600"
-                            onClick={handleDelete}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete permanently
-                            {/* </Button> */}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <SubmitClaimDialog
+                mode={item.type === "found" ? "claim" : "return"}
+                isOpen={isClaiming}
+                setIsOpen={setIsClaiming}
+                text={claimText}
+                setText={setClaimText}
+                isSubmitting={isSubmittingResolution}
+                onSubmit={() => handleResolutionSubmit(item)}
+            />
 
-            <AlertDialog open={isClaiming} onOpenChange={setIsClaiming}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Claim this item</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Describe details that prove this item belongs to you.
-                            These details will be shared only with the finder.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <Textarea
-                        value={claimText}
-                        onChange={(e) => setClaimText(e.target.value)}
-                        placeholder="Describe details that prove this item is yours (marks, contents, damage, when you lost it, etc.). Minimum 20 characters."
-                        className="min-h-[120px] resize-none mt-4"
-                        disabled={isSubmittingClaim}
-                    />
-
-                    <AlertDialogFooter className="mt-6">
-                        <AlertDialogCancel asChild>
-                            <Button variant="outline" disabled={isSubmittingClaim}>
-                                Cancel
-                            </Button>
-                        </AlertDialogCancel>
-
-                        <AlertDialogAction
-                            disabled={claimText.trim().length < 20 || isSubmittingClaim}
-                            onClick={handleClaimSubmit}
-                        >
-                            Submit claim
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog open={isReporting} onOpenChange={setIsReporting}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Report</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Please select a reason for reporting.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="outline"
-                                role="combobox"
-                                className="w-full flex items-center justify-between font-normal text-left"
-                            >
-                                <span
-                                    className={cn(
-                                        "truncate",
-                                        !reason && "text-muted-foreground"
-                                    )}
-                                >
-                                    {reasons_map.find(r => r.value === reason)?.label || "Select a reason..."}
-                                </span>
-                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-[200px]">
-                            {reasons_map.map((item) => (
-                                <DropdownMenuItem
-                                    key={item.value}
-                                    onSelect={() => setReason(item.value)}
-                                    className="w-full cursor-pointer justify-start"
-                                >
-                                    {item.label}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/*Close & Submit Buttons */}
-                    <AlertDialogFooter>
-                        <AlertDialogCancel
-                            onClick={() => setReason("")}
-                        >
-                            Cancel
-                        </AlertDialogCancel>
-
-                        <AlertDialogAction
-                            disabled={reason === ''}
-                            className="shadow-sm"
-                            onClick={handleReport}
-                        >
-                            Submit
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ReportDialog
+                isReporting={isReporting}
+                setIsReporting={setIsReporting}
+                reason={reason}
+                reasons_map={reasons_map}
+                setReason={setReason}
+                handleReport={handleReport}
+            />
         </div >
     );
 }

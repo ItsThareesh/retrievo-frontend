@@ -41,6 +41,8 @@ export default async function ClaimStatusPage({ params }: { params: Promise<{ id
         if (res.status === 403) return notFound();
     }
 
+    console.log(res.data);
+
     return (
         <ClaimStatusContent
             resolution={res.data.resolution}
