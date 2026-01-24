@@ -1,482 +1,302 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
+import { CheckCircle2, X, Clock, Mail, Phone, ThumbsUp, ThumbsDown, CheckCheck, AlertTriangle, LucideIcon } from "lucide-react";
+
 import { Resolution, FinderContact, Viewer, AllowedAction } from "@/types/resolutions";
 import { Item } from "@/types/item";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, X, Clock, Mail, Phone, ThumbsUp, ThumbsDown, CheckCheck, AlertTriangle } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import Link from "next/link";
-import Image from "next/image";
 import { LOCATION_MAP } from "@/lib/constants/locations";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import {
-    approveClaim,
-    rejectClaim,
-    completeResolution,
-    invalidateResolution,
-} from "@/lib/api/client-invoked";
+import { approveClaim, rejectClaim, completeResolution, invalidateResolution } from "@/lib/api/client-invoked";
+
+// 1. Unified Theme Configuration
+const THEMES = {
+  blue: {
+    gradient: "from-blue-500 via-cyan-500 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-500",
+    cardBg: "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800",
+    textTitle: "text-blue-600 dark:text-blue-300",
+    textMain: "text-blue-900 dark:text-blue-50",
+    textSub: "text-blue-800 dark:text-blue-100",
+    icon: "text-blue-600 dark:text-blue-400",
+    contactBox: "bg-background dark:bg-blue-900/20",
+    contactBorder: "border-blue-200 dark:border-blue-700",
+    buttonBg: "bg-amber-600 dark:bg-amber-400 dark:text-black",
+    border:"border-l-4 border-l-blue-600"
+  },
+  amber: {
+    gradient: "from-amber-500 to-orange-500 dark:from-amber-400 dark:to-orange-400",
+    cardBg: "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800",
+    textTitle: "text-amber-600 dark:text-amber-300",
+    textMain: "text-amber-900 dark:text-amber-50",
+    textSub: "text-amber-800 dark:text-amber-100",
+    icon: "text-amber-600 dark:text-amber-400",
+    contactBox: "bg-background dark:bg-amber-900/20",
+    contactBorder: "border-amber-200 dark:border-amber-700",
+    buttonBg: "bg-amber-600 dark:bg-amber-400 dark:text-black",
+    border:"border-l-4 border-l-amber-600"
+  },
+  green: {
+    gradient: "from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400",
+    cardBg: "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800",
+    textTitle: "text-green-600 dark:text-green-300",
+    textMain: "text-green-900 dark:text-green-50",
+    textSub: "text-green-800 dark:text-green-100",
+    icon: "text-green-600 dark:text-green-400",
+    contactBox: "bg-background dark:bg-green-900/20",
+    contactBorder: "border-green-200 dark:border-green-700",
+    buttonBg: "bg-green-600 dark:bg-green-400 dark:text-black",
+    border:"border-l-4 border-l-green-600"
+  },
+  cyan: {
+    gradient: "from-cyan-500 to-blue-500 dark:from-cyan-400 dark:to-blue-400",
+    cardBg: "bg-cyan-50 dark:bg-cyan-950/30 border-cyan-200 dark:border-cyan-800",
+    textTitle: "text-cyan-600 dark:text-cyan-300",
+    textMain: "text-cyan-900 dark:text-cyan-50",
+    textSub: "text-cyan-800 dark:text-cyan-100",
+    icon: "text-cyan-600 dark:text-cyan-400",
+    contactBox: "bg-background dark:bg-cyan-900/20",
+    contactBorder: "border-cyan-200 dark:border-cyan-700",
+    buttonBg: "bg-cyan-600 dark:bg-cyan-400 dark:text-black",
+    border:"border-l-4 border-l-cyan-600"
+  },
+  orange: {
+    gradient: "text-red-600",
+    cardBg: "bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800",
+    textTitle: "text-orange-600 dark:text-orange-300",
+    textMain: "text-orange-900 dark:text-orange-50",
+    textSub: "text-orange-800 dark:text-orange-100",
+    icon: "text-orange-600 dark:text-orange-400",
+    contactBox: "bg-background dark:bg-orange-900/20",
+    contactBorder: "border-orange-200 dark:border-orange-700",
+    buttonBg: "bg-orange-600 dark:bg-orange-400 dark:text-black",
+    border:"border-l-4 border-l-orange-600"
+  }
+};
+
+type ThemeKey = keyof typeof THEMES;
 
 interface ResolutionStatusContentProps {
-    resolution: Resolution;
-    item: Item;
-    finderContact: FinderContact | null;
-    viewer: Viewer;
-    allowedActions: AllowedAction[];
+  resolution: Resolution;
+  item: Item;
+  finderContact: FinderContact | null;
+  viewer: Viewer;
+  allowedActions: AllowedAction[];
 }
 
 export function ResolutionStatusContent({ resolution, item, finderContact, viewer, allowedActions }: ResolutionStatusContentProps) {
-    const router = useRouter();
-    const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
-    const [showRejectDialog, setShowRejectDialog] = useState(false);
-    const [rejectionReason, setRejectionReason] = useState("");
-
-    const handleAction = async (action: AllowedAction) => {
-        // Reject needs a dialog + reason
-        if (action === "reject") {
-            setShowRejectDialog(true);
-            return;
-        }
-
-        setLoading(true);
-        try {
-            let res;
-
-            switch (action) {
-                case "approve":
-                    res = await approveClaim(resolution.id);
-                    break;
-
-                case "complete":
-                    res = await completeResolution(resolution.id);
-                    break;
-
-                case "invalidate":
-                    res = await invalidateResolution(resolution.id);
-                    break;
-
-                default:
-                    toast.error("Invalid action");
-                    return;
-            }
-
-            if (!res?.ok) {
-                toast.error("Action failed. Please try again.");
-                return;
-            }
-
-            router.refresh();
-        } catch (err) {
-            toast.error("Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+  const getStatusContent = () => {
+    const isOwner = viewer.role === "owner";
+    
+    let config = {
+      theme: "blue" as ThemeKey,
+      title: "",
+      subtitle: "",
+      cardTitle: "",
+      cardBody: "",
+      Icon: Clock as LucideIcon,
+      showStatusCard: true
     };
 
-    const handleReject = async () => {
-        const reason = rejectionReason.trim();
-
-        if (reason.length < 20) {
-            toast.error("Rejection reason must be at least 20 characters");
-            return;
+    switch (resolution.status) {
+      case "pending":
+        if (isOwner) {
+          config = { ...config, theme: "blue", title: "Claim Submitted", subtitle: "Your claim is being reviewed by the finder.", cardTitle: "Awaiting Finder's Review", cardBody: "The person who found this item is reviewing your claim. This usually takes 1-2 days.", Icon: Clock };
+        } else {
+          config = { ...config, theme: "amber", title: "Review Claim", subtitle: "Someone is claiming this item. Please review their description.", cardTitle: "Action Required", cardBody: "Review the claimant's description below. If it matches your found item, approve the claim.", Icon: AlertTriangle };
         }
+        break;
+      case "approved":
+        config = { ...config, theme: "green", title: "Claim Approved", subtitle: isOwner ? "The finder approved your claim. Contact them to arrange collection." : "You approved this claim. The owner will contact you.", cardTitle: "Ready to Collect", cardBody: "Contact the finder below to arrange collection. Mark as complete once done.", Icon: CheckCircle2 };
+        break;
+      case "return_initiated":
+        config = { ...config, theme: "cyan", title: isOwner ? "Return Requested" : "Return Initiated", subtitle: isOwner ? "A finder believes they have your item." : "You initiated a return. Waiting for owner confirmation.", cardTitle: "Ready to Collect", cardBody: "Contact the finder to arrange collection.", Icon: CheckCircle2 };
+        break;
+      case "completed":
+        config = { ...config, theme: "green", title: "Item Returned", subtitle: "This item has been successfully marked as returned.", showStatusCard: false };
+        break;
+      case "invalidated":
+        config = { ...config, theme: "amber", title: isOwner ? "Marked as Mismatched" : "Owner Reported Mismatch", subtitle: isOwner ? "You marked this return as mismatched." : "The owner reported that the item didn't match.", showStatusCard: false };
+        break;
+      case "rejected":
+        config = { ...config, theme: "orange", title: isOwner ? "Claim Not Approved" : "Claim Rejected", subtitle: isOwner ? "The finder was unable to approve your claim." : "You rejected this claim.", cardTitle: "Claim Not Approved", cardBody: "The finder has decided not to approve this claim.", Icon: X };
+        break;
+    }
+    return config;
+  };
 
-        if (reason.length > 280) {
-            toast.error("Rejection reason cannot exceed 280 characters");
-            return;
-        }
+  const ui = getStatusContent();
+  const themeStyles = THEMES[ui.theme];
 
-        setLoading(true);
-        try {
-            const res = await rejectClaim(resolution.id, reason);
+  const executeApiCall = async (fn: () => Promise<any>, successMsg?: string) => {
+    setLoading(true);
+    try {
+      const res = await fn();
+      if (!res?.ok) throw new Error();
+      if (successMsg) toast.success(successMsg);
+      router.refresh();
+    } catch {
+      toast.error("Action failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            if (!res.ok) {
-                toast.error("Failed to reject claim. Please try again.");
-                return;
-            }
-
-            setShowRejectDialog(false);
-            setRejectionReason("");
-            router.refresh();
-        } catch (err) {
-            toast.error("Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+  const handleAction = (action: AllowedAction) => {
+    if (action === "reject") return setShowRejectDialog(true);
+    
+    const actions = {
+      approve: () => executeApiCall(() => approveClaim(resolution.id)),
+      complete: () => executeApiCall(() => completeResolution(resolution.id)),
+      invalidate: () => executeApiCall(() => invalidateResolution(resolution.id)),
     };
+    actions[action as keyof typeof actions]?.();
+  };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 py-6 sm:py-8 lg:py-12 px-4">
-            <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
-                {/* Header */}
-                <div className="text-center mb-6 sm:mb-8 lg:mb-10">
-                    {resolution.status === "pending" && (
-                        <>
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-500 bg-clip-text text-transparent">
-                                {viewer.role === "finder" ? "Review Claim" : "Claim Submitted"}
-                            </h1>
-                            <p className="text-muted-foreground text-base sm:text-lg px-2">
-                                {viewer.role === "finder"
-                                    ? "Someone is claiming this item. Please review their description and decide if it matches."
-                                    : "Your claim is being reviewed by the finder."
-                                }
-                            </p>
-                        </>
-                    )}
+  const handleRejectConfirm = async () => {
+    if (rejectionReason.length < 20 || rejectionReason.length > 280) {
+      return toast.error("Reason must be between 20 and 280 characters");
+    }
+    await executeApiCall(() => rejectClaim(resolution.id, rejectionReason));
+    setShowRejectDialog(false);
+    setRejectionReason("");
+  };
 
-                    {resolution.status === "approved" && (
-                        <>
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                                {viewer.role === "owner" ? "Claim Approved" : "Claim Approved"}
-                            </h1>
-                            <p className="text-muted-foreground text-base sm:text-lg px-2">
-                                {viewer.role === "owner"
-                                    ? "The finder has approved your claim. Contact them to arrange collection."
-                                    : "You approved this claim. The owner will contact you to collect the item."
-                                }
-                            </p>
-                        </>
-                    )}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 py-8 px-4">
+      <div className="max-w-3xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className={`text-3xl lg:text-4xl font-bold mb-3 bg-clip-text ${themeStyles.gradient} ${ui.theme === 'orange' ? '!text-red-600' : ''} ${themeStyles.textTitle}`}>
+            {ui.title}
+          </h1>
+          <p className="text-muted-foreground text-lg px-2">{ui.subtitle}</p>
+        </div>
 
-                    {resolution.status === "return_initiated" && (
-                        <>
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-cyan-500 to-blue-500 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
-                                {viewer.role === "owner" ? "Return Requested" : "Return Initiated"}
-                            </h1>
-                            <p className="text-muted-foreground text-base sm:text-lg px-2">
-                                {viewer.role === "owner"
-                                    ? "A finder believes they have your item and wants to return it."
-                                    : "You initiated a return for this item. Waiting for the owner to confirm."
-                                }
-                            </p>
-                        </>
-                    )}
+        {/* Dynamic Status Card */}
+        {ui.showStatusCard && (
+          <Card className={`p-6 shadow-sm ${themeStyles.cardBg}`}>
+            <div className="flex items-start gap-3">
+              <ui.Icon className={`h-5 w-5 shrink-0 mt-0.5 ${themeStyles.icon}`} />
+              <div className="w-full">
+                <h3 className={`font-semibold mb-2 ${themeStyles.textMain}`}>{ui.cardTitle}</h3>
+                <p className={`text-sm ${themeStyles.textSub}`}>{ui.cardBody}</p>
+                {resolution.rejection_reason && (
+                  <div className="bg-orange-100 dark:bg-orange-900/50 border border-orange-300 rounded-md p-3 mt-3">
+                    <p className="text-xs font-medium text-orange-900 dark:text-orange-100 mb-1">Reason provided:</p>
+                    <p className="text-sm text-orange-800 dark:text-orange-200 whitespace-pre-wrap">{resolution.rejection_reason}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
 
-                    {resolution.status === "completed" && (
-                        <>
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-teal-500 to-emerald-500 dark:from-teal-400 dark:to-emerald-400 bg-clip-text text-transparent">Item Returned</h1>
-                            <p className="text-muted-foreground text-base sm:text-lg px-2">
-                                This item has been successfully marked as returned.
-                            </p>
-                        </>
-                    )}
-
-                    {resolution.status === "invalidated" && (
-                        <>
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
-                                {viewer.role === "owner" ? "Marked as Mismatched" : "Owner Reported Mismatch"}
-                            </h1>
-                            <p className="text-muted-foreground text-base sm:text-lg px-2">
-                                {viewer.role === "owner"
-                                    ? "You marked this return as mismatched."
-                                    : "The owner reported that the item didn't match."
-                                }
-                            </p>
-                        </>
-                    )}
-
-                    {resolution.status === "rejected" && (
-                        <>
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 text-red-600">
-                                {viewer.role === "owner" ? "Claim Not Approved" : "Claim Rejected"}
-                            </h1>
-                            <p className="text-muted-foreground text-base sm:text-lg px-2">
-                                {viewer.role === "owner"
-                                    ? "The finder was unable to approve your claim."
-                                    : "You rejected this claim."
-                                }
-                            </p>
-                        </>
-                    )}
+        {/* Finder Contact (Now Dynamic: Matches Theme) */}
+        {finderContact && (
+          <Card className={`p-6 shadow-sm ${themeStyles.contactBox}`}>
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className={`h-5 w-5 shrink-0 mt-0.5 ${themeStyles.icon}`} />
+              <div className="flex-1">
+                <h3 className={`font-semibold mb-2 ${themeStyles.textMain}`}>Finder's Contact Details</h3>
+                <p className={`text-sm mb-4 ${themeStyles.textSub}`}>Please reach out to arrange a time and place to collect your item.</p>
+                
+                <div className={`border rounded-lg p-4 space-y-3 ${themeStyles.contactBox} ${themeStyles.contactBorder}`}>
+                  <p className={`font-semibold ${themeStyles.textMain}`}>{finderContact.name}</p>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                        <Mail className={`h-4 w-4 ${themeStyles.icon}`} />
+                        <Link href={`mailto:${finderContact.email}`} className={`text-sm hover:underline ${themeStyles.textMain}`}>{finderContact.email}</Link>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Phone className={`h-4 w-4 ${themeStyles.icon}`} />
+                        <Link href={`tel:${finderContact.phone}`} className={`text-sm hover:underline ${themeStyles.textMain}`}>{finderContact.phone}</Link>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Status Cards */}
-                {resolution.status === "pending" && viewer.role === "owner" && (
-                    <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-start gap-3">
-                            <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                            <div>
-                                <h3 className="font-semibold text-blue-900 dark:text-blue-50 mb-2">
-                                    Awaiting Finder's Review
-                                </h3>
-                                <p className="text-sm text-blue-800 dark:text-blue-100 mb-3">
-                                    The person who found this item is reviewing your claim. This usually takes 1-2 days.
-                                </p>
-                                <p className="text-xs text-blue-700 dark:text-blue-200">
-                                    You'll receive a notification when they make a decision. If approved, the finder's contact details will be revealed so you can arrange to collect your item.
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                )}
-
-                {resolution.status === "pending" && viewer.role === "finder" && (
-                    <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-start gap-3">
-                            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-amber-900 dark:text-amber-50 mb-2">
-                                    Action Required
-                                </h3>
-                                <p className="text-sm text-amber-800 dark:text-amber-100 mb-3">
-                                    Review the claimant's description below. If it matches your found item, approve the claim to share your contact details.
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                )}
-
-                {(resolution.status === "approved" || resolution.status === "return_initiated") && viewer.role === "owner" && (
-                    <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-start gap-3">
-                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-green-900 dark:text-green-50 mb-2">
-                                    Ready to Collect
-                                </h3>
-                                <p className="text-sm text-green-800 dark:text-green-100 mb-3">
-                                    Contact the finder below to arrange collection. After you've collected your item, please mark the return as complete.
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                )}
-
-                {finderContact && (
-                    <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-start gap-3">
-                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-green-900 dark:text-green-50 mb-2">
-                                    Finder's Contact Details
-                                </h3>
-                                <p className="text-sm text-green-800 dark:text-green-100 mb-4">
-                                    Please reach out to arrange a time and place to collect your item.
-                                </p>
-
-                                {/* Contact Card */}
-                                <div className="bg-white dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg p-4 space-y-3">
-                                    <div className="flex items-center gap-3">
-                                        <div>
-                                            <p className="font-semibold text-green-900 dark:text-green-50">
-                                                {finderContact.name}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <Mail className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                            <Link
-                                                href={`mailto:${finderContact.email}`}
-                                                className="text-sm text-green-900 dark:text-green-100 hover:underline"
-                                            >
-                                                {finderContact.email}
-                                            </Link>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <Phone className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                            <Link
-                                                href={`tel:${finderContact.phone}`}
-                                                className="text-sm text-green-900 dark:text-green-100 hover:underline"
-                                            >
-                                                {finderContact.phone}
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <p className="text-xs text-green-700 dark:text-green-200 mt-3">
-                                    Be respectful and coordinate a safe, public meeting place.
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                )}
-
-                {resolution.status === "rejected" && (
-                    <Card className="bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800 p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-start gap-3">
-                            <X className="h-5 w-5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
-                            <div className="w-full">
-                                <h3 className="font-semibold text-orange-900 dark:text-orange-50 mb-2">
-                                    Claim Not Approved
-                                </h3>
-                                <p className="text-sm text-orange-800 dark:text-orange-100 mb-3">
-                                    The finder has decided not to approve this claim.
-                                </p>
-                                {resolution.rejection_reason && (
-                                    <div className="bg-orange-100 dark:bg-orange-900/50 border border-orange-300 dark:border-orange-700 rounded-md p-3">
-                                        <p className="text-xs font-medium text-orange-900 dark:text-orange-100 mb-1">
-                                            Reason provided:
-                                        </p>
-                                        <p className="text-sm text-orange-800 dark:text-orange-200 whitespace-pre-wrap">
-                                            {resolution.rejection_reason}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </Card>
-                )}
-
-                {/* Action Buttons */}
-                {allowedActions.length > 0 && (
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        {allowedActions.includes("approve") && (
-                            <Button
-                                onClick={() => handleAction("approve")}
-                                disabled={loading}
-                                size="lg"
-                                className="p-2 flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 dark:from-emerald-500 dark:to-teal-500 dark:hover:from-emerald-600 dark:hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
-                            >
-                                <ThumbsUp className="h-5 w-5 mr-2" />
-                                Approve Claim
-                            </Button>
-                        )}
-                        {allowedActions.includes("reject") && (
-                            <Button
-                                onClick={() => setShowRejectDialog(true)}
-                                disabled={loading}
-                                size="lg"
-                                variant="destructive"
-                                className="p-2 flex-1 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
-                            >
-                                <ThumbsDown className="h-5 w-5 mr-2" />
-                                Reject Claim
-                            </Button>
-                        )}
-                        {allowedActions.includes("complete") && (
-                            <Button
-                                onClick={() => handleAction("complete")}
-                                disabled={loading}
-                                size="lg"
-                                className="p-2 flex-1 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 dark:from-teal-500 dark:to-cyan-500 dark:hover:from-teal-600 dark:hover:to-cyan-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
-                            >
-                                <CheckCheck className="h-5 w-5 mr-2" />
-                                Mark as Returned
-                            </Button>
-                        )}
-                        {allowedActions.includes("invalidate") && (
-                            <Button
-                                onClick={() => handleAction("invalidate")}
-                                disabled={loading}
-                                size="lg"
-                                variant="outline"
-                                className="p-2 flex-1 border-2 border-amber-500 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:border-amber-600 dark:hover:border-amber-400 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
-                            >
-                                <X className="h-5 w-5 mr-2" />
-                                Item Doesn't Match
-                            </Button>
-                        )}
-                    </div>
-                )}
-
-                {/* Rejection Dialog */}
-                {showRejectDialog && (
-                    <Card className="p-4 sm:p-6 border-2 border-orange-500 shadow-lg">
-                        <h2 className="text-lg font-semibold mb-4">Reject Claim</h2>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Please provide a reason for rejecting this claim. This will be shared with the claimant.
-                        </p>
-                        <textarea
-                            value={rejectionReason}
-                            onChange={(e) => setRejectionReason(e.target.value)}
-                            placeholder="Explain why this claim doesn't match the item..."
-                            className="w-full min-h-[100px] p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-orange-500"
-                            disabled={loading}
-                        />
-                        <div className="flex gap-3 mt-4">
-                            <Button
-                                onClick={handleReject}
-                                disabled={loading || (rejectionReason.trim().length < 20)}
-                                variant="destructive"
-                            >
-                                Confirm Rejection
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    setShowRejectDialog(false);
-                                    setRejectionReason("");
-                                }}
-                                disabled={loading}
-                                variant="outline"
-                            >
-                                Cancel
-                            </Button>
-                        </div>
-                    </Card>
-                )}
-
-                {/* Claim Description Card */}
-                <Card className="p-4 sm:p-6 border-l-4 border-l-teal-500 shadow-sm">
-                    <h2 className="text-lg font-semibold mb-3">Description</h2>
-                    <p className="text-base leading-relaxed text-foreground whitespace-pre-wrap">
-                        {resolution.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-4">
-                        Submitted {formatDistanceToNow(new Date(resolution.created_at), {
-                            addSuffix: true,
-                        })}
-                    </p>
-                </Card>
-
-                {/* Item Summary */}
-                {item && (
-                    <Card className="p-4 sm:p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold mb-4">
-                            Item Details
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Item Image */}
-                            {item.image && (
-                                <div className="md:col-span-1">
-                                    <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                                        <Image
-                                            src={item.image}
-                                            alt={item.title}
-                                            fill
-                                            unoptimized
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Item Info */}
-                            <div className={item.image ? "md:col-span-2" : "col-span-1"}>
-                                <div className="space-y-3">
-                                    <div>
-                                        <h3 className="text-xl font-bold mb-1">{item.title}</h3>
-                                        <p className="text-muted-foreground">{item.description}</p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                            Location
-                                        </p>
-                                        <p className="text-sm font-medium">{LOCATION_MAP[item.location]?.label}</p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                            Found On
-                                        </p>
-                                        <p className="text-sm font-medium">
-                                            {new Date(item.date).toLocaleDateString("en-GB").replace(/\//g, "-")}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                )}
+                <p className={`text-xs mt-3 opacity-80 ${themeStyles.textSub}`}>Be respectful and coordinate a safe, public meeting place.</p>
+              </div>
             </div>
-        </div>
-    );
+          </Card>
+        )}
+
+        {/* Action Buttons */}
+        {allowedActions.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-3">
+            {allowedActions.includes("approve") && (
+              <Button onClick={() => handleAction("approve")} disabled={loading} size="lg" className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md cursor-pointer">
+                <ThumbsUp className="h-5 w-5 mr-2" /> Approve Claim
+              </Button>
+            )}
+            {allowedActions.includes("reject") && (
+              <Button onClick={() => handleAction("reject")} disabled={loading} size="lg" variant="destructive" className="flex-1 shadow-md cursor-pointer">
+                <ThumbsDown className="h-5 w-5 mr-2" /> Reject Claim
+              </Button>
+            )}
+            {allowedActions.includes("complete") && (
+              <Button onClick={() => handleAction("complete")} disabled={loading} size="lg" className={`flex-1 text-white shadow-md ${themeStyles.buttonBg} hover:${themeStyles.buttonBg} cursor-pointer`}>
+                <CheckCheck className={`h-5 w-5 mr-2`} /> Mark as Returned
+              </Button>
+            )}
+            {allowedActions.includes("invalidate") && (
+              <Button onClick={() => handleAction("invalidate")} disabled={loading} size="lg" variant="outline" className="flex-1 border-red-500 text-red-600 hover:bg-white hover:text-red-700 cursor-pointer">
+                <X className="h-5 w-5 mr-2" /> Item Doesn't Match
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Dialogs & Item Info */}
+        {showRejectDialog && (
+          <Card className="p-6 border-2 border-orange-500 shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Reject Claim</h2>
+            <textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder="Explain why this claim doesn't match..." className="w-full min-h-[100px] p-3 border rounded-md resize-none" disabled={loading} />
+            <div className="flex gap-3 mt-4">
+              <Button onClick={handleRejectConfirm} disabled={loading || rejectionReason.trim().length < 20} variant="destructive">Confirm</Button>
+              <Button onClick={() => { setShowRejectDialog(false); setRejectionReason(""); }} variant="outline">Cancel</Button>
+            </div>
+          </Card>
+        )}
+
+        <Card className={`p-6 ${themeStyles.border} shadow-sm`}>
+          <h2 className="text-lg font-semibold mb-3">Description</h2>
+          <p className="whitespace-pre-wrap">{resolution.description}</p>
+          <p className="text-xs text-muted-foreground mt-4">Submitted {formatDistanceToNow(new Date(resolution.created_at), { addSuffix: true })}</p>
+        </Card>
+
+        {item && (
+          <Card className="p-6 shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Item Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {item.image && (
+                <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                  <Image src={item.image} alt={item.title} fill className="object-cover" />
+                </div>
+              )}
+              <div className={item.image ? "md:col-span-2" : "col-span-1"}>
+                <h3 className="text-xl font-bold mb-1">{item.title}</h3>
+                <p className="text-muted-foreground mb-3">{item.description}</p>
+                <div className="grid gap-2">
+                  <div><p className="text-xs font-medium uppercase text-muted-foreground">Location</p><p className="text-sm">{LOCATION_MAP[item.location]?.label}</p></div>
+                  <div><p className="text-xs font-medium uppercase text-muted-foreground">Found On</p><p className="text-sm">{new Date(item.date).toLocaleDateString("en-GB").replace(/\//g, "-")}</p></div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
 }
