@@ -15,7 +15,7 @@ interface ItemCardProps {
 export function ItemCard({ item, type }: ItemCardProps) {
   return (
     <Link href={`/items/${item.id}`} className="block h-full">
-      <Card className="group relative overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg cursor-pointer">
+      <Card className="group relative overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg cursor-pointer md:rounded-2xl rounded">
 
         <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
           {item.image && (
@@ -38,19 +38,19 @@ export function ItemCard({ item, type }: ItemCardProps) {
           </Badge>
         </div>
 
-        <CardHeader className="p-5 pb-2 space-y-1">
+        <CardHeader className="p-5 pb-0 space-y-1">
           <h3 className="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors">
             {item.title}
           </h3>
-          <Badge variant="secondary" className="w-fit font-normal text-xs">
+          {/* <Badge variant="secondary" className="w-fit font-normal text-xs">
             {item.category}
-          </Badge>
+          </Badge> */}
         </CardHeader>
 
         <CardContent className="p-5 pt-2 flex-1">
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4 h-10 leading-relaxed">
+          {/* <p className="text-sm text-muted-foreground line-clamp-2 mb-4 h-10 leading-relaxed">
             {item.description}
-          </p>
+          </p> */}
 
           <div className="flex flex-col gap-2 text-xs text-muted-foreground border-t pt-3">
             <div className="flex items-center gap-2">

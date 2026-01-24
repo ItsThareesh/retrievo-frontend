@@ -1,6 +1,6 @@
 const FIELD_LIMITS = {
-    title: { min: 3, max: 30 },
-    location: { min: 3, max: 30 },
+    title: { min: 2, max: 20 },
+    location: { min: 2, max: 30 }, // Handled by ENUM
     description: { min: 20, max: 280 },
 };
 
