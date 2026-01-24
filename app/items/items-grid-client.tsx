@@ -15,6 +15,7 @@ import { ItemsGridSkeleton } from './items-loading-skeleton';
 import { useDebouncedValue } from '@/lib/hooks/useDebounce';
 
 export function ItemsGridClient() {
+    const [column, setColumn] = useState<1 | 2 >(2);
     const [searchInput, setSearchInput] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [activeTab, setActiveTab] = useState<'all' | 'found' | 'lost'>('all');
