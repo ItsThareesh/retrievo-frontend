@@ -18,8 +18,8 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "retrievo-s3.s3.amazonaws.com",
-      },
+        hostname: process.env.CDN_HOSTNAME!
+      }
     ]
   }
 };

@@ -10,6 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { MoreHorizontal, Trash2, Calendar, MapPin, Share2, User, Pencil, X, Flag, ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -131,10 +132,12 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                 <div className="lg:col-span-2 space-y-6">
                     <ImageViewer src={item.image} alt={item.title}>
                         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
-                            <img
+                            <Image
                                 src={item.image}
                                 alt={item.title}
-                                className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
+                                fill
+                                unoptimized
+                                className="object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
                                 <Badge

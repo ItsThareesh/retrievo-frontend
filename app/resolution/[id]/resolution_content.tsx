@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, X, Clock, Mail, Phone, ThumbsUp, ThumbsDown, CheckCheck, AlertTriangle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+import Image from "next/image";
 import { LOCATION_MAP } from "@/lib/constants/locations";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -436,10 +437,12 @@ export function ResolutionStatusContent({ resolution, item, finderContact, viewe
                             {item.image && (
                                 <div className="md:col-span-1">
                                     <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted">
-                                        <img
+                                        <Image
                                             src={item.image}
                                             alt={item.title}
-                                            className="absolute inset-0 w-full h-full object-cover"
+                                            fill
+                                            unoptimized
+                                            className="object-cover"
                                         />
                                     </div>
                                 </div>

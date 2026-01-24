@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { CalendarIcon, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
     Form,
@@ -418,10 +419,12 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                             ) : (
                                                 <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
                                                     <ImageViewer src={preview} alt="Preview">
-                                                        <img
+                                                        <Image
                                                             src={preview}
                                                             alt="Preview"
-                                                            className="absolute inset-0 w-full h-full object-cover"
+                                                            fill
+                                                            unoptimized
+                                                            className="object-cover"
                                                         />
                                                         <Button
                                                             type="button"
