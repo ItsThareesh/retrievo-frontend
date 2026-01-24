@@ -139,10 +139,10 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                 unoptimized
                                 className="object-cover transition-transform duration-700 group-hover:scale-105"
                             />
-                            <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
+                            <div className="absolute top-2 left-2 flex flex-row gap-2  rounded-lg">
                                 <Badge
                                     className={
-                                        `text-lg px-4 py-1.5 shadow-md text-white 
+                                        `text-lg px-4 py-1.5 shadow-md text-white
                                         ${item.type === "lost" ? "bg-red-500" : "bg-amber-500"}`
                                     }
                                 >
@@ -151,7 +151,7 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
 
                                 {resolutionStatus !== "none" && (
                                     <Badge
-                                        className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
+                                        className={`text-lg px-3 py-1 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
                                     >
                                         {mapClaimStatusToText(resolutionStatus)}
                                     </Badge>

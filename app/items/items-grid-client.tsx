@@ -40,6 +40,13 @@ export function ItemsGridClient() {
         return params.toString();
     }
 
+    function columntoggle(column: number) {
+        if(column == 1)
+            setColumn(2);
+        else if(column == 2)
+            setColumn(1);
+    }
+
     const { data, size, setSize, isLoading, isValidating } = useSWRInfinite(
         getKey,
         async function (queryString) {
@@ -120,7 +127,6 @@ export function ItemsGridClient() {
                     </Select>
                 </div>
             </div>
-
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
                 <TabsList className="flex w-full max-w-md mx-auto mb-8 transition-all duration-300">
                     <TabsTrigger value="all" className="data-[state=active]:bg-background data-[state=active]:shadow-lg active:scale-98 cursor-pointer transition-all duration-200">
@@ -147,7 +153,7 @@ export function ItemsGridClient() {
                         <ItemsGridSkeleton />
                     ) : allItems.length > 0 ? (
                         <>
-                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6 gap-1 px-0">
                                 {allItems.map((item, index) => (
                                     <div
                                         key={item.id}
