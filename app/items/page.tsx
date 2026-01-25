@@ -1,5 +1,3 @@
-import { ItemsLoadingSkeleton } from './items-loading-skeleton';
-import { Suspense } from 'react';
 import { ItemsGridClient } from './items-grid-client';
 
 
@@ -17,9 +15,7 @@ export default async function BrowseItemsPage() {
                 </div>
             </div>
 
-            <Suspense fallback={<ItemsLoadingSkeleton />}>
-                <ItemsGridClient />
-            </Suspense>
+            <ItemsGridClient />
         </div >
     );
 }

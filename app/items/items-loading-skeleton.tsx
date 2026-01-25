@@ -1,33 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function ItemsLoadingSkeleton() {
-    return (
-        <div className="animate-in fade-in-0 duration-300">
-            {/* Search and Filter Section Skeleton */}
-            <div className="bg-muted/30 p-4 rounded-xl border flex flex-col md:flex-row gap-4 items-center mb-8">
-                <div className="relative w-full md:flex-1">
-                    <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="flex gap-2 w-full md:w-auto">
-                    <Skeleton className="h-10 w-full md:w-[180px]" />
-                </div>
-            </div>
-
-            {/* Tabs Skeleton */}
-            <div className="w-full">
-                <div className="flex w-full max-w-md mx-auto mb-8 gap-2">
-                    <Skeleton className="h-10 flex-1" />
-                    <Skeleton className="h-10 flex-1" />
-                    <Skeleton className="h-10 flex-1" />
-                </div>
-
-                <ItemsGridSkeleton />
-            </div>
-        </div>
-    );
-}
-
 export function ItemsGridSkeleton() {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in-0 duration-500">
