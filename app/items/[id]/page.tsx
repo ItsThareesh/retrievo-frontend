@@ -12,13 +12,16 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
     // Fetch item data
     const res = await fetchItem(id, session?.backendToken);
-    if (!res.ok) notFound();
+
+    if (!res.ok) {
+        notFound();
+    }
 
     const { item, reporter, claim_status } = res.data;
 
     return (
         <Suspense fallback={<Loading />}>
-            <ItemEditable item={item} reporter={reporter} claim_status={claim_status} session={session} />
+            <ItemEditable item={item} reporter={reporter} resolution_status={claim_status} session={session} />
         </Suspense>
     );
 }

@@ -159,13 +159,13 @@ export function OverviewTab() {
                                     className="flex items-start gap-4 py-4 border-b last:border-0 last:pb-0"
                                 >
                                     <div className="mt-1">
-                                        {item.type === "claim_approved" && (
+                                        {(item.type === "resolution_approved" || item.type === "resolution_completed") && (
                                             <CheckCircle className="h-5 w-5 text-green-600" />
                                         )}
-                                        {item.type === "claim_rejected" && (
+                                        {(item.type === "resolution_rejected" || item.type === "resolution_invalidated") && (
                                             <XCircle className="h-5 w-5 text-red-600" />
                                         )}
-                                        {item.type === "claim_pending" && (
+                                        {(item.type === "resolution_pending" || item.type === "resolution_return_initiated") && (
                                             <Clock className="h-5 w-5 text-yellow-600" />
                                         )}
                                         {item.type === "report_filed" && (

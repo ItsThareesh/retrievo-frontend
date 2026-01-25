@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Item } from '@/types/item';
 import { MapPin, Calendar, ArrowRight } from 'lucide-react';
 import { LOCATION_MAP } from '@/lib/constants/locations';
+import Image from "next/image";
 
 interface ItemCardProps {
   item: Item;
@@ -17,10 +18,12 @@ export function ItemCard({ item, type }: ItemCardProps) {
       <Card className="group relative overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg cursor-pointer">
 
         <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
-          <img
+          <Image
             src={item.image}
             alt={item.title}
-            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+            fill
+            unoptimized
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <Badge

@@ -10,6 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { MoreHorizontal, Trash2, Calendar, MapPin, Share2, User, Pencil, X, Flag, ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,29 +27,21 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
+import { ResolutionStatus } from "@/types/resolutions";
+import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
 
 interface ItemEditableProps {
     item: Item;
     reporter: UserType;
-    claim_status: "none" | "pending" | "approved";
+    resolution_status: ResolutionStatus | "none";
     session: Session | null;
 }
 
-export default function ItemEditable({ item, reporter, claim_status, session }: ItemEditableProps) {
+export default function ItemEditable({ item, reporter, resolution_status, session }: ItemEditableProps) {
     const router = useRouter();
 
     const {
@@ -67,37 +60,47 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
         setIsClaiming,
         claimText,
         setClaimText,
-        isSubmittingClaim,
-        myClaimStatus,
+
+        isSubmittingResolution,
+        resolutionStatus,
 
         formData,
         setFormData,
+
         canEdit,
         canClaim,
+        canReturn,
 
         handleSave,
         handleCancel,
         handleDelete,
-        handleClaimSubmit,
+        handleResolutionSubmit,
         handleShare,
         handleReport
-    } = useItemEditable({ item, reporter, claim_status, session });
+    } = useItemEditable({ item, reporter, resolution_status, session });
 
-    function mapClaimStatusToText(status: string) {
+    function mapClaimStatusToText(status: ResolutionStatus) {
         switch (status) {
             case "pending":
-                return "Claim Pending";
+                return "Pending";
             case "approved":
-                return "Claim Approved";
+                return "Approved";
+            case "completed":
+                return "Completed";
+            case "return_initiated":
+                return "Return Initiated";
         }
     }
 
-    function mapClaimStatusBg(status: string) {
+    function mapClaimStatusBg(status: ResolutionStatus) {
         switch (status) {
             case "pending":
                 return "bg-sky-500";
+            case "return_initiated":
             case "approved":
                 return "bg-emerald-500";
+            case "completed":
+                return "bg-green-600";
         }
     }
 
@@ -129,10 +132,12 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                 <div className="lg:col-span-2 space-y-6">
                     <ImageViewer src={item.image} alt={item.title}>
                         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
-                            <img
+                            <Image
                                 src={item.image}
                                 alt={item.title}
-                                className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
+                                fill
+                                unoptimized
+                                className="object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
                                 <Badge
@@ -144,11 +149,11 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                                     {item.type === "lost" ? "Lost" : "Found"}
                                 </Badge>
 
-                                {claim_status !== "none" && (
+                                {resolutionStatus !== "none" && (
                                     <Badge
-                                        className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(claim_status)}`}
+                                        className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
                                     >
-                                        {mapClaimStatusToText(myClaimStatus)}
+                                        {mapClaimStatusToText(resolutionStatus)}
                                     </Badge>
                                 )}
                             </div>
@@ -423,10 +428,30 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
                                         return
                                     }
-                                    setIsClaiming(true)
+
+                                    setIsClaiming(true);
                                 }}
                             >
                                 This is Mine!
+                            </Button>
+                        ) : null}
+                        {canReturn ? (
+                            <Button
+                                size="lg"
+                                className="w-full h-12 text-lg shadow-sm mb-6"
+                                onClick={async () => {
+                                    const isAuthenticated =
+                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
+
+                                    if (!isAuthenticated) {
+                                        router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
+                                        return
+                                    }
+
+                                    setIsClaiming(true);
+                                }}
+                            >
+                                I Found This!
                             </Button>
                         ) : null}
                         <div className="grid grid-cols-2 gap-3">
@@ -463,141 +488,30 @@ export default function ItemEditable({ item, reporter, claim_status, session }: 
                 </div>
             </div>
 
-            {/* Delete Confirmation Dialog */}
-            <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-2">
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete your item
-                                    and remove it from our servers.
-                                </AlertDialogDescription>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 shrink-0"
-                                onClick={() => setIsDeleting(false)}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="mt-6">
-                        <AlertDialogCancel asChild>
-                            <Button variant="outline">
-                                Cancel
-                            </Button>
-                        </AlertDialogCancel>
+            <DeleteConfirmationDialog
+                isDeleting={isDeleting}
+                setIsDeleting={setIsDeleting}
+                handleDelete={handleDelete}
+            />
 
-                        <AlertDialogAction
-                            className="text-white bg-red-500 hover:bg-red-600"
-                            onClick={handleDelete}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete permanently
-                            {/* </Button> */}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <SubmitClaimDialog
+                mode={item.type === "found" ? "claim" : "return"}
+                isOpen={isClaiming}
+                setIsOpen={setIsClaiming}
+                text={claimText}
+                setText={setClaimText}
+                isSubmitting={isSubmittingResolution}
+                onSubmit={() => handleResolutionSubmit(item)}
+            />
 
-            <AlertDialog open={isClaiming} onOpenChange={setIsClaiming}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Claim this item</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Describe details that prove this item belongs to you.
-                            These details will be shared only with the finder.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <Textarea
-                        value={claimText}
-                        onChange={(e) => setClaimText(e.target.value)}
-                        placeholder="Describe details that prove this item is yours (marks, contents, damage, when you lost it, etc.). Minimum 20 characters."
-                        className="min-h-[120px] resize-none mt-4"
-                        disabled={isSubmittingClaim}
-                    />
-
-                    <AlertDialogFooter className="mt-6">
-                        <AlertDialogCancel asChild>
-                            <Button variant="outline" disabled={isSubmittingClaim}>
-                                Cancel
-                            </Button>
-                        </AlertDialogCancel>
-
-                        <AlertDialogAction
-                            disabled={claimText.trim().length < 20 || isSubmittingClaim}
-                            onClick={handleClaimSubmit}
-                        >
-                            Submit claim
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog open={isReporting} onOpenChange={setIsReporting}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Report</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Please select a reason for reporting.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="outline"
-                                role="combobox"
-                                className="w-full flex items-center justify-between font-normal text-left"
-                            >
-                                <span
-                                    className={cn(
-                                        "truncate",
-                                        !reason && "text-muted-foreground"
-                                    )}
-                                >
-                                    {reasons_map.find(r => r.value === reason)?.label || "Select a reason..."}
-                                </span>
-                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-[200px]">
-                            {reasons_map.map((item) => (
-                                <DropdownMenuItem
-                                    key={item.value}
-                                    onSelect={() => setReason(item.value)}
-                                    className="w-full cursor-pointer justify-start"
-                                >
-                                    {item.label}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/*Close & Submit Buttons */}
-                    <AlertDialogFooter>
-                        <AlertDialogCancel
-                            onClick={() => setReason("")}
-                        >
-                            Cancel
-                        </AlertDialogCancel>
-
-                        <AlertDialogAction
-                            disabled={reason === ''}
-                            className="shadow-sm"
-                            onClick={handleReport}
-                        >
-                            Submit
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ReportDialog
+                isReporting={isReporting}
+                setIsReporting={setIsReporting}
+                reason={reason}
+                reasons_map={reasons_map}
+                setReason={setReason}
+                handleReport={handleReport}
+            />
         </div >
     );
 }

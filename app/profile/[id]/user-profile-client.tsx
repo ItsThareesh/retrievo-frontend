@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
 import { User } from '@/types/user';
 import useSWR from 'swr';
+import Image from 'next/image';
 import { getUserProfile } from '@/lib/api/swr-items';
 import { fetchData } from '@/lib/utils/swrHelper';
 import { useMemo } from 'react';
@@ -59,12 +60,13 @@ export function UserProfileClient({ public_id }: UserProfileClientProps) {
                     <div className="sticky top-24">
                         <Card className="overflow-hidden border-muted shadow-sm">
                             <div className="relative h-24 w-full overflow-hidden bg-muted/20">
-                                <img
+                                <Image
                                     src={user.image}
                                     alt=""
                                     aria-hidden="true"
-                                    className="
-                                    absolute inset-0 h-full w-full object-cover blur-3xl scale-125 opacity-50 saturate-300"
+                                    fill
+                                    unoptimized
+                                    className="object-cover blur-3xl scale-125 opacity-50 saturate-300"
                                 />
                             </div>
                             <CardHeader className="text-center -mt-12 relative z-10">

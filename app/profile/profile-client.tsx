@@ -7,9 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ItemCard } from '@/components/item-card';
 import { LogOut, ChevronDown } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
+import Image from 'next/image';
 import type { Session } from 'next-auth';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { setHostel, setPhoneNumber } from '@/lib/api/client';
+import { setHostel, setPhoneNumber } from '@/lib/api/client-invoked';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -165,12 +166,13 @@ export function ProfileClient({ session: initialSession }: ProfileClientProps) {
                     <div className="sticky top-24">
                         <Card className="overflow-hidden border-muted shadow-sm">
                             <div className="relative h-24 w-full overflow-hidden bg-muted/20">
-                                <img
+                                <Image
                                     src={currentSession.user.image}
                                     alt=""
                                     aria-hidden="true"
-                                    className="
-                                    absolute inset-0 h-full w-full object-cover blur-3xl scale-125 opacity-50 saturate-300"
+                                    fill
+                                    unoptimized
+                                    className="object-cover blur-3xl scale-125 opacity-50 saturate-300"
                                 />
                             </div>
                             <CardHeader className="text-center -mt-12 relative z-10">

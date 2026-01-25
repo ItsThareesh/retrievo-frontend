@@ -50,15 +50,21 @@ export function NotificationsDropdown() {
 
     const getIcon = (type: NotificationType) => {
         switch (type) {
-            case "claim_approved":
+            case "resolution_completed":
+            case "resolution_approved":
                 return <div className="rounded-full bg-green-100 p-1.5 dark:bg-green-900/30"><Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /></div>
-            case "claim_rejected":
+
+            case "resolution_invalidated":
+            case "resolution_rejected":
                 return <div className="rounded-full bg-red-100 p-1.5 dark:bg-red-900/30"><X className="h-3.5 w-3.5 text-red-600 dark:text-red-400" /></div>
+
             case "warning_issued":
                 return <div className="rounded-full bg-orange-200 p-1.5 dark:bg-orange-900/40">
                     <AlertOctagon className="h-3.5 w-3.5 text-orange-700 dark:text-orange-300" />
                 </div>
-            case "claim_created":
+
+            case "return_initiated":
+            case "resolution_created":
             case "system_notice":
             default:
                 return <div className="rounded-full bg-blue-100 p-1.5 dark:bg-blue-900/30"><Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" /></div>
@@ -76,16 +82,8 @@ export function NotificationsDropdown() {
                     markAsRead(notification.id);
                 }
 
-                // Route based on notification type
-                if (notification.type === "claim_created") {
-                    // Finder reviewing claim - go to item review page
-                    router.push(`/items/${notification.item_id}/review-claim`)
-                } else if (notification.type === "claim_approved" || notification.type === "claim_rejected") {
-                    // Claimant viewing status - go to claim status page
-                    router.push(`/claims/${notification.resolution_id}`)
-                } else if (notification.item_id) {
-                    // Default: go to item page
-                    router.push(`/items/${notification.item_id}`)
+                if (notification.type != "system_notice" && notification.type != "warning_issued") {
+                    router.push('/resolution/' + notification.resolution_id);
                 }
             }}
         >

@@ -5,13 +5,14 @@ import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
 import { Item } from "@/types/item";
 
 // GET: Paginated Items (works with or without authentication)
-export async function getPaginatedItems(page: number = 1, limit: number = 12) {
+export async function getPaginatedItems(queryString: string = '') {
     try {
         const session = await auth();
         const token = session?.backendToken;
 
-        const res = await publicFetch(
-            `/items/all?page=${page}&limit=${limit}`, {
+        const url = queryString ? `/items/all?${queryString}` : '/items/all?page=1&limit=12';
+
+        const res = await publicFetch(url, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from "next/navigation";
 import { OverviewTab } from "./overview-tab";
-import { ClaimsTab } from "./claims-tab";
+import { ResolutionsTab } from "./resolutions-tab";
 import { UsersTab } from "./users-tab";
 import { ReportsTab } from "./reports-tab";
 
@@ -28,13 +28,13 @@ export function AdminView({ initialTab }: { initialTab: string }) {
             <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
                 <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="claims">Claims</TabsTrigger>
+                    <TabsTrigger value="resolutions">Resolutions</TabsTrigger>
                     <TabsTrigger value="users">Users</TabsTrigger>
                     <TabsTrigger value="reports">Reports</TabsTrigger>
                 </TabsList>
 
                 {activeTab === "overview" && <OverviewTab />}
-                {activeTab === "claims" && <ClaimsTab />}
+                {activeTab === "resolutions" && <ResolutionsTab />}
                 {activeTab === "users" && <UsersTab />}
                 {activeTab === "reports" && <ReportsTab />}
             </Tabs>

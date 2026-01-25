@@ -4,18 +4,20 @@ import { toast } from "sonner";
 import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import { User as UserType } from "@/types/user";
-import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/client";
+import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/client-invoked";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
+import { ResolutionStatus } from "@/types/resolutions";
+import { set } from "date-fns";
 
 interface UseItemEditableProps {
     item: Item;
     reporter: UserType;
-    claim_status: "none" | "pending" | "approved";
+    resolution_status: ResolutionStatus | "none";
     session: Session | null;
 }
 
-export function useItemEditable({ item, reporter, claim_status, session }: UseItemEditableProps) {
+export function useItemEditable({ item, reporter, resolution_status, session }: UseItemEditableProps) {
     const router = useRouter();
 
     const [reason, setReason] = useState("fake");
@@ -27,9 +29,9 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
 
     const [isClaiming, setIsClaiming] = useState(false);
     const [claimText, setClaimText] = useState("");
-    const [isSubmittingClaim, setIsSubmittingClaim] = useState(false);
+    const [isSubmittingResolution, setIsSubmittingResolution] = useState(false);
 
-    const [myClaimStatus, setMyClaimStatus] = useState(claim_status);
+    const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
 
     const [formData, setFormData] = useState({
         title: item.title ?? "",
@@ -40,12 +42,17 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         date: item.date ? new Date(item.date).toISOString().slice(0, 10) : "",
     });
 
-    // Determine permissions
-    const canEdit = !!session &&
-        reporter.public_id === session.user?.public_id &&
-        !["approved", "pending"].includes(claim_status); // Can't edit if claim is approved or pending
+    const isLoggedIn = !!session;
+    const isReporter = reporter.public_id === session?.user?.public_id;
+    const isFoundItem = item.type === "found";
+    const isLostItem = item.type === "lost";
+    const hasResolution = resolutionStatus !== "none";
 
-    const canClaim = item.type === "found" && myClaimStatus === "none" && !canEdit;
+    // Determine permissions
+    const canEdit = isLoggedIn && isReporter && !hasResolution;
+
+    const canClaim = isLoggedIn && isFoundItem && !isReporter && !hasResolution;
+    const canReturn = isLoggedIn && isLostItem && !isReporter && !hasResolution;
 
     async function handleSave() {
         setIsSaving(true);
@@ -105,6 +112,7 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         setIsSaving(false);
     }
 
+
     function handleCancel() {
         setFormData({
             title: item.title ?? "",
@@ -129,34 +137,52 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         setIsDeleting(false);
     }
 
-    async function handleClaimSubmit() {
+    function validateResolutionInput(text: string): string | null {
+        const len = text.trim().length;
+
+        if (len < 20) return "Claim description must be at least 20 characters long.";
+        if (len > 280) return "Claim description must be at most 280 characters long.";
+
+        return null;
+    }
+
+    async function handleResolutionSubmit(item: Item) {
+        const error = validateResolutionInput(claimText);
+        if (error) {
+            toast.error(error);
+            return;
+        }
+
+        setIsSubmittingResolution(true);
+
         try {
-            if (claimText.trim().length < 20) {
-                toast.error("Claim description must be at least 20 characters long.");
-                return;
-            } else if (claimText.trim().length > 280) {
-                toast.error("Claim description must be at most 280 characters long.");
-                return;
-            }
-
-            setIsSubmittingClaim(true);
-
             const res = await createResolution(item.id, claimText);
 
-            if (res.ok) {
-                toast.success("Claim sent to finder for verification");
-                setMyClaimStatus("pending");
-                setIsClaiming(false);
-                setClaimText("");
-            } else if (res.status == 409) {
-                toast.error("You have already submitted a claim for this item.");
-            } else {
-                toast.error("Failed to submit claim. Please try again.");
+            if (!res.ok) {
+                if (res.status === 409) {
+                    toast.error("You have already submitted a resolution for this item.");
+                } else {
+                    toast.error("Failed to submit request. Please try again.");
+                }
+                return;
             }
+
+            // Success handling
+            if (item.type === "found") {
+                toast.success("Claim sent to finder for verification");
+                setResolutionStatus("pending");
+            } else {
+                toast.success("Return initiation request sent to owner");
+                setResolutionStatus("return_initiated");
+            }
+
+            // Shared cleanup
+            setIsClaiming(false);
+            setClaimText("");
         } catch {
-            toast.error("Failed to submit claim. Please try again.");
+            toast.error("Failed to submit request. Please try again.");
         } finally {
-            setIsSubmittingClaim(false);
+            setIsSubmittingResolution(false);
         }
     }
 
@@ -224,18 +250,21 @@ export function useItemEditable({ item, reporter, claim_status, session }: UseIt
         setIsClaiming,
         claimText,
         setClaimText,
-        isSubmittingClaim,
-        myClaimStatus,
+
+        isSubmittingResolution,
+        resolutionStatus,
 
         formData,
         setFormData,
+
         canEdit,
         canClaim,
+        canReturn,
 
         handleSave,
         handleCancel,
         handleDelete,
-        handleClaimSubmit,
+        handleResolutionSubmit,
         handleShare,
         handleReport
     };

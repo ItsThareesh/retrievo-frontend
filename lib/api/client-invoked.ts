@@ -116,7 +116,7 @@ export async function createResolution(itemId: string, description: string) {
         const res = await authFetch('/resolutions/create', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ found_item_id: itemId, claim_description: description }),
+            body: JSON.stringify({ item_id: itemId, description: description }),
         });
 
         if (!res.ok) {
@@ -210,29 +210,10 @@ export async function readAllNotifications() {
     }
 }
 
-// GET: Fetch latest claim for specific item
-export async function getClaimForReview(itemID: string) {
-    try {
-        const res = await authFetch(`/resolutions/review/${itemID}`);
-
-        if (!res.ok) {
-            console.error("getClaimForReview failed:", res.status);
-            return { ok: false, data: { "resolution": null }, status: res.status };
-        }
-
-        return { ok: true, data: await safeJson(res) };
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("getClaimForReview error:", err);
-        return { ok: false, data: { "resolution": null }, error: String(err) };
-    }
-}
-
-// GET: Fetch resolution status by ID (for claimants)
+// GET: Fetch current resolution status by ID (both for owner and finder)
 export async function getResolutionStatus(resolutionId: string) {
     try {
-        const res = await authFetch(`/resolutions/status/${resolutionId}`);
+        const res = await authFetch(`/resolutions/${resolutionId}`);
 
         if (!res.ok) {
             return { ok: false, data: null, status: res.status };
@@ -288,6 +269,50 @@ export async function rejectClaim(resolutionID: string, rejectionReason: string)
         if (err instanceof UnauthorizedError) throw err;
 
         console.error("rejectClaim error:", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+// POST: Complete a resolution
+export async function completeResolution(resolutionId: string) {
+    try {
+        const res = await authFetch(`/resolutions/${resolutionId}/complete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        if (!res.ok) {
+            console.error("completeResolution failed:", res.status);
+            return { ok: false, status: res.status };
+        }
+
+        return { ok: true, data: await safeJson(res) };
+    } catch (err) {
+        if (err instanceof UnauthorizedError) throw err;
+
+        console.error("completeResolution error:", err);
+        return { ok: false, error: String(err) };
+    }
+}
+
+// POST: Invalidate a resolution
+export async function invalidateResolution(resolutionId: string) {
+    try {
+        const res = await authFetch(`/resolutions/${resolutionId}/invalidate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        if (!res.ok) {
+            console.error("invalidateResolution failed:", res.status);
+            return { ok: false, status: res.status };
+        }
+
+        return { ok: true, data: await safeJson(res) };
+    } catch (err) {
+        if (err instanceof UnauthorizedError) throw err;
+
+        console.error("invalidateResolution error:", err);
         return { ok: false, error: String(err) };
     }
 }

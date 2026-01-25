@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
-import { getResolutionStatus } from "@/lib/api/client";
-import { redirect } from "next/navigation";
-import { ClaimStatusContent } from "./claim_status_content";
+import { getResolutionStatus } from "@/lib/api/client-invoked";
+import { notFound, redirect } from "next/navigation";
+import { ResolutionStatusContent } from "./resolution_content";
 import Link from "next/link";
 
 export default async function ClaimStatusPage({ params }: { params: Promise<{ id: string }>; }) {
@@ -37,31 +37,17 @@ export default async function ClaimStatusPage({ params }: { params: Promise<{ id
                 </div>
             );
         }
-        if (res.status === 403) {
-            return (
-                <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-background">
-                    <div className="text-center">
-                        <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-                        <p className="text-muted-foreground mb-6">
-                            You don't have permission to view this claim.
-                        </p>
-                        <Link
-                            href="/items"
-                            className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-                        >
-                            Back to Items
-                        </Link>
-                    </div>
-                </div>
-            );
-        }
+
+        if (res.status === 403) return notFound();
     }
 
     return (
-        <ClaimStatusContent
-            claim={res.data.resolution}
+        <ResolutionStatusContent
+            resolution={res.data.resolution}
             item={res.data.item}
             finderContact={res.data.finder_contact}
+            viewer={res.data.viewer}
+            allowedActions={res.data.allowed_actions}
         />
     );
 }

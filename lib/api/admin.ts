@@ -3,7 +3,7 @@
 import {
     OverviewStats,
     ActivityItem,
-    ClaimDetail,
+    ResolutionDetail,
     UserDetail,
     ReportedItemDetail,
     ModerateUserRequest,
@@ -47,21 +47,23 @@ export async function getActivity(limit = 20) {
     }
 }
 
-export async function getClaims(status?: string, limit = 50, skip = 0) {
+export async function getResolutions(status?: string, limit = 50, skip = 0) {
     const params = new URLSearchParams();
     if (status) params.append("status", status);
     params.append("limit", limit.toString());
     params.append("skip", skip.toString());
 
     try {
-        const res = await authFetch(`/admin/claims?${params}`);
+        const res = await authFetch(`/admin/resolutions?${params}`);
 
         if (!res.ok) {
-            console.error("getClaims failed:", res.status);
+            console.error("getResolutions failed:", res.status);
             return { ok: false, status: res.status };
         }
 
-        return { ok: true, data: await safeJson(res) as ClaimDetail[] }
+        console.log(res);
+
+        return { ok: true, data: await safeJson(res) as ResolutionDetail[] }
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 

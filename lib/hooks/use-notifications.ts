@@ -1,8 +1,13 @@
-"use client"
+"use client";
 
-import useSWR, { mutate } from 'swr';
-import { Notification } from '@/types/notification';
-import { getNotifications, getNotificationsCount, readNotification, readAllNotifications } from '@/lib/api/client';
+import useSWR, { mutate } from "swr";
+import { Notification } from "@/types/notification";
+import {
+    getNotifications,
+    getNotificationsCount,
+    readNotification,
+    readAllNotifications,
+} from "@/lib/api/client-invoked";
 
 interface NotificationsResponse {
     notifications: Notification[];
@@ -12,21 +17,24 @@ interface CountResponse {
     count: number;
 }
 
-const NOTIFICATIONS_KEY = 'notifications/all';
-const COUNT_KEY = 'notifications/count';
+const NOTIFICATIONS_KEY = "notifications/all";
+const COUNT_KEY = "notifications/count";
 
+// Fetch full notifications list
 async function notificationsFetcher(): Promise<NotificationsResponse> {
     const res = await getNotifications();
     return res.data;
 }
 
+// Fetch unread count only (lightweight endpoint)
 async function countFetcher(): Promise<CountResponse> {
     const res = await getNotificationsCount();
     return res.data;
 }
 
 export function useNotifications() {
-    // Always fetch count (lightweight)
+    // Always keep unread count reasonably fresh
+    // This drives badges and urgency in the UI
     const { data: countData, mutate: mutateCount } = useSWR<CountResponse>(
         COUNT_KEY,
         countFetcher,
@@ -37,78 +45,107 @@ export function useNotifications() {
         }
     );
 
-    // Lazy-load full notifications (only fetched when explicitly called)
-    const { data: notificationsData, isLoading, mutate: mutateNotifications } = useSWR<NotificationsResponse>(
+    // Cache full notifications list
+    // Not time-critical, so we avoid aggressive revalidation
+    const {
+        data: notificationsData,
+        isLoading,
+        mutate: mutateNotifications,
+    } = useSWR<NotificationsResponse>(
         NOTIFICATIONS_KEY,
-        null, // Don't fetch automatically - use manual trigger
+        notificationsFetcher,
         {
             revalidateOnFocus: false,
-            revalidateOnReconnect: false, // Don't auto-fetch on reconnect
-            dedupingInterval: 5000,
+            revalidateOnReconnect: false,
+            dedupingInterval: 300_000, // cache for 5 minutes
+            keepPreviousData: true,
         }
     );
 
+    // Normalized notifications list
     const notifications = notificationsData?.notifications ?? [];
 
-    // Use count from full data if available, otherwise use lightweight count
+    // Prefer computing unread count from full data if available
+    // Fallback to lightweight count endpoint otherwise
     const unreadCount = notificationsData
-        ? notifications.filter(n => !n.is_read).length
-        : (countData?.count ?? 0);
+        ? notifications.filter((n) => !n.is_read).length
+        : countData?.count ?? 0;
 
+    // Explicit refresh when user opens notifications panel
+    // Uses cached data first, then revalidates if needed
     const loadNotifications = async () => {
-        // Trigger fetch of full notifications
-        const data = await mutateNotifications(notificationsFetcher());
-
-        // Update count based on actual data
+        const data = await mutateNotifications();
         if (data) {
-            const actualCount = data.notifications.filter(n => !n.is_read).length;
-            mutateCount({ count: actualCount }, false);
+            mutateCount(
+                {
+                    count: data.notifications.filter((n) => !n.is_read).length,
+                },
+                false
+            );
         }
     };
 
+    // Mark a single notification as read
+    // Optimistic update first, server update second
     const markAsRead = async (id: string) => {
-        // Optimistically update notifications
+        const prevNotifications = notificationsData
+            ? { notifications: [...notificationsData.notifications] }
+            : undefined;
+
+        const prevCount = countData ? { ...countData } : undefined;
+
+        // Optimistic update
         mutateNotifications(
             (current) => ({
-                notifications: current?.notifications.map((n) =>
-                    n.id === id ? { ...n, is_read: true } : n
-                ) ?? [],
+                notifications:
+                    current?.notifications.map((n) =>
+                        n.id === id ? { ...n, is_read: true } : n
+                    ) ?? [],
             }),
             false
         );
 
-        // Optimistically update count
         mutateCount(
             (current) => ({
-                count: Math.max(0, (current?.count ?? 0) - 1)
+                count: Math.max(0, (current?.count ?? 0) - 1),
             }),
             false
         );
 
-        // Update on server
-        await readNotification(id);
+        const res = await readNotification(id);
+
+        if (!res.ok) {
+            // rollback
+            mutateNotifications(prevNotifications, false);
+            mutateCount(prevCount, false);
+        }
+
+        return res;
     };
 
+    // Mark all notifications as read
+    // Snapshot state for rollback in case server call fails
     const markAllAsRead = async () => {
         const previousNotifications = notificationsData;
         const previousCount = countData;
 
-        // Optimistically update notifications
         mutateNotifications(
             (current) => ({
-                notifications: current?.notifications.map((n) => ({ ...n, is_read: true })) ?? [],
+                notifications:
+                    current?.notifications.map((n) => ({
+                        ...n,
+                        is_read: true,
+                    })) ?? [],
             }),
             false
         );
 
-        // Optimistically update count
         mutateCount({ count: 0 }, false);
 
-        // Update on server
         const res = await readAllNotifications();
 
+        // Roll back optimistic updates if server fails
         if (!res.ok) {
-            // Revert on error
             mutateNotifications(previousNotifications, false);
             mutateCount(previousCount, false);
         }
@@ -116,6 +153,8 @@ export function useNotifications() {
         return res;
     };
 
+    // Force refresh from anywhere
+    // Count stays authoritative, full list is soft-refreshed
     const refresh = () => {
         mutateCount();
         mutateNotifications();
@@ -132,7 +171,7 @@ export function useNotifications() {
     };
 }
 
-// Global function to trigger refresh from anywhere
+// Global trigger for refresh (e.g., after WebSocket / SSE / background action)
 export function refreshNotifications() {
     mutate(COUNT_KEY);
     mutate(NOTIFICATIONS_KEY);

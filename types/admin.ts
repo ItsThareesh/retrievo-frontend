@@ -1,3 +1,5 @@
+import { ResolutionStatus, ResolutionType } from "./resolutions";
+
 export interface OverviewStats {
     total_items: number;
     items_this_month: number;
@@ -20,23 +22,28 @@ export interface OverviewStats {
 
 export interface ActivityItem {
     id: string;
-    type: "claim_approved" | "claim_rejected" | "claim_pending" | "report_filed" | "item_auto_hidden";
+    type: "resolution_approved" | "resolution_rejected" | "resolution_pending" | "resolution_completed" | "resolution_invalidated" | "resolution_pending" | "resolution_return_initiated" | "report_filed" | "item_auto_hidden";
     description: string;
     timestamp: string;
 }
 
-export interface ClaimDetail {
+export interface ResolutionDetail {
     id: string;
     item_id: string;
     item_title: string;
-    item_owner_name: string;
-    item_owner_id: string;
-    claimer_name: string;
-    claimer_id: string;
-    claimer_email: string;
-    status: "pending" | "approved" | "rejected";
+
+    resolution_type: ResolutionType;
+    status: ResolutionStatus;
+
+    owner_name: string;
+    owner_id: string;
+    owner_email: string;
+
+    finder_name: string;
+    finder_id: string;
+    finder_email: string;
+
     created_at: string;
-    claim_description: string;
     decided_at: string | null;
 }
 

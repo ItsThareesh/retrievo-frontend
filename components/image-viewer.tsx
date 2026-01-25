@@ -8,6 +8,7 @@ import {
     DialogClose,
 } from "@/components/ui/dialog"
 import { X } from "lucide-react"
+import Image from "next/image"
 
 interface ImageViewerProps {
     src: string
@@ -32,9 +33,12 @@ export function ImageViewer({ src, alt, children }: ImageViewerProps) {
                         <span className="sr-only">Close</span>
                     </DialogClose>
 
-                    <img
+                    <Image
                         src={src}
                         alt={alt}
+                        width={800}
+                        height={600}
+                        unoptimized
                         className="object-contain max-w-[min(800px,90vw)] max-h-[min(600px,85vh)] rounded-md shadow-2xl"
                     />
                 </div>
