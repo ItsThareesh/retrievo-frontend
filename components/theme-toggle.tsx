@@ -35,24 +35,20 @@ export function ThemeToggle() {
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
       className="
-        w-full h-10
+        w-full
         flex items-center gap-2
-        rounded-md px-3
-        border border-input 
-        bg-background 
         hover:bg-accent hover:text-accent-foreground
-        dark:bg-input/30 dark:border-input dark:hover:bg-input/50
         transition-colors cursor-pointer
       "
     >
       {isDark ? (
         <>
-          <Sun className="h-4 w-4" />
+          <Sun className="h-4 w-4 mr-2" />
           <span>Switch to Light Mode</span>
         </>
       ) : (
         <>
-          <Moon className="h-4 w-4" />
+          <Moon className="h-4 w-4 mr-2" />
           <span>Switch to Dark Mode</span>
         </>
       )}

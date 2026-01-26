@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { User, LogOut, ShieldCheck } from 'lucide-react';
 
 interface UserMenuProps {
@@ -65,6 +66,12 @@ export function UserMenu({ user }: UserMenuProps) {
                         <DropdownMenuSeparator />
                     </>
                 )}
+                <DropdownMenuItem asChild>
+                            <Link href="" className="cursor-pointer">
+                                <ThemeToggle />
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                 <DropdownMenuItem
                     className="text-destructive focus:text-destructive cursor-pointer"
                     onClick={() => signOut({
