@@ -61,8 +61,6 @@ export async function getResolutions(status?: string, limit = 50, skip = 0) {
             return { ok: false, status: res.status };
         }
 
-        console.log(res);
-
         return { ok: true, data: await safeJson(res) as ResolutionDetail[] }
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;

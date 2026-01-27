@@ -4,7 +4,7 @@ import { Resolution, FinderContact, Viewer, AllowedAction } from "@/types/resolu
 import { Item } from "@/types/item";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, X, Clock, Mail, Phone, ThumbsUp, ThumbsDown, CheckCheck, AlertTriangle } from "lucide-react";
+import { CheckCircle2, X, Clock, Mail, Phone, ThumbsUp, ThumbsDown, CheckCheck, AlertTriangle, EyeOff } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import Image from "next/image";
@@ -434,9 +434,10 @@ export function ResolutionStatusContent({ resolution, item, finderContact, viewe
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Item Image */}
-                            {item.image && (
-                                <div className="md:col-span-1">
-                                    <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted">
+
+                            <div className="md:col-span-1">
+                                <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                                    {item.image ? (
                                         <Image
                                             src={item.image}
                                             alt={item.title}
@@ -444,9 +445,14 @@ export function ResolutionStatusContent({ resolution, item, finderContact, viewe
                                             unoptimized
                                             className="object-cover"
                                         />
-                                    </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center text-muted-foreground text-center">
+                                            <EyeOff className="h-7 w-7 mb-1.5" />
+                                            <span className="text-xs">Restricted image</span>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
 
                             {/* Item Info */}
                             <div className={item.image ? "md:col-span-2" : "col-span-1"}>
