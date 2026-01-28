@@ -301,7 +301,9 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                         </FormItem>
                                     )}
                                 />
+
                                 <FormField
+                                    // TODO: Date picker component should close upon selection
                                     control={form.control}
                                     name="date"
                                     render={({ field }) => (
@@ -330,7 +332,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                         onSelect={field.onChange}
                                                         disabled={(date) =>
                                                             date > new Date() ||
-                                                            date < new Date("2000-01-01")
+                                                            date < new Date("2025-12-23")
                                                         }
                                                     />
                                                 </PopoverContent>

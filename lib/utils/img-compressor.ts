@@ -1,32 +1,35 @@
-import heic2any from "heic2any";
-
 const isHeic = (file: File) =>
     file.type === "image/heic" ||
     file.type === "image/heif" ||
     /\.heic$/i.test(file.name) ||
-    /\.heif$/i.test(file.name);
+    /\.heif$/i.test(file.name)
 
 export const compressImage = async (file: File): Promise<File> => {
-    let inputFile = file;
+    let inputFile = file
 
-    // Convert HEIC first
+    // Convert HEIC/HEIF first (browser-only)
     if (isHeic(file)) {
+        if (typeof window === "undefined") {
+            throw new Error("HEIC conversion can only run in the browser")
+        }
+
+        const heic2any = (await import("heic2any")).default
+
         const convertedBlob = (await heic2any({
             blob: file,
             toType: "image/jpeg",
             quality: 0.9,
-        })) as Blob;
+        })) as Blob
 
         inputFile = new File(
             [convertedBlob],
             file.name.replace(/\.(heic|heif)$/i, ".jpg"),
             { type: "image/jpeg" }
-        );
+        )
     }
 
-    // Normal WebP compression (your existing logic)
-    return compressToWebP(inputFile);
-};
+    return compressToWebP(inputFile)
+}
 
 export const compressToWebP = (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {

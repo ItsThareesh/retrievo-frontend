@@ -131,35 +131,37 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image */}
                 <div className="lg:col-span-2 space-y-6">
-                    <ImageViewer src={item.image} alt={item.title}>
-                        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
-                            <Image
-                                src={item.image}
-                                alt={item.title}
-                                fill
-                                unoptimized
-                                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
-                                <Badge
-                                    className={
-                                        `text-lg px-4 py-1.5 shadow-md text-white 
-                                        ${item.type === "lost" ? "bg-red-500" : "bg-amber-500"}`
-                                    }
-                                >
-                                    {item.type === "lost" ? "Lost" : "Found"}
-                                </Badge>
-
-                                {resolutionStatus !== "none" && (
+                    {item.image && (
+                        <ImageViewer src={item.image} alt={item.title}>
+                            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
+                                <Image
+                                    src={item.image}
+                                    alt={item.title}
+                                    fill
+                                    unoptimized
+                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                                <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
                                     <Badge
-                                        className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
+                                        className={
+                                            `text-lg px-4 py-1.5 shadow-md text-white 
+                                        ${item.type === "lost" ? "bg-red-500" : "bg-amber-500"}`
+                                        }
                                     >
-                                        {mapClaimStatusToText(resolutionStatus)}
+                                        {item.type === "lost" ? "Lost" : "Found"}
                                     </Badge>
-                                )}
+
+                                    {resolutionStatus !== "none" && (
+                                        <Badge
+                                            className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
+                                        >
+                                            {mapClaimStatusToText(resolutionStatus)}
+                                        </Badge>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </ImageViewer>
+                        </ImageViewer>
+                    )}
 
                     <div>
                         <h3 className="text-lg font-semibold mb-3">Description</h3>
