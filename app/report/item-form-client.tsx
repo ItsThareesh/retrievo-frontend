@@ -57,7 +57,7 @@ const formSchema = z.object({
         .min(1, "Category is required")
         .max(12, "Category must be at most 12 characters."), // 12 characters to accommodate "keys-wallets"
 
-    location: z
+    location: z // Validate location via ENUM in the form
         .string()
         .min(2, "Location is required")
         .max(30, "Location must be at most 30 characters."),
@@ -191,279 +191,268 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             <Card>
                 <CardContent className="p-6 sm:p-8">
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                                <FormField
-                                    control={form.control}
-                                    name="title"
-                                    render={({ field }) => (
-                                        <FormItem className="col-span-1 md:col-span-2">
-                                            <FormLabel>Title</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="e.g. Blue Jansport Backpack" {...field} className="h-11" />
-                                            </FormControl>
-                                            <FormDescription>
-                                                A short, descriptive title for the item.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="category"
-                                    render={({ field }) => (
-                                        <FormItem className="col-span-1">
-                                            <FormLabel>Category</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger className="h-11 w-full">
-                                                        <SelectValue placeholder="Select a category" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="electronics">Electronics</SelectItem>
-                                                    <SelectItem value="clothing">Clothing</SelectItem>
-                                                    <SelectItem value="bags">Bags</SelectItem>
-                                                    <SelectItem value="keys-wallets">Keys & Wallets</SelectItem>
-                                                    <SelectItem value="documents">Documents</SelectItem>
-                                                    <SelectItem value="others">Others</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="item_type"
-                                    render={({ field }) => (
-                                        <FormItem className="col-span-1">
-                                            <FormLabel>Type</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger className="h-11 w-full">
-                                                        <SelectValue placeholder="Select type" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="lost">Lost</SelectItem>
-                                                    <SelectItem value="found">Found</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                                <FormField
-                                    control={form.control}
-                                    name="visibility"
-                                    render={({ field }) => (
-                                        <FormItem className="col-span-1">
-                                            <FormLabel>Visibility</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger className="h-11 w-full">
-                                                        <SelectValue placeholder="Select visibility" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="public">Public</SelectItem>
-                                                    {session.user.hostel === "boys" ? (
-                                                        <SelectItem value="boys">Boys Only</SelectItem>
-                                                    ) : (
-                                                        <SelectItem value="girls">Girls Only</SelectItem>
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="location"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                            <FormLabel>Location</FormLabel>
-                                            <Popover>
-                                                <FormControl>
-                                                    <Combobox
-                                                        groups={groupedLocations}
-                                                        // Pass the form's value directly
-                                                        value={field.value}
-                                                        // Pass the form's updater directly to 'onChange'
-                                                        onChange={field.onChange}
-                                                    />
-                                                </FormControl>
-                                            </Popover>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    // TODO: Date picker component should close upon selection
-                                    control={form.control}
-                                    name="date"
-                                    render={({ field }) => (
-                                        <FormItem className="col-span-1 flex flex-col">
-                                            <FormLabel>Date</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <FormControl>
-                                                        <Button
-                                                            variant="outline"
-                                                            className={cn(
-                                                                "w-full pl-3 text-left font-normal h-11",
-                                                                !field.value && "text-muted-foreground"
-                                                            )}
-                                                        >
-                                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                        </Button>
-                                                    </FormControl>
-                                                </PopoverTrigger>
-
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={field.value}
-                                                        onSelect={field.onChange}
-                                                        disabled={(date) =>
-                                                            date > new Date() ||
-                                                            date < new Date("2025-12-23")
-                                                        }
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                            </div>
-
-
-                            <FormField
-                                control={form.control}
-                                name="description"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Description</FormLabel>
-                                        <FormControl>
-                                            <Textarea
-                                                placeholder="Mention where it was found or its general appearance. Avoid sharing unique identifying details."
-                                                className="resize-none min-h-[120px]"
-                                                {...field}
-                                            />
-                                        </FormControl>
-
-                                        <FormDescription>
-                                            Keep identifying details private so the rightful owner can confirm it's theirs.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="image"
-                                render={({ field }) => (
-                                    <FormItem className="space-y-4">
-                                        <FormLabel>Image</FormLabel>
-
-                                        <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/30 hover:bg-muted/50 transition-colors relative">
-                                            {!preview ? (
-                                                <>
-                                                    <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                                                    <p className="text-sm text-muted-foreground font-medium">Click to upload an image</p>
-                                                    <p className="text-xs text-muted-foreground mt-1">JPG, PNG up to 5MB</p>
-
-                                                    <Input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                        onChange={async (e) => {
-                                                            const file = e.target.files?.[0] ?? null;
-
-                                                            if (!file) {
-                                                                field.onChange(null);
-                                                                setPreview(null);
-                                                                return;
-                                                            }
-
-                                                            if (file.size > 3 * 1024 * 1024) {
-                                                                alert("Image is larger than 3MB.");
-                                                                return;
-                                                            }
-
-                                                            try {
-                                                                // Compress the image
-                                                                const compressedFile = await compressImage(file);
-
-                                                                field.onChange(compressedFile);
-
-                                                                const reader = new FileReader();
-                                                                reader.onloadend = () => setPreview(reader.result as string);
-                                                                reader.readAsDataURL(compressedFile);
-                                                            } catch (error) {
-                                                                console.error('Image compression failed:', error);
-                                                                // Fallback to original file
-                                                                field.onChange(file);
-                                                                const reader = new FileReader();
-                                                                reader.onloadend = () => setPreview(reader.result as string);
-                                                                reader.readAsDataURL(file);
-                                                            }
-                                                        }}
-                                                    />
-                                                </>
-                                            ) : (
-                                                <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
-                                                    <ImageViewer src={preview} alt="Preview">
-                                                        <Image
-                                                            src={preview}
-                                                            alt="Preview"
-                                                            fill
-                                                            unoptimized
-                                                            className="object-cover"
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            variant="destructive"
-                                                            size="icon"
-                                                            className="absolute top-2 right-2 h-8 w-8 rounded-full cursor-pointer"
-                                                            onClick={() => {
-                                                                setPreview(null);
-                                                                field.onChange(null);
-                                                            }}
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
-                                                    </ImageViewer>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <Button
-                                type="submit"
-                                size="lg"
-                                className="w-full h-12 text-lg cursor-pointer"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? "Reporting..." : "Report"}
-                            </Button>
-                        </form>
-                    </Form>
+                    {renderItemForm()}
                 </CardContent>
             </Card>
         </div >
     );
+
+    function renderItemForm() {
+        return <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem className="col-span-1 md:col-span-2">
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g. Blue Jansport Backpack" {...field} className="h-11" />
+                                </FormControl>
+                                <FormDescription>
+                                    A short, descriptive title for the item.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                            <FormItem className="col-span-1">
+                                <FormLabel>Category</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="h-11 w-full">
+                                            <SelectValue placeholder="Select a category" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="electronics">Electronics</SelectItem>
+                                        <SelectItem value="clothing">Clothing</SelectItem>
+                                        <SelectItem value="bags">Bags</SelectItem>
+                                        <SelectItem value="keys-wallets">Keys & Wallets</SelectItem>
+                                        <SelectItem value="documents">Documents</SelectItem>
+                                        <SelectItem value="others">Others</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    <FormField
+                        control={form.control}
+                        name="item_type"
+                        render={({ field }) => (
+                            <FormItem className="col-span-1">
+                                <FormLabel>Type</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="h-11 w-full">
+                                            <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="lost">Lost</SelectItem>
+                                        <SelectItem value="found">Found</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                    <FormField
+                        control={form.control}
+                        name="visibility"
+                        render={({ field }) => (
+                            <FormItem className="col-span-1">
+                                <FormLabel>Visibility</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="h-11 w-full">
+                                            <SelectValue placeholder="Select visibility" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="public">Public</SelectItem>
+                                        {session.user.hostel === "boys" ? (
+                                            <SelectItem value="boys">Boys Only</SelectItem>
+                                        ) : (
+                                            <SelectItem value="girls">Girls Only</SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Location</FormLabel>
+                                <Popover>
+                                    <FormControl>
+                                        <Combobox
+                                            groups={groupedLocations}
+                                            // Pass the form's value directly
+                                            value={field.value}
+                                            // Pass the form's updater directly to 'onChange'
+                                            onChange={field.onChange} />
+                                    </FormControl>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                    <FormField
+                        // TODO: Date picker component should close upon selection
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                            <FormItem className="col-span-1 flex flex-col">
+                                <FormLabel>Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal h-11",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date > new Date() ||
+                                                date < new Date("2025-12-23")} />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                </div>
+
+
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    placeholder="Mention where it was found or its general appearance. Avoid sharing unique identifying details."
+                                    className="resize-none min-h-[120px]"
+                                    {...field} />
+                            </FormControl>
+
+                            <FormDescription>
+                                Keep identifying details private so the rightful owner can confirm it's theirs.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                <FormField
+                    control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                        <FormItem className="space-y-4">
+                            <FormLabel>Image</FormLabel>
+
+                            <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/30 hover:bg-muted/50 transition-colors relative">
+                                {!preview ? (
+                                    <>
+                                        <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                                        <p className="text-sm text-muted-foreground font-medium">Click to upload an image</p>
+                                        <p className="text-xs text-muted-foreground mt-1">JPG, PNG up to 5MB</p>
+
+                                        <Input
+                                            type="file"
+                                            accept="image/*"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0] ?? null;
+
+                                                if (!file) {
+                                                    field.onChange(null);
+                                                    setPreview(null);
+                                                    return;
+                                                }
+
+                                                if (file.size > 3 * 1024 * 1024) {
+                                                    alert("Image is larger than 3MB.");
+                                                    return;
+                                                }
+
+                                                try {
+                                                    // Compress the image
+                                                    const compressedFile = await compressImage(file);
+
+                                                    field.onChange(compressedFile);
+
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => setPreview(reader.result as string);
+                                                    reader.readAsDataURL(compressedFile);
+                                                } catch (error) {
+                                                    console.error('Image compression failed:', error);
+                                                    // Fallback to original file
+                                                    field.onChange(file);
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => setPreview(reader.result as string);
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }} />
+                                    </>
+                                ) : (
+                                    <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
+                                        <ImageViewer src={preview} alt="Preview">
+                                            <Image
+                                                src={preview}
+                                                alt="Preview"
+                                                fill
+                                                unoptimized
+                                                className="object-cover" />
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute top-2 right-2 h-8 w-8 rounded-full cursor-pointer"
+                                                onClick={() => {
+                                                    setPreview(null);
+                                                    field.onChange(null);
+                                                }}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </ImageViewer>
+                                    </div>
+                                )}
+                            </div>
+
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full h-12 text-lg cursor-pointer"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? "Reporting..." : "Report"}
+                </Button>
+            </form>
+        </Form>;
+    }
 }
