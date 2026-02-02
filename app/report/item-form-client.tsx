@@ -165,19 +165,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
         }
     }
 
-    if (!session?.user) {
-        return (
-            <div className="max-w-3xl mx-auto py-10 px-4">
-                <div className="text-center">
-                    <p className="mb-4">Please sign in to report items.</p>
-                    <Button onClick={() => signIn("google")}>
-                        Sign In with Google
-                    </Button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="max-w-3xl mx-auto py-10 px-4">
             <div className="mb-8 text-center">

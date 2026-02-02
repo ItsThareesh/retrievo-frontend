@@ -9,8 +9,11 @@ export const dynamic = "force-dynamic";
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
     const session = await auth();
 
+    const isAuthenticated =
+        !!session?.user && Date.now() < (session?.expires_at ?? 0) && session.user.role === "admin";
+
     // Check authentication
-    if (!session?.user) {
+    if (!isAuthenticated) {
         redirect('/auth/signin?callbackUrl=/admin');
     }
 
