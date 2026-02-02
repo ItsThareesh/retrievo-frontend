@@ -3,17 +3,21 @@ import { getResolutionStatus } from "@/lib/api/client-invoked";
 import { notFound, redirect } from "next/navigation";
 import { ResolutionStatusContent } from "./resolution_content";
 import Link from "next/link";
+import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 
 export default async function ClaimStatusPage({ params }: { params: Promise<{ id: string }>; }) {
     const session = await auth();
-    const isAuthenticated =
-        !!session?.user && Date.now() < (session?.expires_at ?? 0);
+    const { id } = await params;
 
-    if (!isAuthenticated) {
-        redirect('/auth/signin?callbackUrl=/claims/' + (await params).id);
+    // Check authentication
+    if (!session?.user) {
+        redirect(`/auth/signin?callbackUrl=/resolution/${id}`);
     }
 
-    const { id } = await params;
+    // Check if user needs onboarding
+    if (needsOnboarding(session)) {
+        redirect('/onboarding');
+    }
 
     // Fetch resolution status
     const res = await getResolutionStatus(id);

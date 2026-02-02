@@ -1,26 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { OverviewTab } from "./overview-tab";
 import { ResolutionsTab } from "./resolutions-tab";
 import { UsersTab } from "./users-tab";
 import { ReportsTab } from "./reports-tab";
 
 export function AdminView({ initialTab }: { initialTab: string }) {
-    const [activeTab, setActiveTab] = useState(initialTab);
+    const router = useRouter();
     const searchParams = useSearchParams();
+    const [activeTab, setActiveTab] = useState(initialTab);
 
-    // Sync state with URL without triggering server navigation for every click
-    // We use window.history.replaceState to update the URL silently
+    // Sync activeTab with URL when user navigates with browser back/forward
+    useEffect(() => {
+        const tabFromUrl = searchParams.get("tab") || "overview";
+        setActiveTab(tabFromUrl);
+    }, [searchParams]);
+
     const handleTabChange = (value: string) => {
-        setActiveTab(value);
-
-        // Update URL for shareability without triggering a Next.js server navigation
+        // Update URL using Next.js router for proper navigation
         const params = new URLSearchParams(searchParams.toString());
         params.set("tab", value);
-        window.history.pushState(null, "", `?${params.toString()}`);
+        router.push(`?${params.toString()}`, { scroll: false });
     };
 
     return (

@@ -11,7 +11,7 @@ import useSWRInfinite from 'swr/infinite';
 import { getPaginatedItems } from '@/lib/api/swr-items';
 import { fetchData } from '@/lib/utils/swrHelper';
 import { formatDate } from '@/lib/date-formatting';
-import { ItemsLoadingSkeleton, ItemsGridSkeleton } from './items-loading-skeleton';
+import { ItemsGridSkeleton } from './items-loading-skeleton';
 import { useDebouncedValue } from '@/lib/hooks/useDebounce';
 
 export function ItemsGridClient() {
@@ -54,7 +54,6 @@ export function ItemsGridClient() {
             return result;
         },
         {
-            revalidateFirstPage: false,
             revalidateAll: false,
         }
     );
@@ -70,7 +69,6 @@ export function ItemsGridClient() {
     }, [data]);
 
     const hasMore = data?.[data.length - 1]?.has_more ?? false;
-    const isFilterLoading = isLoading && data !== undefined;
 
     // Infinite scroll observer
     useEffect(() => {
@@ -88,11 +86,6 @@ export function ItemsGridClient() {
         observer.observe(loadMoreRef.current);
         return () => observer.disconnect();
     }, [hasMore, isValidating, setSize, size]);
-
-    // Show full skeleton only on initial load
-    if (isLoading && !data) {
-        return <ItemsLoadingSkeleton />;
-    }
 
     return (
         <>
@@ -141,14 +134,6 @@ export function ItemsGridClient() {
                 </TabsList>
 
                 <TabsContent value={activeTab} className="space-y-6 relative">
-                    {isFilterLoading && (
-                        <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] z-10 flex items-start justify-center pt-8 animate-in fade-in-0 duration-200">
-                            <div className="bg-background border shadow-lg rounded-full px-4 py-2 flex items-center gap-2">
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                <span className="text-sm font-medium">Updating results...</span>
-                            </div>
-                        </div>
-                    )}
                     {isLoading ? (
                         <ItemsGridSkeleton />
                     ) : allItems.length > 0 ? (

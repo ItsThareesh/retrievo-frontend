@@ -16,6 +16,7 @@ export async function getPaginatedItems(queryString: string = '') {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
+            cache: 'no-store',
         });
 
         if (!res.ok) {
@@ -42,7 +43,7 @@ export async function getPaginatedItems(queryString: string = '') {
 // GET: All Items for Current User (requires authentication)
 export async function getUserItems() {
     try {
-        const res = await authFetch(`/profile/items`);
+        const res = await authFetch(`/profile/items`, { cache: 'no-store' });
 
         if (!res.ok) {
             console.error("getUserItems failed:", res.status);
@@ -81,6 +82,7 @@ export async function getUserProfile(public_id: string) {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
+            cache: 'no-store',
         });
 
         if (!res.ok) {

@@ -12,7 +12,7 @@ export async function Navbar() {
         !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
     return (
-        <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary hover:opacity-90 transition-opacity">
                     <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">

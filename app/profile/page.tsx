@@ -1,21 +1,25 @@
 import { auth } from '@/auth';
 import { ProfileClient } from '@/app/profile/profile-client';
-import { redirect } from 'next/navigation';
 import { SessionProvider } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+import { needsOnboarding } from '@/lib/utils/needsOnboarding';
 
 export default async function ProfilePage() {
     const session = await auth();
 
-    const isAuthenticated =
-        !!session?.user && Date.now() < (session?.expires_at ?? 0);
-
-    if (!isAuthenticated) {
+    // Check authentication
+    if (!session?.user) {
         redirect('/auth/signin?callbackUrl=/profile');
+    }
+
+    // Check if user needs onboarding
+    if (needsOnboarding(session)) {
+        redirect('/onboarding');
     }
 
     return (
         <SessionProvider>
-            <ProfileClient session={session} />
+            <ProfileClient />
         </SessionProvider>
     );
 }

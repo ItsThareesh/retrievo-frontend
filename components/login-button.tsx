@@ -28,7 +28,7 @@ export function LoginButton({ session, isAuthenticated }: LoginButtonProps) {
                         className="cursor-pointer"
                         variant="outline"
                         size="sm"
-                        onClick={() => signIn("google", { callbackUrl: "/profile" })}
+                        onClick={() => signIn("google", { callbackUrl: "/onboarding" })}
                     >
                         Login
                     </Button>

@@ -27,12 +27,13 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
 import { ResolutionStatus } from "@/types/resolutions";
 import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
+import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 
 interface ItemEditableProps {
     item: Item;
@@ -130,35 +131,37 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image */}
                 <div className="lg:col-span-2 space-y-6">
-                    <ImageViewer src={item.image} alt={item.title}>
-                        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
-                            <Image
-                                src={item.image}
-                                alt={item.title}
-                                fill
-                                unoptimized
-                                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute top-2 left-2 flex flex-row gap-2  rounded-lg">
-                                <Badge
-                                    className={
-                                        `text-lg px-4 py-1.5 shadow-md text-white
-                                        ${item.type === "lost" ? "bg-red-500" : "bg-amber-500"}`
-                                    }
-                                >
-                                    {item.type === "lost" ? "Lost" : "Found"}
-                                </Badge>
-
-                                {resolutionStatus !== "none" && (
+                    {item.image && (
+                        <ImageViewer src={item.image} alt={item.title}>
+                            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
+                                <Image
+                                    src={item.image}
+                                    alt={item.title}
+                                    fill
+                                    unoptimized
+                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                                <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
                                     <Badge
-                                        className={`text-lg px-3 py-1 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
+                                        className={
+                                            `text-lg px-4 py-1.5 shadow-md text-white 
+                                        ${item.type === "lost" ? "bg-red-500" : "bg-amber-500"}`
+                                        }
                                     >
-                                        {mapClaimStatusToText(resolutionStatus)}
+                                        {item.type === "lost" ? "Lost" : "Found"}
                                     </Badge>
-                                )}
+
+                                    {resolutionStatus !== "none" && (
+                                        <Badge
+                                            className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
+                                        >
+                                            {mapClaimStatusToText(resolutionStatus)}
+                                        </Badge>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </ImageViewer>
+                        </ImageViewer>
+                    )}
 
                     <div>
                         <h3 className="text-lg font-semibold mb-3">Description</h3>
@@ -178,7 +181,7 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                         placeholder="Describe the item in detail..."
                                     />
                                 ) : (
-                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed break-words">
+                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed wrap-break-word">
                                         {formData.description || "No description provided."}
                                     </p>
                                 )}
@@ -202,7 +205,7 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                         placeholder="Item title"
                                     />
                                 ) : (
-                                    <h1 className="text-3xl font-bold leading-tight flex-1 break-words">
+                                    <h1 className="text-3xl font-bold leading-tight flex-1 wrap-break-word">
                                         {formData.title}
                                     </h1>
                                 )}
@@ -347,7 +350,7 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                             disabled={isSaving}
                                         />
                                     ) : (
-                                        <p className="text-muted-foreground text-sm break-words">
+                                        <p className="text-muted-foreground text-sm wrap-break-word">
                                             {LOCATION_MAP[formData.location]?.label ?? formData.location}
                                         </p>
                                     )}
@@ -429,6 +432,11 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                         return
                                     }
 
+                                    if (needsOnboarding(session)) {
+                                        router.push('/onboarding');
+                                        return;
+                                    }
+
                                     setIsClaiming(true);
                                 }}
                             >
@@ -446,6 +454,11 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                     if (!isAuthenticated) {
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
                                         return
+                                    }
+
+                                    if (needsOnboarding(session)) {
+                                        router.push('/onboarding');
+                                        return;
                                     }
 
                                     setIsClaiming(true);

@@ -7,3 +7,9 @@ export interface User {
     hostel?: string;
     phone?: string;
 }
+
+export interface OnboardingPayload {
+    hostel: string;
+    phone: string | null;
+    instagramId: string | null;
+}

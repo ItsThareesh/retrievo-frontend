@@ -9,7 +9,7 @@ export interface Item {
     category: string;
     date: string;
     location: LocationKey;
-    image: string;
+    image: string | null;
     type: 'lost' | 'found';
     visibility: 'public' | 'girls' | 'boys';
 }

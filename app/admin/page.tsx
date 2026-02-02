@@ -1,11 +1,19 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getStats } from "@/lib/api/admin";
 import { AdminView } from "./components/admin-view";
+import { auth } from "@/auth";
 
 // Force dynamic rendering for admin dashboard
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+    const session = await auth();
+
+    // Check authentication
+    if (!session?.user) {
+        redirect('/auth/signin?callbackUrl=/admin');
+    }
+
     // Check admin access by trying to fetch stats
     // If this fails with 401/403, the API client should handle redirection or we catch it here
     try {

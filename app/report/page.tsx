@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { ItemFormClient } from './item-form-client';
 import { redirect } from 'next/navigation';
+import { needsOnboarding } from '@/lib/utils/needsOnboarding';
 
 export default async function ReportPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
     const { type } = await searchParams;
@@ -14,12 +15,14 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
     const isAuthenticated =
         !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
+    // Check authentication
     if (!isAuthenticated) {
         redirect(`/auth/signin?callbackUrl=/report?type=${type}`);
     }
 
-    if (session?.user.hostel === null) {
-        redirect(`/profile?reason=hostel_required`);
+    // Check if user needs onboarding
+    if (needsOnboarding(session)) {
+        redirect('/onboarding');
     }
 
     return (

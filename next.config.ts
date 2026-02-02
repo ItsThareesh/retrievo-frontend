@@ -1,10 +1,4 @@
 import type { NextConfig } from "next";
-import dotenv from "dotenv";
-import path from "path";
-
-dotenv.config({
-  path: path.resolve(__dirname, "..", ".env.frontend"),
-});
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -18,7 +12,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: process.env.CDN_HOSTNAME!
+        hostname: "cdn.retrievo.dev",
       }
     ]
   }
