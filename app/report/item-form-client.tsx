@@ -32,7 +32,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { postLostFoundItem } from '@/lib/api/client-invoked';
+import { postLostFoundItem } from '@/lib/api/authenticated-api';
 import { signIn } from "next-auth/react";
 import type { Session } from 'next-auth';
 import { ImageViewer } from '@/components/image-viewer';
@@ -135,8 +135,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             });
 
             const res = await postLostFoundItem(formData);
-
-            console.log(res);
 
             if (res.status === 401) {
                 router.push(`/auth/signin?callbackUrl=/report?type=${type}`);

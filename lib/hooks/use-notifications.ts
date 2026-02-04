@@ -7,7 +7,7 @@ import {
     getNotificationsCount,
     readNotification,
     readAllNotifications,
-} from "@/lib/api/client-invoked";
+} from "@/lib/api/authenticated-api";
 
 interface NotificationsResponse {
     notifications: Notification[];
