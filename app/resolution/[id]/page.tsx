@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { getResolutionStatus } from "@/lib/api/client-invoked";
+import { getResolutionStatus } from "@/lib/api/authenticated-api";
 import { notFound, redirect } from "next/navigation";
 import { ResolutionStatusContent } from "./resolution_content";
 import Link from "next/link";
@@ -9,8 +9,11 @@ export default async function ClaimStatusPage({ params }: { params: Promise<{ id
     const session = await auth();
     const { id } = await params;
 
+    const isAuthenticated =
+        !!session?.user && Date.now() < (session?.expires_at ?? 0);
+
     // Check authentication
-    if (!session?.user) {
+    if (!isAuthenticated) {
         redirect(`/auth/signin?callbackUrl=/resolution/${id}`);
     }
 

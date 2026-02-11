@@ -15,7 +15,6 @@ import { ItemsGridSkeleton } from './items-loading-skeleton';
 import { useDebouncedValue } from '@/lib/hooks/useDebounce';
 
 export function ItemsGridClient() {
-    const [column, setColumn] = useState<1 | 2 >(2);
     const [searchInput, setSearchInput] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [activeTab, setActiveTab] = useState<'all' | 'found' | 'lost'>('all');
@@ -38,13 +37,6 @@ export function ItemsGridClient() {
         if (typeFilter !== 'all') params.set('item_type', typeFilter);
 
         return params.toString();
-    }
-
-    function columntoggle(column: number) {
-        if(column == 1)
-            setColumn(2);
-        else if(column == 2)
-            setColumn(1);
     }
 
     const { data, size, setSize, isLoading, isValidating } = useSWRInfinite(

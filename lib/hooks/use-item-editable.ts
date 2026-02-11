@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import { User as UserType } from "@/types/user";
-import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/client-invoked";
+import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/authenticated-api";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
 import { ResolutionStatus } from "@/types/resolutions";

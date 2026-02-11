@@ -7,8 +7,11 @@ import { needsOnboarding } from '@/lib/utils/needsOnboarding';
 export default async function ProfilePage() {
     const session = await auth();
 
+    const isAuthenticated =
+        !!session?.user && Date.now() < (session?.expires_at ?? 0);
+
     // Check authentication
-    if (!session?.user) {
+    if (!isAuthenticated) {
         redirect('/auth/signin?callbackUrl=/profile');
     }
 
@@ -18,7 +21,7 @@ export default async function ProfilePage() {
     }
 
     return (
-        <SessionProvider>
+        <SessionProvider session={session}>
             <ProfileClient />
         </SessionProvider>
     );

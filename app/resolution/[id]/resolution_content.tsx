@@ -18,7 +18,7 @@ import {
     rejectClaim,
     completeResolution,
     invalidateResolution,
-} from "@/lib/api/client-invoked";
+} from "@/lib/api/authenticated-api";
 
 import { ActionButtons } from "./components/action-buttons";
 import { RejectionDialog } from "./components/rejection-dialog";

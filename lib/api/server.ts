@@ -8,6 +8,7 @@ export async function fetchItem(itemId: string, token?: string) {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
+            next: { revalidate: 60 } // Cache for 60 seconds
         });
 
         if (!res.ok) {

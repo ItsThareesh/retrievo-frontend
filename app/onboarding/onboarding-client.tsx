@@ -21,7 +21,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { updateOnboarding } from '@/lib/api/client-invoked';
+import { updateOnboarding } from '@/lib/api/authenticated-api';
 import { toast } from 'sonner';
 import { OnboardingPayload } from '@/types/user';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';
@@ -92,6 +92,11 @@ export default function OnboardingClient() {
             setIsSubmitting(true);
 
             const res = await updateOnboarding(payload);
+
+            if (res.status === 422) {
+                toast.error("Invalid. Please check your details and try again.");
+                return;
+            }
 
             if (!res.ok) {
                 toast.error("Failed to complete onboarding. Please try again.");

@@ -20,11 +20,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (!profile?.email) return "/auth/error?error=NoEmail";
 
             // Domain check
-            // const email = profile.email.toLowerCase();
+            const email = profile.email.toLowerCase();
 
-            // if (!email.endsWith('nitc.ac.in')) {
-            //     return "/auth/error?error=AccessDenied";
-            // }
+            if (!email.endsWith('nitc.ac.in')) {
+                return "/auth/error?error=AccessDenied";
+            }
 
             // ID must exist for secure backend verification
             if (!account?.id_token) {

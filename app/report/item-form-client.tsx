@@ -5,7 +5,7 @@ import { Combobox } from '@/components/ui/combo-box';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { CalendarIcon, Upload, X } from 'lucide-react';
+import { CalendarIcon, Loader2, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { postLostFoundItem } from '@/lib/api/client-invoked';
+import { postLostFoundItem } from '@/lib/api/authenticated-api';
 import { signIn } from "next-auth/react";
 import type { Session } from 'next-auth';
 import { ImageViewer } from '@/components/image-viewer';
@@ -64,12 +64,12 @@ const formSchema = z.object({
 
     image: z
         .instanceof(File, { message: "Image is required." })
-        .refine((file) => file.size <= 3 * 1024 * 1024, {
-            message: "Image must be under 3MB.",
+        .refine((file) => file.size <= 1 * 1024 * 1024, {
+            message: "Compressed image must be under 1MB. Please choose a smaller image.",
         })
         .refine(
-            (file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type),
-            { message: "Only JPG, PNG or WebP images are allowed." }
+            (file) => ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"].includes(file.type),
+            { message: "Only JPG, PNG, WebP, or HEIC images are allowed." }
         ),
 
     date: z.date({ message: "A date is required." }),
@@ -85,6 +85,7 @@ interface ItemFormClientProps {
 export function ItemFormClient({ session, type }: ItemFormClientProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
     const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -136,8 +137,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             const res = await postLostFoundItem(formData);
 
-            console.log(res);
-
             if (res.status === 401) {
                 router.push(`/auth/signin?callbackUrl=/report?type=${type}`);
                 return;
@@ -145,6 +144,11 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             if (res.status === 429) {
                 toast.error("You have reached your monthly limit for reporting items. Please try again later.");
+                return;
+            }
+
+            if (res.status === 400) {
+                toast.error("Image upload failed. The image may be too large or invalid. Please try a different image.");
                 return;
             }
 
@@ -163,19 +167,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
         finally {
             setIsSubmitting(false);
         }
-    }
-
-    if (!session?.user) {
-        return (
-            <div className="max-w-3xl mx-auto py-10 px-4">
-                <div className="text-center">
-                    <p className="mb-4">Please sign in to report items.</p>
-                    <Button onClick={() => signIn("google")}>
-                        Sign In with Google
-                    </Button>
-                </div>
-            </div>
-        );
     }
 
     return (
@@ -208,7 +199,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                             <FormItem className="col-span-1 md:col-span-2">
                                 <FormLabel>Title</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g. Blue Jansport Backpack" {...field} className="h-11" />
+                                    <Input placeholder="e.g. Blue Jansport Backpack" {...field} className="h-11" disabled={isSubmitting} />
                                 </FormControl>
                                 <FormDescription>
                                     A short, descriptive title for the item.
@@ -222,7 +213,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                         render={({ field }) => (
                             <FormItem className="col-span-1">
                                 <FormLabel>Category</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                                     <FormControl>
                                         <SelectTrigger className="h-11 w-full">
                                             <SelectValue placeholder="Select a category" />
@@ -246,7 +237,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                         render={({ field }) => (
                             <FormItem className="col-span-1">
                                 <FormLabel>Type</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                                     <FormControl>
                                         <SelectTrigger className="h-11 w-full">
                                             <SelectValue placeholder="Select type" />
@@ -268,7 +259,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                         render={({ field }) => (
                             <FormItem className="col-span-1">
                                 <FormLabel>Visibility</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                                     <FormControl>
                                         <SelectTrigger className="h-11 w-full">
                                             <SelectValue placeholder="Select visibility" />
@@ -296,6 +287,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                     <FormControl>
                                         <Combobox
                                             groups={groupedLocations}
+                                            disabled={isSubmitting}
                                             // Pass the form's value directly
                                             value={field.value}
                                             // Pass the form's updater directly to 'onChange'
@@ -313,11 +305,12 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                         render={({ field }) => (
                             <FormItem className="col-span-1 flex flex-col">
                                 <FormLabel>Date</FormLabel>
-                                <Popover>
+                                <Popover modal={true}>
                                     <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
                                                 variant="outline"
+                                                disabled={isSubmitting}
                                                 className={cn(
                                                     "w-full pl-3 text-left font-normal h-11",
                                                     !field.value && "text-muted-foreground"
@@ -355,6 +348,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                 <Textarea
                                     placeholder="Mention where it was found or its general appearance. Avoid sharing unique identifying details."
                                     className="resize-none min-h-[120px]"
+                                    disabled={isSubmitting}
                                     {...field} />
                             </FormControl>
 
@@ -374,14 +368,23 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                             <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/30 hover:bg-muted/50 transition-colors relative">
                                 {!preview ? (
                                     <>
-                                        <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                                        <p className="text-sm text-muted-foreground font-medium">Click to upload an image</p>
-                                        <p className="text-xs text-muted-foreground mt-1">JPG, PNG up to 5MB</p>
+                                        {isCompressing ? (
+                                            <Loader2 className="h-10 w-10 text-muted-foreground mb-2 animate-spin" />
+                                        ) : (
+                                            <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                                        )}
+                                        <p className="text-sm text-muted-foreground font-medium">
+                                            {isCompressing ? "Compressing image..." : "Click to upload an image"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {isCompressing ? "Please wait" : "JPG, PNG, WebP, HEIC (will be compressed to under 1MB)"}
+                                        </p>
 
                                         <Input
                                             type="file"
                                             accept="image/*"
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            disabled={isCompressing || isSubmitting}
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0] ?? null;
 
@@ -391,14 +394,23 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                     return;
                                                 }
 
-                                                if (file.size > 3 * 1024 * 1024) {
-                                                    alert("Image is larger than 3MB.");
+                                                if (file.size > 10 * 1024 * 1024) {
+                                                    toast.error("Original image must be under 10MB. Please choose a smaller image.");
+                                                    e.target.value = ""; // Reset file input
                                                     return;
                                                 }
 
+                                                setIsCompressing(true);
                                                 try {
-                                                    // Compress the image
+                                                    // Compress the image to under 1MB
                                                     const compressedFile = await compressImage(file);
+
+                                                    // Verify compressed size
+                                                    if (compressedFile.size > 1 * 1024 * 1024) {
+                                                        toast.error("Unable to compress image under 1MB. Please choose a smaller or simpler image.");
+                                                        e.target.value = "";
+                                                        return;
+                                                    }
 
                                                     field.onChange(compressedFile);
 
@@ -406,14 +418,14 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                     reader.onloadend = () => setPreview(reader.result as string);
                                                     reader.readAsDataURL(compressedFile);
                                                 } catch (error) {
-                                                    console.error('Image compression failed:', error);
-                                                    // Fallback to original file
-                                                    field.onChange(file);
-                                                    const reader = new FileReader();
-                                                    reader.onloadend = () => setPreview(reader.result as string);
-                                                    reader.readAsDataURL(file);
+                                                    console.error("Compression error:", error);
+                                                    toast.error("Failed to compress image. Please try a different image.");
+                                                    e.target.value = "";
+                                                } finally {
+                                                    setIsCompressing(false);
                                                 }
-                                            }} />
+                                            }}
+                                        />
                                     </>
                                 ) : (
                                     <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
@@ -424,19 +436,20 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                 fill
                                                 unoptimized
                                                 className="object-cover" />
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="icon"
-                                                className="absolute top-2 right-2 h-8 w-8 rounded-full cursor-pointer"
-                                                onClick={() => {
-                                                    setPreview(null);
-                                                    field.onChange(null);
-                                                }}
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
                                         </ImageViewer>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            disabled={isSubmitting}
+                                            className="absolute top-2 right-2 h-8 w-8 rounded-full cursor-pointer z-10"
+                                            onClick={() => {
+                                                setPreview(null);
+                                                field.onChange(null);
+                                            }}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                 )}
                             </div>
@@ -448,8 +461,9 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                     type="submit"
                     size="lg"
                     className="w-full h-12 text-lg cursor-pointer"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isCompressing}
                 >
+                    {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                     {isSubmitting ? "Reporting..." : "Report"}
                 </Button>
             </form>
