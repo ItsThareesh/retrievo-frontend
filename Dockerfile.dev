@@ -1,0 +1,17 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies in separate layer for caching
+# This layer only rebuilds when package files change
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy source code
+# In dev, this will be overridden by volume mount, but we copy anyway
+# so the image can run standalone if needed
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
