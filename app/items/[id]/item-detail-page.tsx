@@ -216,7 +216,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="shrink-0 hover:bg-muted transition-colors"
+                                                className="shrink-0 hover:bg-muted transition-colors cursor-pointer"
                                             >
                                                 <MoreHorizontal className="h-5 w-5" />
                                             </Button>
@@ -472,7 +472,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                 onClick={handleShare}
                                 variant="ghost"
                                 size="sm"
-                                className="w-full text-muted-foreground py-3"
+                                className="w-full text-muted-foreground py-3 cursor-pointer"
                             >
                                 <Share2 className="w-4 h-4 mr-2" />
                                 Share
@@ -480,7 +480,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="w-full text-muted-foreground hover:text-destructive py-3"
+                                className="w-full text-muted-foreground hover:text-destructive py-3 cursor-pointer"
                                 onClick={() => {
                                     const isAuthenticated =
                                         !!session?.user && Date.now() < (session?.expires_at ?? 0);
