@@ -1,6 +1,6 @@
 "use server"
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
 import { Item } from "@/types/item";
 

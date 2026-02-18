@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import OnboardingClient from './onboarding-client';
 import { SessionProvider } from 'next-auth/react';

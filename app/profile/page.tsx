@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { auth } from '@/lib/auth';
 import { ProfileClient } from '@/app/profile/profile-client';
 import { SessionProvider } from 'next-auth/react';
 import { redirect } from 'next/navigation';

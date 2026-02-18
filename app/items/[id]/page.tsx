@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Loading from "./loading";
 import { notFound } from "next/navigation";
 import { fetchItem } from "@/lib/api/server";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import ItemEditable from "./item-editable-client";
 
 export default async function ItemPage({ params }: { params: Promise<{ id: string; }>; }) {
