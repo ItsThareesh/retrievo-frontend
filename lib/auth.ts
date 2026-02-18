@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-import { internalFetchWithTimeout } from "./lib/api/helpers";
+import { internalFetchWithTimeout } from "./api/helpers";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [

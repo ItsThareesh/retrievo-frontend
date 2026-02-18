@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 
 // Custom Error for Unauthorized Access
 export class UnauthorizedError extends Error {

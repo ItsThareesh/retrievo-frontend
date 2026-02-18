@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { getResolutionStatus } from "@/lib/api/authenticated-api";
 import { notFound, redirect } from "next/navigation";
 import { ResolutionStatusContent } from "./resolution_content";
