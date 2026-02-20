@@ -2,6 +2,7 @@
 
 import { OnboardingPayload } from "@/types/user";
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
+import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 
 // POST: Lost or Found Item
 export async function postLostFoundItem(formData: FormData) {
@@ -39,6 +40,8 @@ export async function updateItem(itemId: string, data: Record<string, any>) {
             return { ok: false, status: res.status };
         }
 
+        updateTag(`item-${itemId}`); // Invalidate cache for this item
+
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
@@ -60,6 +63,8 @@ export async function deleteItem(itemId: string) {
             return { ok: false, status: res.status };
         }
 
+        updateTag(`item-${itemId}`); // Invalidate cache for this item
+
         return { ok: true };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
@@ -69,47 +74,49 @@ export async function deleteItem(itemId: string) {
     }
 }
 
-// // POST: Set User Hostel
-// export async function setHostel(hostel: string) {
-//     try {
-//         const res = await authFetch('/profile/set-hostel', {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({ hostel }),
-//         });
+/* 
+// POST: Set User Hostel
+export async function setHostel(hostel: string) {
+    try {
+        const res = await authFetch('/profile/set-hostel', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ hostel }),
+        });
 
-//         if (!res.ok) {
-//             console.error("setHostel failed:", res.status);
-//             return { ok: false, status: res.status };
-//         }
+        if (!res.ok) {
+            console.error("setHostel failed:", res.status);
+            return { ok: false, status: res.status };
+        }
 
-//         return { ok: true };
-//     } catch (err) {
-//         console.error("setHostel error:", err);
-//         return { ok: false, error: String(err) };
-//     }
-// }
+        return { ok: true };
+    } catch (err) {
+        console.error("setHostel error:", err);
+        return { ok: false, error: String(err) };
+    }
+}
 
-// // POST: Set User Phone Number
-// export async function setPhoneNumber(phone: string) {
-//     try {
-//         const res = await authFetch('/profile/set-phone', {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({ phone }),
-//         });
+// POST: Set User Phone Number
+export async function setPhoneNumber(phone: string) {
+    try {
+        const res = await authFetch('/profile/set-phone', {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone }),
+        });
 
-//         if (!res.ok) {
-//             console.error("setPhoneNumber failed:", res.status);
-//             return { ok: false, status: res.status };
-//         }
+        if (!res.ok) {
+            console.error("setPhoneNumber failed:", res.status);
+            return { ok: false, status: res.status };
+        }
 
-//         return { ok: true };
-//     } catch (err) {
-//         console.error("setPhoneNumber error:", err);
-//         return { ok: false, error: String(err) };
-//     }
-// }
+        return { ok: true };
+    } catch (err) {
+        console.error("setPhoneNumber error:", err);
+        return { ok: false, error: String(err) };
+    }
+}
+*/
 
 // POST: Create a resolution (claim) for a found item
 export async function createResolution(itemId: string, description: string) {
@@ -124,6 +131,8 @@ export async function createResolution(itemId: string, description: string) {
             console.error("createResolution failed:", res.status);
             return { ok: false, status: res.status };
         }
+
+        updateTag(`item-${itemId}`); // Invalidate cache for this item to reflect new claim
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
