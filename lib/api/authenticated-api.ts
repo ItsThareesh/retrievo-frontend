@@ -2,7 +2,8 @@
 
 import { OnboardingPayload } from "@/types/user";
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
-import { revalidatePath, revalidateTag, updateTag } from "next/cache";
+import { updateTag } from "next/cache";
+import { revalidateFeedByVisibility } from "../utils/revalidateFeed";
 
 // POST: Lost or Found Item
 export async function postLostFoundItem(formData: FormData) {
@@ -17,7 +18,10 @@ export async function postLostFoundItem(formData: FormData) {
             return { ok: false, status: res.status };
         }
 
-        return { ok: true, data: await safeJson(res) };
+        const result = await safeJson(res);
+        revalidateFeedByVisibility(result.visibility); // Revalidate the feed based on the item's visibility
+
+        return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
@@ -40,9 +44,19 @@ export async function updateItem(itemId: string, data: Record<string, any>) {
             return { ok: false, status: res.status };
         }
 
+        const result = await safeJson(res);
+
         updateTag(`item-${itemId}`); // Invalidate cache for this item
 
-        return { ok: true, data: await safeJson(res) };
+        // If visibility changed, we need to revalidate the relevant feeds
+        if (result.visibility_changed) {
+            revalidateFeedByVisibility(result.old_visibility);
+            revalidateFeedByVisibility(result.new_visibility);
+        } else {
+            revalidateFeedByVisibility(result.old_visibility);
+        }
+
+        return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
@@ -63,7 +77,11 @@ export async function deleteItem(itemId: string) {
             return { ok: false, status: res.status };
         }
 
+        const result = await safeJson(res);
+
         updateTag(`item-${itemId}`); // Invalidate cache for this item
+
+        revalidateFeedByVisibility(result.visibility); // Revalidate the feed based on the item's visibility
 
         return { ok: true };
     } catch (err) {

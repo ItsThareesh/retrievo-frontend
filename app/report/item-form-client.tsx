@@ -159,7 +159,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             toast.success("Item reported successfully!");
 
-            router.push(`/items/${res.data}`);
+            router.push(`/items/${res.data.item_id}`);
         } catch (error) {
             console.error(error);
             toast.error("Something went wrong. Please try again.");

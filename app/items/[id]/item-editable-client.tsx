@@ -27,7 +27,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";

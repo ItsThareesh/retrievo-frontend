@@ -1,75 +1,117 @@
 "use client"
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ItemCard } from '@/components/item-card';
 import { Search, Filter, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import useSWRInfinite from 'swr/infinite';
 import { getPaginatedItems } from '@/lib/api/swr-items';
-import { fetchData } from '@/lib/utils/swrHelper';
 import { formatDate } from '@/lib/date-formatting';
 import { ItemsGridSkeleton } from './items-loading-skeleton';
 import { useDebouncedValue } from '@/lib/hooks/useDebounce';
 
-export function ItemsGridClient() {
+// Build a query string for a given page index and current filter values.
+// Passed as explicit arguments so both the initial-load effect and the
+// loadMore callback always use whichever values are current at call time.
+function buildQueryString(
+    page: number,
+    search: string,
+    category: string,
+    type: string
+): string {
+    const params = new URLSearchParams({ page: page.toString(), limit: '12' });
+    if (search) params.set('search', search);
+    if (category !== 'all') params.set('category', category);
+    if (type !== 'all') params.set('item_type', type);
+    return params.toString();
+}
+
+export function ItemsGridClient({ segment }: { segment: "public" | "boys" | "girls" }) {
     const [searchInput, setSearchInput] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [activeTab, setActiveTab] = useState<'all' | 'found' | 'lost'>('all');
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    // Debounce search to reduce API calls
+    // Core feed state — items are stored already formatted so no downstream
+    // memoization is required.
+    const [allItems, setAllItems] = useState<ReturnType<typeof formatDate>[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(false);
+
+    // Refs prevent stale closures inside the IntersectionObserver callback
+    // without forcing the observer effect to re-run on every state update.
+    const nextPageRef = useRef(2);
+    const loadingMoreRef = useRef(false);
+    const hasMoreRef = useRef(false);
+
+    // Debounce search to reduce server action invocations
     const searchQuery = useDebouncedValue(searchInput, 400);
     const typeFilter = activeTab === 'all' ? 'all' : activeTab;
 
-    function getKey(pageIndex: number, previousPageData: any) {
-        if (previousPageData && !previousPageData.has_more) return null;
+    // Reload from page 1 whenever any filter changes.
+    // The Next.js Data Cache (revalidate: 120, tagged per segment) handles
+    // deduplication and freshness; no client cache is needed here.
+    useEffect(() => {
+        let cancelled = false;
 
-        const params = new URLSearchParams({
-            page: (pageIndex + 1).toString(),
-            limit: '12',
-        });
+        setIsLoading(true);
+        setAllItems([]);
+        setHasMore(false);
+        hasMoreRef.current = false;
+        nextPageRef.current = 2; // next incremental page after the first load
 
-        if (searchQuery) params.set('search', searchQuery);
-        if (categoryFilter !== 'all') params.set('category', categoryFilter);
-        if (typeFilter !== 'all') params.set('item_type', typeFilter);
+        getPaginatedItems(segment, buildQueryString(1, searchQuery, categoryFilter, typeFilter))
+            .then((result) => {
+                if (cancelled) return;
+                if (result.ok && result.data) {
+                    setAllItems(result.data.items.map(formatDate));
+                    setHasMore(result.data.has_more);
+                    hasMoreRef.current = result.data.has_more;
+                }
+                setIsLoading(false);
+            });
 
-        return params.toString();
-    }
+        return () => { cancelled = true; };
+    }, [searchQuery, categoryFilter, typeFilter, segment]);
 
-    const { data, size, setSize, isLoading, isValidating } = useSWRInfinite(
-        getKey,
-        async function (queryString) {
-            const result = await fetchData(() => getPaginatedItems(queryString));
-            return result;
-        },
-        {
-            revalidateAll: false,
+    // Load the next page and append its items to the existing list.
+    // Guards via refs ensure only one concurrent load at a time.
+    const loadMore = useCallback(async () => {
+        if (loadingMoreRef.current || !hasMoreRef.current) return;
+
+        loadingMoreRef.current = true;
+        setIsLoadingMore(true);
+
+        const page = nextPageRef.current;
+        const result = await getPaginatedItems(
+            segment,
+            buildQueryString(page, searchQuery, categoryFilter, typeFilter)
+        );
+
+        if (result.ok && result.data) {
+            setAllItems(prev => [...prev, ...result.data!.items.map(formatDate)]);
+            setHasMore(result.data.has_more);
+            hasMoreRef.current = result.data.has_more;
+            nextPageRef.current = page + 1;
         }
-    );
 
-    // Reset pagination when filters change
+        loadingMoreRef.current = false;
+        setIsLoadingMore(false);
+    }, [searchQuery, categoryFilter, typeFilter, segment]);
+
+    // Infinite scroll observer — reconnects whenever hasMore, isLoadingMore,
+    // or loadMore (filter set) changes.  When a filter change resets hasMore
+    // to false the observer is not attached, preventing spurious page loads.
     useEffect(() => {
-        setSize(1);
-    }, [searchQuery, categoryFilter, typeFilter, setSize]);
-
-    const allItems = useMemo(() => {
-        if (!data) return [];
-        return data.flatMap(page => page.items.map(formatDate));
-    }, [data]);
-
-    const hasMore = data?.[data.length - 1]?.has_more ?? false;
-
-    // Infinite scroll observer
-    useEffect(() => {
-        if (!loadMoreRef.current || !hasMore || isValidating) return;
+        if (!loadMoreRef.current || !hasMore || isLoadingMore) return;
 
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasMore && !isValidating) {
-                    setSize(size + 1);
+                if (entries[0].isIntersecting) {
+                    loadMore();
                 }
             },
             { rootMargin: '150px' }
@@ -77,7 +119,7 @@ export function ItemsGridClient() {
 
         observer.observe(loadMoreRef.current);
         return () => observer.disconnect();
-    }, [hasMore, isValidating, setSize, size]);
+    }, [hasMore, isLoadingMore, loadMore]);
 
     return (
         <>
