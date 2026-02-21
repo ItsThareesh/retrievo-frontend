@@ -4,19 +4,30 @@ import { auth } from "@/lib/auth";
 import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
 import { Item } from "@/types/item";
 
-// GET: Paginated Items (works with or without authentication)
-export async function getPaginatedItems(queryString: string = '') {
+// GET: Paginated Items (supports search, category, and type filters)
+// If 'search' is in query, bypass cache to ensure fresh results. Otherwise, cache for 2 minutes.
+export async function getPaginatedItems(
+    segment: "public" | "boys" | "girls",
+    queryString: string = ""
+) {
     try {
-        const session = await auth();
-        const token = session?.backendToken;
+        const hasSearch = queryString.includes("search=");
 
-        const url = queryString ? `/items/all?${queryString}` : '/items/all?page=1&limit=12';
+        const url = queryString
+            ? `/items/all?segment=${segment}&${queryString}`
+            : `/items/all?segment=${segment}&page=1&limit=12`;
 
-        const res = await publicFetch(url, {
-            headers: {
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            cache: 'no-store',
+        const res = await publicFetch(
+            url, {
+            ...(hasSearch
+                ? { cache: "no-store" }
+                : {
+                    next: {
+                        revalidate: 120,
+                        tags: [`items-${segment}`],
+                    },
+                }
+            )
         });
 
         if (!res.ok) {

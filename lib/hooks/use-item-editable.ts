@@ -33,10 +33,10 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
 
     const [formData, setFormData] = useState({
-        title: item.title ?? "",
-        location: item.location ?? "",
-        description: item.description ?? "",
-        category: item.category ?? "",
+        title: item.title,
+        location: item.location,
+        description: item.description,
+        category: item.category,
         visibility: item.visibility ?? "public",
         date: item.date ? new Date(item.date).toISOString().slice(0, 10) : "",
     });
@@ -78,7 +78,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
                 const oldDate = new Date(item.date).toISOString().slice(0, 10);
 
                 if (newDate !== oldDate) {
-                    updates.date = new Date(newValue).toISOString();
+                    updates['date'] = new Date(newValue).toISOString();
                     hasChanges = true;
                 }
 

@@ -1,7 +1,12 @@
+import { auth } from '@/lib/auth';
 import { ItemsGridClient } from './items-grid-client';
 
 
 export default async function BrowseItemsPage() {
+    const session = await auth();
+
+    const segment = session?.user?.hostel === "boys" ? "boys" : session?.user?.hostel === "girls" ? "girls" : "public";
+
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col gap-6 mb-8">
@@ -15,7 +20,7 @@ export default async function BrowseItemsPage() {
                 </div>
             </div>
 
-            <ItemsGridClient />
+            <ItemsGridClient segment={segment} />
         </div >
     );
 }
