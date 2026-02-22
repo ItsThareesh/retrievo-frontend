@@ -13,7 +13,7 @@ import useSWR from 'swr';
 import { fetchData } from '@/lib/utils/swrHelper';
 import { formatDate } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
-import { getUserItems } from '@/lib/api/swr-items';
+import { getUserItems } from '@/lib/api/items';
 import { UserProfileLoading } from './user-profile-loading';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';

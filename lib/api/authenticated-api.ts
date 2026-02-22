@@ -1,4 +1,4 @@
-"use server";
+"use server"
 
 import { OnboardingPayload } from "@/types/user";
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
@@ -48,11 +48,13 @@ export async function updateItem(itemId: string, data: Record<string, any>) {
 
         updateTag(`item-${itemId}`); // Invalidate cache for this item
 
-        // If visibility changed, we need to revalidate the relevant feeds
+        // If visibility changed, we need to revalidate all the relevant feeds
+        // If only display fields of item-card (title, date, location) are changed, then we only need to
+        // revalidate the feed of the old visibility to reflect changes on the next revalidation cycle
         if (result.visibility_changed) {
             revalidateFeedByVisibility(result.old_visibility);
             revalidateFeedByVisibility(result.new_visibility);
-        } else {
+        } else if (result.display_fields_changed) {
             revalidateFeedByVisibility(result.old_visibility);
         }
 
@@ -302,6 +304,7 @@ export async function rejectClaim(resolutionID: string, rejectionReason: string)
 }
 
 // POST: Complete a resolution
+// TODO: If the item is lost, and the owner completes the resolution, then the item would be hidden from the feed. We should revalidate the feed in that case to reflect the change immediately.
 export async function completeResolution(resolutionId: string) {
     try {
         const res = await authFetch(`/resolutions/${resolutionId}/complete`, {

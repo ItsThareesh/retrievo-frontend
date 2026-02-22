@@ -4,31 +4,42 @@ import { auth } from "@/lib/auth";
 import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
 import { Item } from "@/types/item";
 
+export interface PaginatedItemsData {
+    items: Item[];
+    page: number;
+    limit: number;
+    has_more: boolean;
+}
+
 // GET: Paginated Items (supports search, category, and type filters)
-// If 'search' is in query, bypass cache to ensure fresh results. Otherwise, cache for 2 minutes.
+//
+// Default feed pages (no search/category filters) are cached via the
+// native Next.js fetch cache with a 120s TTL, tagged per segment for
+// on-demand revalidation via revalidateTag("items-{segment}", "max").
+// ALL default pages are cached — not just page 1 — so infinite scroll
+// hits the cache for every page until the tag is invalidated.
+//
+// Search and filtered queries always bypass cache (cache: "no-store")
+// to guarantee fresh results.
 export async function getPaginatedItems(
     segment: "public" | "boys" | "girls",
-    queryString: string = ""
+    queryString: string = "",
 ) {
     try {
-        const hasSearch = queryString.includes("search=");
-
         const url = queryString
             ? `/items/all?segment=${segment}&${queryString}`
             : `/items/all?segment=${segment}&page=1&limit=12`;
 
+        const hasFilters =
+            queryString.includes("search=") ||
+            queryString.includes("category=");
+
         const res = await publicFetch(
-            url, {
-            ...(hasSearch
+            url,
+            hasFilters
                 ? { cache: "no-store" }
-                : {
-                    next: {
-                        revalidate: 120,
-                        tags: [`items-${segment}`],
-                    },
-                }
-            )
-        });
+                : { next: { revalidate: 120, tags: [`items-${segment}`] } },
+        );
 
         if (!res.ok) {
             console.error("getPaginatedItems failed:", res.status);
@@ -36,14 +47,18 @@ export async function getPaginatedItems(
         }
 
         const data = await safeJson(res);
+        if (!data) {
+            return { ok: false, status: 500 };
+        }
+
         return {
             ok: true,
             data: {
                 items: data.items as Item[],
                 page: data.page,
                 limit: data.limit,
-                has_more: data.has_more
-            }
+                has_more: data.has_more,
+            },
         };
     } catch (err) {
         console.error("getPaginatedItems error:", err);
@@ -54,7 +69,7 @@ export async function getPaginatedItems(
 // GET: All Items for Current User (requires authentication)
 export async function getUserItems() {
     try {
-        const res = await authFetch(`/profile/items`, { cache: 'no-store' });
+        const res = await authFetch("/profile/items", { cache: "no-store" });
 
         if (!res.ok) {
             console.error("getUserItems failed:", res.status);
@@ -71,8 +86,8 @@ export async function getUserItems() {
             ok: true,
             data: {
                 lost_items: data.lost_items as Item[],
-                found_items: data.found_items as Item[]
-            }
+                found_items: data.found_items as Item[],
+            },
         };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
@@ -88,12 +103,11 @@ export async function getUserProfile(public_id: string) {
         const session = await auth();
         const token = session?.backendToken;
 
-        const res = await publicFetch(
-            `/profile/${public_id}`, {
+        const res = await publicFetch(`/profile/${public_id}`, {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
-            cache: 'no-store',
+            cache: "no-store",
         });
 
         if (!res.ok) {
@@ -102,13 +116,14 @@ export async function getUserProfile(public_id: string) {
         }
 
         const data = await safeJson(res);
+
         return {
             ok: true,
             data: {
                 user: data.user,
                 lost_items: data.lost_items as Item[],
-                found_items: data.found_items as Item[]
-            }
+                found_items: data.found_items as Item[],
+            },
         };
     } catch (err) {
         console.error("getUserProfile error:", err);

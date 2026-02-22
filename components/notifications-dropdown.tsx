@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Bell, Check, Info, X, CheckCheck, Inbox, Loader2, AlertOctagon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -71,6 +71,20 @@ export function NotificationsDropdown() {
         }
     }
 
+    function RelativeTime({ createdAt }: { createdAt: string }) {
+        const [mounted, setMounted] = useState(false)
+
+        useEffect(() => {
+            setMounted(true)
+        }, [])
+
+        return (
+            <span className="text-[10px] text-muted-foreground shrink-0">
+                {mounted ? formatDistanceToNow(new Date(createdAt), { addSuffix: true }) : ""}
+            </span>
+        )
+    }
+
     const NotificationItem = ({ notification }: { notification: Notification }) => (
         <DropdownMenuItem
             className={cn(
@@ -101,9 +115,7 @@ export function NotificationsDropdown() {
                         {notification.title}
                     </p>
 
-                    <span className="text-[10px] text-muted-foreground shrink-0">
-                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                    </span>
+                    <RelativeTime createdAt={notification.created_at} />
                 </div>
 
                 <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
