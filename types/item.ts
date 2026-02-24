@@ -1,4 +1,7 @@
-import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
+import { LocationKey } from "@/lib/constants/locations";
+
+export type item_type = 'lost' | 'found';
+export type item_visibility = 'public' | 'boys' | 'girls';
 
 export interface Item {
     id: string;
@@ -10,6 +13,6 @@ export interface Item {
     date: string;
     location: LocationKey;
     image: string | null;
-    type: 'lost' | 'found';
-    visibility: 'public' | 'girls' | 'boys';
+    type: item_type;
+    visibility: item_visibility;
 }

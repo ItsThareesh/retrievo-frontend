@@ -14,11 +14,11 @@ import {
 import { Resolution, FinderContact, Viewer, AllowedAction } from "@/types/resolutions";
 import { Item } from "@/types/item";
 import {
-    approveClaim,
-    rejectClaim,
+    approveResolution,
+    rejectResolution,
     completeResolution,
     invalidateResolution,
-} from "@/lib/api/authenticated-api";
+} from "@/lib/api/resolutions";
 
 import { ActionButtons } from "./components/action-buttons";
 import { RejectionDialog } from "./components/rejection-dialog";
@@ -251,7 +251,7 @@ export function ResolutionStatusContent({
         try {
             const res =
                 action === "approve"
-                    ? await approveClaim(resolution.id)
+                    ? await approveResolution(resolution.id)
                     : action === "complete"
                         ? await completeResolution(resolution.id)
                         : await invalidateResolution(resolution.id);
@@ -274,7 +274,7 @@ export function ResolutionStatusContent({
 
         setLoading(true);
         try {
-            const res = await rejectClaim(resolution.id, reason);
+            const res = await rejectResolution(resolution.id, reason);
             if (!res.ok) throw new Error();
             router.refresh();
             setShowRejectDialog(false);
