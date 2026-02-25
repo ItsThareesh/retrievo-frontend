@@ -10,8 +10,7 @@ import {
     ModerateItemRequest,
 } from "@/types/admin";
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
-import { revalidateFeedByVisibility } from "../utils/revalidateFeed";
-import { updateTag } from "next/cache";
+import { onAdminItemModerationAction } from "../utils/cacheController";
 
 export async function getStats() {
     try {
@@ -153,8 +152,11 @@ export async function moderateItem(itemId: string, request: ModerateItemRequest)
 
         const result = await safeJson(res);
 
-        updateTag(`item-${itemId}`); // Invalidate cache for this item
-        revalidateFeedByVisibility(result.visibility); // Revalidate the feed based on the item's visibility
+        await onAdminItemModerationAction(
+            itemId,
+            result.invalidate.owner_public_id,
+            result.invalidate.visibility
+        )
 
         return { ok: true, data: result };
     } catch (err) {

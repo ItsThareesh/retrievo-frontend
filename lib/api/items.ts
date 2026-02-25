@@ -1,10 +1,35 @@
 "use server";
 
 import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
-import { updateTag } from "next/cache";
-import { revalidateFeedByVisibility } from "../utils/revalidateFeed";
+import { auth } from "@/lib/auth";
 import { Item } from "@/types/item";
-import { auth } from "../auth";
+import { onItemCreated, onItemDeleted, onItemUpdated } from "../utils/cacheController";
+
+// GET: Single Item by ID along with Reporter Info and Claim Status
+export async function fetchItem(itemId: string, token?: string) {
+    try {
+        const res = await publicFetch(
+            `/items/${itemId}`, {
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            next: {
+                revalidate: 120, // Cache for 120 seconds
+                tags: [`item-${itemId}`], // Tag for cache invalidation
+            }
+        });
+
+        if (!res.ok) {
+            console.error("fetchItem failed:", res.status);
+            return { ok: false, data: null, status: res.status };
+        }
+
+        return { ok: true, data: await safeJson(res) };
+    } catch (err) {
+        console.error("fetchItem error:", err);
+        return { ok: false, data: null, error: String(err) };
+    }
+}
 
 /** POST: Create a new Lost or Found Item */
 export async function postLostFoundItem(formData: FormData) {
@@ -20,7 +45,11 @@ export async function postLostFoundItem(formData: FormData) {
         }
 
         const result = await safeJson(res);
-        revalidateFeedByVisibility(result.visibility); // Revalidate the feed based on the item's visibility
+
+        const session = await auth();
+        const public_id = session!.user.public_id; // Must be authenticated to post, so session and public_id are guaranteed to exist
+
+        await onItemCreated(result.visibility, public_id); // Handle cache updates on item creation
 
         return { ok: true, data: result };
     } catch (err) {
@@ -47,17 +76,19 @@ export async function updateItem(itemId: string, data: Record<string, any>) {
 
         const result = await safeJson(res);
 
-        updateTag(`item-${itemId}`); // Invalidate cache for this item
+        const session = await auth();
+        const public_id = session!.user.public_id; // Must be authenticated to update, so session and public_id are guaranteed to exist
 
-        // If visibility changed, we need to revalidate all the relevant feeds
-        // If only display fields of item-card (title, date, location) are changed, then we only need to
-        // revalidate the feed of the old visibility to reflect changes on the next revalidation cycle
-        if (result.visibility_changed) {
-            revalidateFeedByVisibility(result.old_visibility);
-            revalidateFeedByVisibility(result.new_visibility);
-        } else if (result.display_fields_changed) {
-            revalidateFeedByVisibility(result.old_visibility);
-        }
+        await onItemUpdated(
+            itemId,
+            public_id,
+            {
+                visibility_changed: result.visibility_changed,
+                display_fields_changed: result.display_fields_changed,
+                old_visibility: result.old_visibility,
+                new_visibility: result.new_visibility
+            }
+        ); // Handle cache updates on item update based on what changed
 
         return { ok: true, data: result };
     } catch (err) {
@@ -82,9 +113,9 @@ export async function deleteItem(itemId: string) {
 
         const result = await safeJson(res);
 
-        updateTag(`item-${itemId}`); // Invalidate cache for this item
-
-        revalidateFeedByVisibility(result.visibility); // Revalidate the feed based on the item's visibility
+        const session = await auth();
+        const public_id = session!.user.public_id; // Must be authenticated to delete, so session and public_id are guaranteed to exist
+        await onItemDeleted(itemId, public_id, result.visibility); // Handle cache updates on item deletion
 
         return { ok: true };
     } catch (err) {
@@ -94,50 +125,6 @@ export async function deleteItem(itemId: string) {
         return { ok: false, error: String(err) };
     }
 }
-
-/* 
-// POST: Set User Hostel
-export async function setHostel(hostel: string) {
-    try {
-        const res = await authFetch('/profile/set-hostel', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ hostel }),
-        });
-
-        if (!res.ok) {
-            console.error("setHostel failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true };
-    } catch (err) {
-        console.error("setHostel error:", err);
-        return { ok: false, error: String(err) };
-    }
-}
-
-// POST: Set User Phone Number
-export async function setPhoneNumber(phone: string) {
-    try {
-        const res = await authFetch('/profile/set-phone', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone }),
-        });
-
-        if (!res.ok) {
-            console.error("setPhoneNumber failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true };
-    } catch (err) {
-        console.error("setPhoneNumber error:", err);
-        return { ok: false, error: String(err) };
-    }
-}
-*/
 
 /** POST: Report Item */
 export async function reportItem(itemId: string, reason: string) {
@@ -175,7 +162,7 @@ export interface PaginatedItemsData {
  * native Next.js fetch cache with a 120s TTL, tagged per segment for
  * on-demand revalidation via revalidateTag("items-{segment}", "max").
  * 
- * ALL default pages are cached so infinite scroll
+ * All default pages are cached so infinite scroll
  * hits the cache for every page until the tag is invalidated.
  * Search and filtered queries always bypass cache (cache: "no-store")
  * to guarantee fresh results.
@@ -197,7 +184,7 @@ export async function getPaginatedItems(
             url,
             hasFilters
                 ? { cache: "no-store" }
-                : { next: { revalidate: 120, tags: [`items-${segment}`] } },
+                : { next: { revalidate: 120, tags: [`feed-${segment}`] } },
         );
 
         if (!res.ok) {
@@ -221,71 +208,6 @@ export async function getPaginatedItems(
         };
     } catch (err) {
         console.error("getPaginatedItems error:", err);
-        return { ok: false, error: String(err) };
-    }
-}
-
-// GET: All Items for Current User (requires authentication)
-export async function getUserItems() {
-    try {
-        const res = await authFetch("/profile/items", { cache: "no-store" });
-
-        if (!res.ok) {
-            console.error("getUserItems failed:", res.status);
-            return {
-                ok: false,
-                data: { lost_items: [], found_items: [] },
-                status: res.status,
-            };
-        }
-
-        const data = await safeJson(res);
-
-        return {
-            ok: true,
-            data: {
-                lost_items: data.lost_items as Item[],
-                found_items: data.found_items as Item[],
-            },
-        };
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("getUserItems error:", err);
-        return { ok: false, error: String(err) };
-    }
-}
-
-// GET: User Profile (works with or without authentication)
-export async function getUserProfile(public_id: string) {
-    try {
-        const session = await auth();
-        const token = session?.backendToken;
-
-        const res = await publicFetch(`/profile/${public_id}`, {
-            headers: {
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            cache: "no-store",
-        });
-
-        if (!res.ok) {
-            console.error("getUserProfile failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        const data = await safeJson(res);
-
-        return {
-            ok: true,
-            data: {
-                user: data.user,
-                lost_items: data.lost_items as Item[],
-                found_items: data.found_items as Item[],
-            },
-        };
-    } catch (err) {
-        console.error("getUserProfile error:", err);
         return { ok: false, error: String(err) };
     }
 }

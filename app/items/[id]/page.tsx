@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Loading from "./loading";
 import { notFound } from "next/navigation";
-import { fetchItem } from "@/lib/api/server";
+import { fetchItem } from "@/lib/api/items";
 import { auth } from "@/lib/auth";
 import ItemDetailPage from "./item-detail-page";
 
