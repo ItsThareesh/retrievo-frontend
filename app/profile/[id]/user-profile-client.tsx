@@ -4,53 +4,23 @@ import { ItemCard } from '@/components/item-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatDate } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
 import { User } from '@/types/user';
-import useSWR from 'swr';
 import Image from 'next/image';
-import { getUserProfile } from '@/lib/api/items';
-import { fetchData } from '@/lib/utils/swrHelper';
 import { useMemo } from 'react';
-import { UserProfileLoading } from '../user-profile-loading';
-import { notFound } from 'next/navigation';
 
 interface UserProfileClientProps {
-    public_id: string;
+    user: User;
+    lostItems: Item[];
+    foundItems: Item[];
 }
 
-export function UserProfileClient({ public_id }: UserProfileClientProps) {
-    const { data, isLoading, error } = useSWR(['userProfile', public_id], () =>
-        fetchData(() => getUserProfile(public_id))
-    );
-
-    const lostItems: Item[] = useMemo(() => {
-        if (!data) return [];
-        return data.lost_items.map(formatDate);
-    }, [data]);
-
-    const foundItems: Item[] = useMemo(() => {
-        if (!data) return [];
-        return data.found_items.map(formatDate);
-    }, [data]);
-
+export function UserProfileClient({ user, lostItems, foundItems }: UserProfileClientProps) {
     const userItems: Item[] = useMemo(() => {
         const items = [...lostItems, ...foundItems];
         items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         return items;
     }, [lostItems, foundItems]);
-
-    // Show loading skeleton while fetching
-    if (isLoading) {
-        return <UserProfileLoading />;
-    }
-
-    // Show 404 if error or no data after loading
-    if (error || !data || !data.user) {
-        return notFound();
-    }
-
-    const user = data.user as User;
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">

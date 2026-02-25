@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import Loading from "./loading";
 import { notFound } from "next/navigation";
-import { fetchItem } from "@/lib/api/server";
+import { fetchItem } from "@/lib/api/items";
 import { auth } from "@/lib/auth";
-import ItemEditable from "./item-editable-client";
+import ItemDetailPage from "./item-detail-page";
 
 export default async function ItemPage({ params }: { params: Promise<{ id: string; }>; }) {
     const session = await auth();
@@ -21,7 +21,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
 
     return (
         <Suspense fallback={<Loading />}>
-            <ItemEditable item={item} reporter={reporter} resolution_status={claim_status} session={session} />
+            <ItemDetailPage item={item} reporter={reporter} resolution_status={claim_status} session={session} />
         </Suspense>
     );
 }

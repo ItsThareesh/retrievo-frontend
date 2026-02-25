@@ -1,8 +1,9 @@
 import { auth } from '@/lib/auth';
 import { ProfileClient } from '@/app/profile/profile-client';
-import { SessionProvider } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';
+import { getUserItems } from '@/lib/api/profile';
+import { formatDate } from '@/lib/date-formatting';
 
 export default async function ProfilePage() {
     const session = await auth();
@@ -20,9 +21,19 @@ export default async function ProfilePage() {
         redirect('/onboarding');
     }
 
+    // Fetch user items server-side — no caching (user-specific authenticated data)
+    const result = await getUserItems();
+    const items = result.ok && result.data ? result.data : { lost_items: [], found_items: [] };
+
     return (
-        <SessionProvider session={session}>
-            <ProfileClient />
-        </SessionProvider>
+        <ProfileClient
+            user={{
+                name: session.user.name,
+                email: session.user.email,
+                image: session.user.image,
+            }}
+            lostItems={items.lost_items.map(formatDate)}
+            foundItems={items.found_items.map(formatDate)}
+        />
     );
 }

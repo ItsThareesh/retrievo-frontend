@@ -1,3 +1,4 @@
+import { item_visibility } from "./item";
 import { ResolutionStatus, ResolutionType } from "./resolutions";
 
 export interface OverviewStats {
@@ -65,7 +66,7 @@ export interface UserDetail {
 export interface ReportedItemDetail {
     id: string;
     title: string;
-    visibility: "public" | "boys" | "girls";
+    visibility: item_visibility;
     owner_name: string;
     report_count: number;
     is_hidden: boolean;

@@ -132,16 +132,6 @@ When editing items, only changed fields are sent to the backend (diff-based PATC
 
 > `INTERNAL_BACKEND_URL` is used **only in server actions and NextAuth callbacks** — it is never sent to the browser.
 
-## Development Commands
-
-```bash
-npm run dev          # Start development server on http://localhost:3000
-npm run build        # Build for production
-npm start            # Start production server
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript type checking
-```
-
 ## Best Practices
 
 1. **Server-First Approach**: Prefer server components; use `"use client"` only when needed (interactivity, hooks)

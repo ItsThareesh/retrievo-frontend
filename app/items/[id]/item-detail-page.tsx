@@ -35,14 +35,14 @@ import { ResolutionStatus } from "@/types/resolutions";
 import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 
-interface ItemEditableProps {
+interface ItemDetailProps {
     item: Item;
     reporter: UserType;
     resolution_status: ResolutionStatus | "none";
     session: Session | null;
 }
 
-export default function ItemEditable({ item, reporter, resolution_status, session }: ItemEditableProps) {
+export default function ItemDetailPage({ item, reporter, resolution_status, session }: ItemDetailProps) {
     const router = useRouter();
 
     const {
