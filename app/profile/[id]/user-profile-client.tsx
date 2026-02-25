@@ -35,7 +35,6 @@ export function UserProfileClient({ user, lostItems, foundItems }: UserProfileCl
                                     alt=""
                                     aria-hidden="true"
                                     fill
-                                    unoptimized
                                     className="object-cover blur-3xl scale-125 opacity-50 saturate-300"
                                 />
                             </div>

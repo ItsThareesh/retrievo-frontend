@@ -138,7 +138,6 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                     src={item.image}
                                     alt={item.title}
                                     fill
-                                    unoptimized
                                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">

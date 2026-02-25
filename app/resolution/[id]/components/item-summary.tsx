@@ -26,7 +26,6 @@ export function ItemSummary({ item }: ItemSummaryProps) {
                                 src={item.image}
                                 alt={item.title}
                                 fill
-                                unoptimized
                                 className="object-cover"
                             />
                         ) : (

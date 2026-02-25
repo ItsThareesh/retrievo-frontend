@@ -434,7 +434,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                 src={preview}
                                                 alt="Preview"
                                                 fill
-                                                unoptimized
                                                 className="object-cover" />
                                         </ImageViewer>
                                         <Button
