@@ -96,7 +96,9 @@ export function NotificationsDropdown() {
                     markAsRead(notification.id);
                 }
 
-                if (notification.type != "system_notice" && notification.type != "warning_issued") {
+                if (notification.type === 'potential_match') {
+                    router.push('/items/' + notification.item_id);
+                } else if (notification.type !== "system_notice" && notification.type !== "warning_issued") {
                     router.push('/resolution/' + notification.resolution_id);
                 }
             }}

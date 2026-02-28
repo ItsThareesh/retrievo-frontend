@@ -18,6 +18,9 @@ export const LOCATION_MAP = {
     audi: { label: "Auditorium", category: "Central Campus" },
     mini_canteen: { label: "Mini Canteen", category: "Central Campus" },
     avenue_97: { label: "97th Avenue", category: "Central Campus" },
+    micro_canteen: { label: "Micro Canteen", category: "Central Campus" },
+    gym: { label: "Gym", category: "Central Campus" },
+    amul: { label: "Amul", category: "Central Campus" },
 
     ccc: { label: "CCC", category: "Labs & Complexes" },
     it_complex: { label: "IT Complex", category: "Labs & Complexes" },

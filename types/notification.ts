@@ -1,5 +1,5 @@
 export type NotificationType = 'resolution_created' | 'return_initiated' | 'resolution_completed' |
-    'resolution_approved' | 'resolution_rejected' | 'resolution_invalidated' | 'system_notice' | 'warning_issued';
+    'resolution_approved' | 'resolution_rejected' | 'resolution_invalidated' | 'system_notice' | 'warning_issued' | 'potential_match';
 
 export interface Notification {
     id: string;
