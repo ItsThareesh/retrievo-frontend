@@ -34,6 +34,7 @@ import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
 import { ResolutionStatus } from "@/types/resolutions";
 import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
+import { formatDateString } from "@/lib/date-formatting";
 
 interface ItemDetailProps {
     item: Item;
@@ -257,13 +258,13 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                             )}
                         </div>
 
-                        {/* Metadata row: Posted date, Category, Visibility */}
+                        {/* Metadata row: Reported date, Category, Visibility */}
                         <div className={cn(
                             "flex flex-wrap items-center gap-2 text-muted-foreground mb-6 p-2 -ml-2 rounded-lg transition-colors",
                             isEditing && "bg-muted/30"
                         )}>
                             <span className="text-sm">
-                                Posted on {new Date(item.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")}
+                                Posted on {formatDateString(formData.date)}
                             </span>
                             <span>•</span>
 
@@ -370,7 +371,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                         <Input
                                             type="date"
                                             value={formData.date}
-                                            min={new Date("2000-01-01").toISOString().slice(0, 10)}
+                                            min={new Date("2025-11-24").toISOString().slice(0, 10)}
                                             max={new Date().toISOString().slice(0, 10)}
                                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                                             className="text-sm mt-1"
@@ -378,7 +379,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                         />
                                     ) : (
                                         <p className="text-muted-foreground text-sm">
-                                            {new Date(formData.date).toLocaleDateString("en-GB").replace(/\//g, "-")}
+                                            {formatDateString(formData.date)}
                                         </p>
                                     )}
                                 </div>

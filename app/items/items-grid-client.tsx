@@ -14,7 +14,7 @@ import { ItemCard } from "@/components/item-card";
 import { Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getPaginatedItems, PaginatedItemsData } from "@/lib/api/items";
-import { formatDate } from "@/lib/date-formatting";
+import { standardizeItemDate } from "@/lib/date-formatting";
 import { ItemsGridSkeleton, ItemsLoadMoreSkeleton } from "./items-loading-skeleton";
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 
@@ -98,7 +98,7 @@ export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) 
             if (gen !== generationRef.current) return;
 
             if (result.ok && result.data) {
-                setAllItems(result.data.items.map(formatDate));
+                setAllItems(result.data.items.map(standardizeItemDate));
                 setHasMore(result.data.has_more);
                 hasMoreRef.current = result.data.has_more;
             }
@@ -130,7 +130,7 @@ export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) 
         }
 
         if (result.ok && result.data) {
-            setAllItems((prev) => [...prev, ...result.data!.items.map(formatDate)]);
+            setAllItems((prev) => [...prev, ...result.data!.items.map(standardizeItemDate)]);
             setHasMore(result.data.has_more);
             hasMoreRef.current = result.data.has_more;
             nextPageRef.current = page + 1;

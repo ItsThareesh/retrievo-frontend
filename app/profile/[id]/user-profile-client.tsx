@@ -4,6 +4,7 @@ import { ItemCard } from '@/components/item-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { formatDateString } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
 import { User } from '@/types/user';
 import Image from 'next/image';
@@ -54,7 +55,7 @@ export function UserProfileClient({ user, lostItems, foundItems }: UserProfileCl
                                 <p className="text-sm text-muted-foreground">{user.email}</p>
                                 <CardContent className="space-y-2 m-2 pb-4">
                                     <p className="text-sm text-muted-foreground">
-                                        Member since {new Date(user.created_at).toLocaleDateString()}
+                                        Member since {formatDateString(user.created_at)}
                                     </p>
                                 </CardContent>
                             </CardHeader>

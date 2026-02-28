@@ -39,7 +39,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         description: item.description,
         category: item.category,
         visibility: item.visibility ?? "public",
-        date: item.date ? new Date(item.date).toISOString().slice(0, 10) : "",
+        date: item.date ?? "",
     });
 
     const isLoggedIn = !!session;
@@ -75,11 +75,13 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             if (key === "date") {
                 if (!newValue) continue;
 
-                const newDate = new Date(newValue).toISOString().slice(0, 10);
-                const oldDate = new Date(item.date).toISOString().slice(0, 10);
+                const newDate = newValue;
+                const oldDate = item.date;
+
+                console.log(newDate, oldDate);
 
                 if (newDate !== oldDate) {
-                    updates['date'] = new Date(newValue).toISOString();
+                    updates['date'] = newDate; // "YYYY-MM-DD"
                     hasChanges = true;
                 }
 
@@ -99,6 +101,8 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             setIsSaving(false);
             return;
         }
+
+        console.log(updates);
 
         const res = await updateItem(item.id, updates);
 

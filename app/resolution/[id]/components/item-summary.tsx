@@ -57,7 +57,7 @@ export function ItemSummary({ item }: ItemSummaryProps) {
                                 Found On
                             </p>
                             <p className="text-sm font-medium">
-                                {new Date(item.date).toLocaleDateString("en-GB").replace(/\//g, "-")}
+                                {item.date}
                             </p>
                         </div>
                     </div>

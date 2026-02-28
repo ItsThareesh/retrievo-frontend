@@ -3,7 +3,7 @@ import { ProfileClient } from '@/app/profile/profile-client';
 import { redirect } from 'next/navigation';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';
 import { getUserItems } from '@/lib/api/profile';
-import { formatDate } from '@/lib/date-formatting';
+import { standardizeItemDate } from '@/lib/date-formatting';
 
 export default async function ProfilePage() {
     const session = await auth();
@@ -32,8 +32,8 @@ export default async function ProfilePage() {
                 email: session.user.email,
                 image: session.user.image,
             }}
-            lostItems={items.lost_items.map(formatDate)}
-            foundItems={items.found_items.map(formatDate)}
+            lostItems={items.lost_items.map(standardizeItemDate)}
+            foundItems={items.found_items.map(standardizeItemDate)}
         />
     );
 }

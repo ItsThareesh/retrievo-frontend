@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { getUserProfile } from '@/lib/api/profile';
-import { formatDate } from '@/lib/date-formatting';
+import { standardizeItemDate } from '@/lib/date-formatting';
 import { UserProfileClient } from './user-profile-client';
 import { notFound } from 'next/navigation';
 
@@ -23,8 +23,8 @@ export default async function UserPage({ params }: { params: Promise<{ id: strin
     return (
         <UserProfileClient
             user={user}
-            lostItems={lost_items.map(formatDate)}
-            foundItems={found_items.map(formatDate)}
+            lostItems={lost_items.map(standardizeItemDate)}
+            foundItems={found_items.map(standardizeItemDate)}
         />
     );
 }

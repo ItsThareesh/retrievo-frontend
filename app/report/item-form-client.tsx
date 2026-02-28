@@ -129,7 +129,11 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             Object.entries(values).forEach(([key, val]) => {
                 if (val instanceof Date) {
-                    formData.append(key, val.toISOString());
+                    // Send as YYYY-MM-DD date string (backend expects date, not datetime)
+                    const year = val.getFullYear();
+                    const month = String(val.getMonth() + 1).padStart(2, '0');
+                    const day = String(val.getDate()).padStart(2, '0');
+                    formData.append(key, `${year}-${month}-${day}`);
                 } else {
                     formData.append(key, val as any);
                 }

@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { ItemsGridClient } from './items-grid-client';
 import { getPaginatedItems } from '@/lib/api/items';
-import { formatDate } from '@/lib/date-formatting';
+import { standardizeItemDate } from '@/lib/date-formatting';
 
 
 export default async function BrowseItemsPage() {
@@ -14,7 +14,7 @@ export default async function BrowseItemsPage() {
     // Passed to the client component for instant render — no loading skeleton on first paint.
     const initialResult = await getPaginatedItems(segment, "page=1&limit=12");
     const initialData = initialResult.ok && initialResult.data
-        ? { ...initialResult.data, items: initialResult.data.items.map(formatDate) }
+        ? { ...initialResult.data, items: initialResult.data.items.map(standardizeItemDate) }
         : null;
 
     return (
