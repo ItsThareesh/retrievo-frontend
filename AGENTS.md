@@ -113,7 +113,7 @@ Regular server-side module (not `"use server"`). Functions here are only callabl
 | `invalidateResolution(resolutionId)` | `POST /resolutions/{id}/invalidate` | No cache |
 | `reportItem(itemId, reason)` | `POST /items/{id}/report` | No cache |
 | `updateOnboarding(payload)` | `POST /profile/complete-onboarding` | No cache |
-| `getNotifications()` | `GET /notifications/all` | `revalidate: 120s` (server-side) |
+| `getNotifications()` | `GET /notifications/all` | `cache: "no-store"` — caching delegated entirely to SWR `dedupingInterval: 300s`; Next.js data cache must not be used here because it cannot be invalidated after client-side mark-as-read mutations |
 | `getNotificationsCount()` | `GET /notifications/count` | No cache |
 | `readNotification(id)` | `POST /notifications/{id}/mark-read` | No cache |
 | `readAllNotifications()` | `POST /notifications/mark-all-read` | No cache |
@@ -158,14 +158,16 @@ Regular server-side module (not `"use server"`). Functions here are only callabl
 
 ### SWR Client Cache (Notifications)
 
-Managed in `lib/hooks/use-notifications.ts`. Two independent SWR keys:
+Managed in `lib/hooks/use-notifications.ts`. Two SWR keys:
 
 | SWR Key | Fetcher Source | Config |
 |---|---|---|
 | `"notifications/all"` | `getNotifications()` server action | `dedupingInterval: 300_000` (5 min), `revalidateOnFocus: false`, `keepPreviousData: true` |
-| `"notifications/count"` | `getNotificationsCount()` server action | `dedupingInterval: 5000`, `revalidateOnFocus: false` |
+| `"notifications/count"` | `getNotificationsCount()` server action | `dedupingInterval: 5000`, `revalidateOnFocus: false` — **read-only; never mutated by write ops** |
 
-**Unread count resolution**: If full notifications data is loaded, unread count is computed locally from the list (`filter(!is_read).length`). The lightweight count endpoint is only used as a fallback before the full list is fetched.
+**Unread count resolution**: Derived from `"notifications/all"` once loaded (`filter(!is_read).length`). The `"notifications/count"` key is used only as a lightweight fallback badge before the first full fetch completes.
+
+**Mutation pattern**: All write operations (`markAsRead`, `markAllAsRead`) use `mutateNotifications` with `{ optimisticData, rollbackOnError: true, revalidate: false }`. The async function passed to `mutate` calls the server action and throws on failure; SWR atomically handles rollback. The `"notifications/count"` key is **never touched by mutations** — `unreadCount` is always re-derived from the list, eliminating dual-key sync races.
 
 ### Filter Bypass
 

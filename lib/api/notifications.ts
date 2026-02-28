@@ -28,7 +28,7 @@ export async function getNotifications() {
     try {
         const res = await authFetch(
             '/notifications/all',
-            { next: { revalidate: 120 } } // Cache for 2 minutes
+            { cache: "no-store" } // SWR dedupingInterval (300s) owns caching; Next.js data cache is not invalidatable after client-side mutations
         );
 
         if (!res.ok) {

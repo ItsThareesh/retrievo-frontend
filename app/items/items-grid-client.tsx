@@ -11,11 +11,11 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { ItemCard } from "@/components/item-card";
-import { Search, Filter, Loader2 } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getPaginatedItems, PaginatedItemsData } from "@/lib/api/items";
 import { formatDate } from "@/lib/date-formatting";
-import { ItemsGridSkeleton } from "./items-loading-skeleton";
+import { ItemsGridSkeleton, ItemsLoadMoreSkeleton } from "./items-loading-skeleton";
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 
 /** Build a query string for the given page and current filter values. */
@@ -230,19 +230,12 @@ export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) 
                                 ))}
                             </div>
 
-                            {/* Infinite scroll sentinel */}
-                            {hasMore && (
-                                <div
-                                    ref={loadMoreRef}
-                                    className="flex justify-center py-8 animate-in fade-in-0 duration-300"
-                                >
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                                        <span className="text-xs text-muted-foreground animate-pulse">
-                                            Loading more...
-                                        </span>
-                                    </div>
-                                </div>
+                            {/* Infinite scroll: skeleton cards while fetching */}
+                            {isLoadingMore && <ItemsLoadMoreSkeleton />}
+
+                            {/* Invisible sentinel triggers the observer */}
+                            {hasMore && !isLoadingMore && (
+                                <div ref={loadMoreRef} className="h-4" />
                             )}
                         </>
                     ) : (
