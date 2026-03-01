@@ -19,11 +19,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         async signIn({ account, profile }) {
             if (!profile?.email) return "/auth/error?error=NoEmail";
 
-            // Domain check
-            const email = profile.email.toLowerCase();
+            // Enforce domain restriction in production environment
+            if (process.env.APP_ENV === "production") {
+                const email = profile.email.toLowerCase();
 
-            if (!email.endsWith('nitc.ac.in')) {
-                return "/auth/error?error=AccessDenied";
+                if (!email.endsWith('nitc.ac.in')) {
+                    return "/auth/error?error=AccessDenied";
+                }
             }
 
             // ID must exist for secure backend verification
