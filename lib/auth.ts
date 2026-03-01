@@ -23,7 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (process.env.APP_ENV === "production") {
                 const email = profile.email.toLowerCase();
 
-                if (!email.endsWith('nitc.ac.in')) {
+                if (!email.endsWith('@nitc.ac.in')) {
                     return "/auth/error?error=AccessDenied";
                 }
             }
@@ -92,6 +92,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             image: userData.image,
                             hostel: userData.hostel || null,
                             phone: userData.phone || null,
+                            instagramId: userData.instagram_id || null,
                             role: userData.role
                         };
                     }
@@ -120,6 +121,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 image: userData.image,
                                 hostel: userData.hostel || null,
                                 phone: userData.phone || null,
+                                instagramId: userData.instagram_id || null,
                                 role: userData.role
                             };
                         } else {
@@ -207,6 +209,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     image: string;
                     hostel: "boys" | "girls" | null;
                     phone: string | null;
+                    instagramId: string | null;
                     role: "user" | "admin";
                 };
 
@@ -218,6 +221,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     image: userData.image,
                     hostel: userData.hostel,
                     phone: userData.phone,
+                    instagramId: userData.instagramId,
                     role: userData.role
                 };
 

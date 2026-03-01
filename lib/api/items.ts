@@ -13,10 +13,12 @@ export async function fetchItem(itemId: string, token?: string) {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
-            next: {
-                revalidate: 120, // Cache for 120 seconds
-                tags: [`item-${itemId}`], // Tag for cache invalidation
-            }
+            // Authenticated requests must bypass the cache
+            // Only unauthenticated requests share the tagged cache entry.
+            ...(token
+                ? { cache: "no-store" }
+                : { next: { revalidate: 120, tags: [`item-${itemId}`] } }
+            ),
         });
 
         if (!res.ok) {

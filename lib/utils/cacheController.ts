@@ -187,7 +187,7 @@ export async function onAdminUserModerationAction(
 
     // For ban/unban: items are hidden/restored — use update strategy to prevent dead links / phantom items.
     // "public" visibility segment covers all three feed tags (public, boys, girls).
-    invalidateFeedCache("public", "revalidate");
+    invalidateFeedCache("public", "update");
     invalidateProfileCache(public_id, "public", "update");
 
     // Invalidate individual item detail caches for each affected item.
