@@ -11,8 +11,6 @@ import { useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Item } from '@/types/item';
-import { getUserItems } from '@/lib/api/swr-items';
-import { UserProfileLoading } from './user-profile-loading';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 
@@ -21,6 +19,9 @@ interface ProfileClientProps {
         name: string;
         email: string;
         image: string;
+        phone?: string;
+        hostel?: string;
+        instagramId?: string;
     };
     lostItems: Item[];
     foundItems: Item[];
@@ -91,20 +92,20 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <Phone className="mr-3 h-4 w-4 shrink-0" />
                                         <p className='mr-5 '>Phone: </p>
-                                        <span>{session?.user.phone || "No phone linked"}</span>
+                                        <span>{user.phone || "No phone linked"}</span>
                                     </div>
 
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <House className="mr-3 h-4 w-4 shrink-0" />
                                         <p className='mr-5'>Hostel: </p>
-                                        <span>{session?.user.hostel || "No hostel set"}</span>
+                                        <span>{user.hostel || "No hostel set"}</span>
                                     </div>
 
                                     {/*Only show if it exists */}
-                                    {session?.user.instagramId && (
+                                    {user.instagramId && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <Instagram className="mr-3 h-4 w-4 shrink-0" />
-                                            <span>{session?.user.instagramId}</span>
+                                            <span>{user.instagramId}</span>
                                         </div>
                                     )}
                                     <hr className='my-2'/>
