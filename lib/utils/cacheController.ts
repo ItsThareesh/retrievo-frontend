@@ -118,7 +118,7 @@ export async function onItemDeleted(
 */
 export async function onResolutionIntermediateStateChanged(itemId: string) {
     // Only the detail page needs updating — the item is still active in the feed.
-    // Resolution state (pending -> approved etc.) is not surfaced on feed cards.
+    // Resolution state is not surfaced on feed.
     invalidateItemCache(itemId);
 
     // No need to update the feed/profile page since they don't indicate resolution state.

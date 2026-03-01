@@ -11,7 +11,7 @@ declare module "next-auth" {
             name: string;
             image: string;
             hostel: "boys" | "girls" | null;
-            phone: string | null;
+            phone?: string | null;
             instagramId?: string | null;
             role: "user" | "admin";
         } & DefaultSession["user"];
@@ -33,7 +33,7 @@ declare module "next-auth/jwt" {
             name: string;
             image: string;
             hostel: "boys" | "girls" | null;
-            phone: string | null;
+            phone?: string | null;
             instagramId?: string | null;
             role: "user" | "admin";
         };
