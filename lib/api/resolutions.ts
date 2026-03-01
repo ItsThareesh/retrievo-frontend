@@ -1,7 +1,8 @@
 "use server";
 
-import { updateTag } from "next/cache";
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
+import { onResolutionCompleted, onResolutionIntermediateStateChanged, onResolutionInvalidated } from "../utils/cacheController";
+import { item_visibility, item_type } from "@/types/item";
 
 /** POST: Create a resolution (claim) for a found item */
 export async function createResolution(itemId: string, description: string) {
@@ -17,7 +18,7 @@ export async function createResolution(itemId: string, description: string) {
             return { ok: false, status: res.status };
         }
 
-        updateTag(`item-${itemId}`); // Invalidate cache for this item to reflect new claim
+        onResolutionIntermediateStateChanged(itemId);
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
@@ -46,9 +47,8 @@ export async function getResolutionStatus(resolutionId: string) {
     }
 }
 
-// POST: Approve a resolution
-// TODO: Resolution status will be updated in the backend, so revalidate the cache to reflect changes
-export async function approveResolution(claimId: string) {
+/** POST: Approve a resolution */
+export async function approveResolution(claimId: string, itemId: string) {
     try {
         const res = await authFetch(`/resolutions/${claimId}/approve`, {
             method: "POST",
@@ -60,6 +60,8 @@ export async function approveResolution(claimId: string) {
             return { ok: false, status: res.status };
         }
 
+        await onResolutionIntermediateStateChanged(itemId); // Revalidate the cache since the resolution state has changed (pending -> approved)
+
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
@@ -70,8 +72,7 @@ export async function approveResolution(claimId: string) {
 }
 
 /** POST: Reject a resolution with a reason */
-// TODO: Resolution status will be updated in the backend, so revalidate the cache to reflect changes
-export async function rejectResolution(resolutionID: string, rejectionReason: string) {
+export async function rejectResolution(resolutionID: string, rejectionReason: string, itemId: string) {
     try {
         const res = await authFetch(`/resolutions/${resolutionID}/reject`, {
             method: "POST",
@@ -84,6 +85,8 @@ export async function rejectResolution(resolutionID: string, rejectionReason: st
             return { ok: false, status: res.status };
         }
 
+        await onResolutionIntermediateStateChanged(itemId); // Revalidate the cache since the resolution state has changed (pending -> rejected)
+
         return { ok: true };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
@@ -94,8 +97,12 @@ export async function rejectResolution(resolutionID: string, rejectionReason: st
 }
 
 /** POST: Complete a resolution */
-// TODO: Resolution status will be updated in the backend, so revalidate the cache to reflect changes
-export async function completeResolution(resolutionId: string) {
+export async function completeResolution(
+    resolutionId: string,
+    itemId: string,
+    item_type: item_type,
+    visibility: item_visibility,
+) {
     try {
         const res = await authFetch(`/resolutions/${resolutionId}/complete`, {
             method: "POST",
@@ -107,7 +114,16 @@ export async function completeResolution(resolutionId: string) {
             return { ok: false, status: res.status };
         }
 
-        return { ok: true, data: await safeJson(res) };
+        const result = await safeJson(res);
+
+        await onResolutionCompleted(
+            itemId,
+            result.owner_public_id,
+            item_type,
+            visibility
+        ); // Revalidate the cache since the resolution is now completed
+
+        return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
@@ -117,8 +133,7 @@ export async function completeResolution(resolutionId: string) {
 }
 
 /** POST: Invalidate a resolution */
-// TODO: Resolution status will be updated in the backend, so revalidate the cache to reflect changes
-export async function invalidateResolution(resolutionId: string) {
+export async function invalidateResolution(resolutionId: string, itemId: string) {
     try {
         const res = await authFetch(`/resolutions/${resolutionId}/invalidate`, {
             method: "POST",
@@ -129,6 +144,8 @@ export async function invalidateResolution(resolutionId: string) {
             console.error("invalidateResolution failed:", res.status);
             return { ok: false, status: res.status };
         }
+
+        await onResolutionInvalidated(itemId); // Revalidate the cache since the resolution is now invalidated
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
