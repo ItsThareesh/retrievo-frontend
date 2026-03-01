@@ -166,3 +166,30 @@ export async function onAdminItemModerationAction(
     invalidateFeedCache(visibility, "update");
     invalidateProfileCache(public_id, visibility, "update");
 }
+
+/**
+ * Call when Admin moderates a user (warn, temp_ban, unban).
+ * - warn: no cache changes needed since no visibility or item state changes occur.
+ * - temp_ban/unban: correctness-critical — items are hidden/restored, so feeds, profile pages,
+ *   and item detail pages must reflect the change immediately.
+ *   User can have items in any visibility segment; using "public" covers all three (public, boys, girls).
+*/
+export async function onAdminUserModerationAction(
+    public_id: string,
+    action: "warn" | "temp_ban" | "perm_ban" | "unban",
+    item_ids: string[] = []
+) {
+    if (action === "warn") {
+        // Do nothing since warning doesn't change anything.
+        // Only notifications are triggered but those are handled separately and don't require cache invalidation.
+        return;
+    }
+
+    // For ban/unban: items are hidden/restored — use update strategy to prevent dead links / phantom items.
+    // "public" visibility segment covers all three feed tags (public, boys, girls).
+    invalidateFeedCache("public", "revalidate");
+    invalidateProfileCache(public_id, "public", "update");
+
+    // Invalidate individual item detail caches for each affected item.
+    item_ids.forEach((id) => invalidateItemCache(id));
+}
