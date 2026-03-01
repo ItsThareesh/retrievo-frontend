@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { auth } from '@/lib/auth';
 import { ItemFormClient } from './item-form-client';
 import { redirect } from 'next/navigation';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';

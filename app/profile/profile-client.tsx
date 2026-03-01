@@ -4,41 +4,31 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ItemCard } from '@/components/item-card';
-import { signOut, useSession } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import Image from 'next/image';
 import { useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import useSWR from 'swr';
-import { fetchData } from '@/lib/utils/swrHelper';
-import { formatDate } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
-import { getUserItems } from '@/lib/api/swr-items';
-import { UserProfileLoading } from './user-profile-loading';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 
-export function ProfileClient() {
-    const { data: session } = useSession();
+interface ProfileClientProps {
+    user: {
+        name: string;
+        email: string;
+        image: string;
+    };
+    lostItems: Item[];
+    foundItems: Item[];
+}
 
+export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProps) {
     const toastShownRef = useRef(false); // To prevent multiple toasts
 
     const params = useSearchParams();
     const reason = params.get("reason");
-
-    // Fetch user items with SWR
-    const { data: itemsData, isLoading } = useSWR('userItems', () => fetchData(() => getUserItems()));
-
-    const lostItems: Item[] = useMemo(() => {
-        if (!itemsData) return [];
-        return itemsData.lost_items.map(formatDate);
-    }, [itemsData]);
-
-    const foundItems: Item[] = useMemo(() => {
-        if (!itemsData) return [];
-        return itemsData.found_items.map(formatDate);
-    }, [itemsData]);
 
     useEffect(() => {
         if (reason === "hostel_required" && !toastShownRef.current) {
@@ -54,23 +44,13 @@ export function ProfileClient() {
         }
     }, [reason]);
 
-    if (isLoading) {
-        return UserProfileLoading();
-    }
-
-    const formattedLost = lostItems.map(item => ({
-        ...item,
-        type: 'lost' as const
-    }));
-
-    const formattedFound = foundItems.map(item => ({
-        ...item,
-        type: 'found' as const
-    }));
-
-    const userItems = [...formattedLost, ...formattedFound].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    const userItems = useMemo(() => {
+        const formattedLost = lostItems.map(item => ({ ...item, type: 'lost' as const }));
+        const formattedFound = foundItems.map(item => ({ ...item, type: 'found' as const }));
+        return [...formattedLost, ...formattedFound].sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+    }, [lostItems, foundItems]);
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
@@ -81,11 +61,10 @@ export function ProfileClient() {
                         <Card className="overflow-hidden border-muted shadow-sm">
                             <div className="relative h-24 w-full overflow-hidden bg-muted/20">
                                 <Image
-                                    src={session?.user.image || ""}
+                                    src={user.image || ""}
                                     alt=""
                                     aria-hidden="true"
                                     fill
-                                    unoptimized
                                     className="object-cover blur-3xl scale-125 opacity-50 saturate-300"
                                 />
                             </div>
@@ -93,16 +72,16 @@ export function ProfileClient() {
                                 <div className="mx-auto mb-4 p-1 bg-background rounded-full w-fit">
                                     <Avatar className="w-24 h-24 border-2 border-background">
                                         <AvatarImage
-                                            src={session?.user.image}
-                                            alt={session?.user.name}
+                                            src={user.image}
+                                            alt={user.name}
                                         />
                                         <AvatarFallback>
-                                            {session?.user.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                                            {user.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <CardTitle className="text-xl">{session?.user.name}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{session?.user.email}</p>
+                                <CardTitle className="text-xl">{user.name}</CardTitle>
+                                <p className="text-sm text-muted-foreground">{user.email}</p>
                             </CardHeader>
                             <CardContent className="space-y-2 p-4">
                                 <ThemeToggle />

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Bell, Check, Info, X, CheckCheck, Inbox, Loader2, AlertOctagon } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Bell, Check, Info, X, CheckCheck, Inbox, Loader2, AlertOctagon, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -26,6 +26,7 @@ export function NotificationsDropdown() {
         notifications,
         unreadCount,
         isLoading,
+        isError,
         loadNotifications,
         markAsRead,
         markAllAsRead,
@@ -45,6 +46,8 @@ export function NotificationsDropdown() {
         if (res.ok) {
             toast.success("All notifications marked as read");
             setIsOpen(false);
+        } else {
+            toast.error("Failed to mark notifications as read. Please try again.");
         }
     };
 
@@ -71,6 +74,20 @@ export function NotificationsDropdown() {
         }
     }
 
+    function RelativeTime({ createdAt }: { createdAt: string }) {
+        const [mounted, setMounted] = useState(false)
+
+        useEffect(() => {
+            setMounted(true)
+        }, [])
+
+        return (
+            <span className="text-[10px] text-muted-foreground shrink-0">
+                {mounted ? formatDistanceToNow(new Date(createdAt), { addSuffix: true }) : ""}
+            </span>
+        )
+    }
+
     const NotificationItem = ({ notification }: { notification: Notification }) => (
         <DropdownMenuItem
             className={cn(
@@ -82,7 +99,9 @@ export function NotificationsDropdown() {
                     markAsRead(notification.id);
                 }
 
-                if (notification.type != "system_notice" && notification.type != "warning_issued") {
+                if (notification.type === 'potential_match') {
+                    router.push('/items/' + notification.item_id);
+                } else if (notification.type !== "system_notice" && notification.type !== "warning_issued") {
                     router.push('/resolution/' + notification.resolution_id);
                 }
             }}
@@ -101,9 +120,7 @@ export function NotificationsDropdown() {
                         {notification.title}
                     </p>
 
-                    <span className="text-[10px] text-muted-foreground shrink-0">
-                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                    </span>
+                    <RelativeTime createdAt={notification.created_at} />
                 </div>
 
                 <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
@@ -126,6 +143,23 @@ export function NotificationsDropdown() {
             <p className="text-sm font-medium text-muted-foreground">
                 {message}
             </p>
+        </div>
+    )
+
+    const ErrorState = () => (
+        <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-2">
+            <div className="bg-destructive/10 p-3 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-destructive/70" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">
+                Could not load notifications
+            </p>
+            <button
+                className="text-xs text-primary underline-offset-2 hover:underline"
+                onClick={() => loadNotifications()}
+            >
+                Try again
+            </button>
         </div>
     )
 
@@ -193,6 +227,8 @@ export function NotificationsDropdown() {
                         <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto px-2 py-1 custom-scrollbar">
                             {isLoading ? (
                                 <LoadingState />
+                            ) : isError ? (
+                                <ErrorState />
                             ) : notifications.length === 0 ? (
                                 <EmptyState message="No notifications yet" />
                             ) : (
@@ -207,6 +243,8 @@ export function NotificationsDropdown() {
                         <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto px-2 py-1 custom-scrollbar">
                             {isLoading ? (
                                 <LoadingState />
+                            ) : isError ? (
+                                <ErrorState />
                             ) : notifications.filter((n) => !n.is_read).length === 0 ? (
                                 <EmptyState message="No unread notifications" />
                             ) : (

@@ -23,7 +23,6 @@ export function ItemCard({ item, type }: ItemCardProps) {
               src={item.image}
               alt={item.title}
               fill
-              unoptimized
               className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
           )}

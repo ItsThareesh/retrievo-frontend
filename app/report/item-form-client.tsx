@@ -32,7 +32,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { postLostFoundItem } from '@/lib/api/authenticated-api';
+import { postLostFoundItem } from '@/lib/api/items';
 import { signIn } from "next-auth/react";
 import type { Session } from 'next-auth';
 import { ImageViewer } from '@/components/image-viewer';
@@ -129,7 +129,11 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             Object.entries(values).forEach(([key, val]) => {
                 if (val instanceof Date) {
-                    formData.append(key, val.toISOString());
+                    // Send as YYYY-MM-DD date string (backend expects date, not datetime)
+                    const year = val.getFullYear();
+                    const month = String(val.getMonth() + 1).padStart(2, '0');
+                    const day = String(val.getDate()).padStart(2, '0');
+                    formData.append(key, `${year}-${month}-${day}`);
                 } else {
                     formData.append(key, val as any);
                 }
@@ -159,7 +163,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             toast.success("Item reported successfully!");
 
-            router.push(`/items/${res.data}`);
+            router.push(`/items/${res.data.item_id}`);
         } catch (error) {
             console.error(error);
             toast.error("Something went wrong. Please try again.");
@@ -434,7 +438,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                 src={preview}
                                                 alt="Preview"
                                                 fill
-                                                unoptimized
                                                 className="object-cover" />
                                         </ImageViewer>
                                         <Button

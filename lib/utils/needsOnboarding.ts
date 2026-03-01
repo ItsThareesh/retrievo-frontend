@@ -1,9 +1,9 @@
 import { Session } from "next-auth";
 
-// User needs onboarding if hostel is missing OR both phone and Instagram are missing.
+// If NOT (has hostel AND has contact) -> onboarding required.
 export function needsOnboarding(session: Session) {
-    return (
-        !session.user.hostel ||
-        (!session.user.phone && !session.user.instagramId)
-    );
+    const hasHostel = !!session.user.hostel;
+    const hasContact = !!session.user.phone || !!session.user.instagramId;
+
+    return !(hasHostel && hasContact);
 }

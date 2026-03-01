@@ -1,3 +1,4 @@
+import { item_visibility } from "./item";
 import { ResolutionStatus, ResolutionType } from "./resolutions";
 
 export interface OverviewStats {
@@ -65,7 +66,7 @@ export interface UserDetail {
 export interface ReportedItemDetail {
     id: string;
     title: string;
-    visibility: string;
+    visibility: item_visibility;
     owner_name: string;
     report_count: number;
     is_hidden: boolean;
@@ -80,26 +81,6 @@ export interface ReportDetail {
     reason: string;
     created_at: string;
     status: string;
-}
-
-export interface InsightData {
-    most_reported_items: Array<{
-        item_id: string;
-        title: string;
-        report_count: number;
-    }>;
-    most_reported_users: Array<{
-        user_id: string;
-        name: string;
-        report_count: number;
-    }>;
-    claim_success_rate: number;
-    avg_claim_resolution_time_hours: number | null;
-    items_by_category: Array<{
-        category: string;
-        count: number;
-    }>;
-    claims_by_status: Record<string, number>;
 }
 
 export interface ModerateUserRequest {

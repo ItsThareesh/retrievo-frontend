@@ -1,4 +1,4 @@
-"use server"
+"use server";
 
 import {
     OverviewStats,
@@ -10,6 +10,7 @@ import {
     ModerateItemRequest,
 } from "@/types/admin";
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
+import { onAdminItemModerationAction } from "../utils/cacheController";
 
 export async function getStats() {
     try {
@@ -136,12 +137,12 @@ export async function getReportedItems(limit = 50, skip = 0) {
     }
 }
 
-export async function moderateItem(itemId: string, action: ModerateItemRequest) {
+export async function moderateItem(itemId: string, request: ModerateItemRequest) {
     try {
         const res = await authFetch(`/admin/items/${itemId}/moderate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(action),
+            body: JSON.stringify(request),
         });
 
         if (!res.ok) {
@@ -149,7 +150,15 @@ export async function moderateItem(itemId: string, action: ModerateItemRequest) 
             return { ok: false, status: res.status };
         }
 
-        return { ok: true, data: await safeJson(res) };
+        const result = await safeJson(res);
+
+        await onAdminItemModerationAction(
+            itemId,
+            result.invalidate.owner_public_id,
+            result.invalidate.visibility
+        )
+
+        return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 

@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import { User as UserType } from "@/types/user";
-import { updateItem, createResolution, deleteItem, reportItem } from "@/lib/api/authenticated-api";
+import { updateItem, deleteItem, reportItem } from "@/lib/api/items";
+import { createResolution } from "@/lib/api/resolutions";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
 import { ResolutionStatus } from "@/types/resolutions";
@@ -33,12 +34,12 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
 
     const [formData, setFormData] = useState({
-        title: item.title ?? "",
-        location: item.location ?? "",
-        description: item.description ?? "",
-        category: item.category ?? "",
+        title: item.title,
+        location: item.location,
+        description: item.description,
+        category: item.category,
         visibility: item.visibility ?? "public",
-        date: item.date ? new Date(item.date).toISOString().slice(0, 10) : "",
+        date: item.date ?? "",
     });
 
     const isLoggedIn = !!session;
@@ -74,11 +75,13 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             if (key === "date") {
                 if (!newValue) continue;
 
-                const newDate = new Date(newValue).toISOString().slice(0, 10);
-                const oldDate = new Date(item.date).toISOString().slice(0, 10);
+                const newDate = newValue;
+                const oldDate = item.date;
+
+                console.log(newDate, oldDate);
 
                 if (newDate !== oldDate) {
-                    updates.date = new Date(newValue).toISOString();
+                    updates['date'] = newDate; // "YYYY-MM-DD"
                     hasChanges = true;
                 }
 
@@ -98,6 +101,8 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             setIsSaving(false);
             return;
         }
+
+        console.log(updates);
 
         const res = await updateItem(item.id, updates);
 

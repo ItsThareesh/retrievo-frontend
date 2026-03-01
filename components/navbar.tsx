@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle } from 'lucide-react';
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { LoginButton } from './login-button';
 import { NotificationsDropdown } from './notifications-dropdown';
 

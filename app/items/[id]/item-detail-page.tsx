@@ -27,22 +27,23 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
 import { ResolutionStatus } from "@/types/resolutions";
 import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
+import { formatDateString } from "@/lib/date-formatting";
 
-interface ItemEditableProps {
+interface ItemDetailProps {
     item: Item;
     reporter: UserType;
     resolution_status: ResolutionStatus | "none";
     session: Session | null;
 }
 
-export default function ItemEditable({ item, reporter, resolution_status, session }: ItemEditableProps) {
+export default function ItemDetailPage({ item, reporter, resolution_status, session }: ItemDetailProps) {
     const router = useRouter();
 
     const {
@@ -138,7 +139,6 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                     src={item.image}
                                     alt={item.title}
                                     fill
-                                    unoptimized
                                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
@@ -258,13 +258,13 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                             )}
                         </div>
 
-                        {/* Metadata row: Posted date, Category, Visibility */}
+                        {/* Metadata row: Reported date, Category, Visibility */}
                         <div className={cn(
                             "flex flex-wrap items-center gap-2 text-muted-foreground mb-6 p-2 -ml-2 rounded-lg transition-colors",
                             isEditing && "bg-muted/30"
                         )}>
                             <span className="text-sm">
-                                Posted on {new Date(item.created_at).toLocaleDateString("en-GB").replace(/\//g, "-")}
+                                Posted on {formatDateString(formData.date)}
                             </span>
                             <span>•</span>
 
@@ -371,7 +371,7 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                         <Input
                                             type="date"
                                             value={formData.date}
-                                            min={new Date("2000-01-01").toISOString().slice(0, 10)}
+                                            min={new Date("2025-11-24").toISOString().slice(0, 10)}
                                             max={new Date().toISOString().slice(0, 10)}
                                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                                             className="text-sm mt-1"
@@ -379,7 +379,7 @@ export default function ItemEditable({ item, reporter, resolution_status, sessio
                                         />
                                     ) : (
                                         <p className="text-muted-foreground text-sm">
-                                            {new Date(formData.date).toLocaleDateString("en-GB").replace(/\//g, "-")}
+                                            {formatDateString(formData.date)}
                                         </p>
                                     )}
                                 </div>
