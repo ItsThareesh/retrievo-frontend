@@ -7,10 +7,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy source code
-# In dev, this will be overridden by volume mount, but we copy anyway
-# so the image can run standalone if needed
-COPY . .
+# In dev, this will be overridden by volume mount
+# So COPY . . isn't needed here
 
 EXPOSE 3000
 
