@@ -6,7 +6,7 @@ export type item_visibility = 'public' | 'boys' | 'girls';
 export interface Item {
     id: string;
     created_at: string;
-    user_id: string;
+    poster_id: string;
     title: string;
     description: string;
     category: string;
