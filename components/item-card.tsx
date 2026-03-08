@@ -37,8 +37,8 @@ export function ItemCard({ item, type }: ItemCardProps) {
           </Badge>
         </div>
 
-        <CardHeader className="p-5 pb-0 space-y-1">
-          <h3 className="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+        <CardHeader className="p-5 pb-0 space-y-0">
+          <h3 className="font-bold text-lg line-clamp-3 group-hover:text-primary transition-colors">
             {item.title}
           </h3>
           {/* <Badge variant="secondary" className="w-fit font-normal text-xs">
@@ -46,12 +46,12 @@ export function ItemCard({ item, type }: ItemCardProps) {
           </Badge> */}
         </CardHeader>
 
-        <CardContent className="p-5 pt-2 flex-1">
+        <CardContent className="p-5 pt-1 flex-1">
           {/* <p className="text-sm text-muted-foreground line-clamp-2 mb-4 h-10 leading-relaxed">
             {item.description}
           </p> */}
 
-          <div className="flex flex-col gap-2 text-xs text-muted-foreground border-t pt-3">
+          <div className="flex flex-col gap-2 text-xs text-muted-foreground pt-2 border-t">
             <div className="flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5 text-primary/70" />
               <span>{item.date}</span>
