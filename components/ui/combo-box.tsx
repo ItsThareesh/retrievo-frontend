@@ -38,7 +38,7 @@ export function Combobox({ groups = [], value, onChange }: any) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between py-0"
+          className="w-full justify-between py-0 cursor-pointer"
         >
           {selectedLabel}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

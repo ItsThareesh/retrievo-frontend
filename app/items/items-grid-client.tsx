@@ -214,7 +214,7 @@ export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) 
                         <ItemsGridSkeleton />
                     ) : allItems.length > 0 ? (
                         <>
-                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6 gap-1 px-0">
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6 gap-2 px-0">
                                 {allItems.map((item, index) => (
                                     <div
                                         key={item.id}
