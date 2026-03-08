@@ -251,10 +251,10 @@ export function ResolutionStatusContent({
         try {
             const res =
                 action === "approve"
-                    ? await approveResolution(resolution.id)
+                    ? await approveResolution(resolution.id, item.id)
                     : action === "complete"
-                        ? await completeResolution(resolution.id)
-                        : await invalidateResolution(resolution.id);
+                        ? await completeResolution(resolution.id, item.id)
+                        : await invalidateResolution(resolution.id, item.id);
 
             if (!res?.ok) throw new Error();
             router.refresh();
@@ -274,7 +274,7 @@ export function ResolutionStatusContent({
 
         setLoading(true);
         try {
-            const res = await rejectResolution(resolution.id, reason);
+            const res = await rejectResolution(resolution.id, reason, item.id);
             if (!res.ok) throw new Error();
             router.refresh();
             setShowRejectDialog(false);
