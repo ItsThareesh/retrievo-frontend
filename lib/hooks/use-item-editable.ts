@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import { User as UserType } from "@/types/user";
 import { updateItem, deleteItem, reportItem } from "@/lib/api/items";
-import { createResolution } from "@/lib/api/resolutions";
+import { createResolution, getLinkableItems } from "@/lib/api/resolutions";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
-import { ResolutionStatus } from "@/types/resolutions";
+import { ResolutionStatus, LinkableItem } from "@/types/resolutions";
 
 interface UseItemEditableProps {
     item: Item;
@@ -30,6 +30,9 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const [isClaiming, setIsClaiming] = useState(false);
     const [claimText, setClaimText] = useState("");
     const [isSubmittingResolution, setIsSubmittingResolution] = useState(false);
+    const [linkedItemId, setLinkedItemId] = useState<string | null>(null);
+    const [linkableItems, setLinkableItems] = useState<LinkableItem[]>([]);
+    const [isLoadingLinkableItems, setIsLoadingLinkableItems] = useState(false);
 
     const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
 
@@ -53,6 +56,29 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
 
     const canClaim = isLoggedIn && isFoundItem && !isReporter && !hasResolution;
     const canReturn = isLoggedIn && isLostItem && !isReporter && !hasResolution;
+
+    // Fetch linkable items when claim dialog opens
+    const fetchLinkableItems = useCallback(async () => {
+        setIsLoadingLinkableItems(true);
+        try {
+            const items = await getLinkableItems(item.id);
+            setLinkableItems(items);
+        } catch {
+            setLinkableItems([]);
+        } finally {
+            setIsLoadingLinkableItems(false);
+        }
+    }, [item.id]);
+
+    useEffect(() => {
+        if (isClaiming) {
+            fetchLinkableItems();
+        } else {
+            // Reset state when dialog closes
+            setLinkedItemId(null);
+            setLinkableItems([]);
+        }
+    }, [isClaiming, fetchLinkableItems]);
 
     async function handleSave() {
         setIsSaving(true);
@@ -143,10 +169,13 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     }
 
     function validateResolutionInput(text: string): string | null {
+        // If a linked item is selected, description is optional
+        if (linkedItemId) return null;
+
         const len = text.trim().length;
 
-        if (len < 20) return "Claim description must be at least 20 characters long.";
-        if (len > 280) return "Claim description must be at most 280 characters long.";
+        if (len < 20) return "Description must be at least 20 characters long.";
+        if (len > 280) return "Description must be at most 280 characters long.";
 
         return null;
     }
@@ -161,7 +190,22 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         setIsSubmittingResolution(true);
 
         try {
-            const res = await createResolution(item.id, claimText);
+            // Determine lost_item_id and found_item_id based on the item type
+            let lostItemId: string | null = null;
+            let foundItemId: string | null = null;
+
+            if (item.type === "found") {
+                // Claiming a found item: anchor is found, counterpart (if linked) is lost
+                foundItemId = item.id;
+                lostItemId = linkedItemId;
+            } else {
+                // Returning a lost item: anchor is lost, counterpart (if linked) is found
+                lostItemId = item.id;
+                foundItemId = linkedItemId;
+            }
+
+            const description = claimText.trim() || null;
+            const res = await createResolution(lostItemId, foundItemId, description);
 
             if (!res.ok) {
                 if (res.status === 409) {
@@ -184,6 +228,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             // Shared cleanup
             setIsClaiming(false);
             setClaimText("");
+            setLinkedItemId(null);
         } catch {
             toast.error("Failed to submit request. Please try again.");
         } finally {
@@ -255,6 +300,10 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         setIsClaiming,
         claimText,
         setClaimText,
+        linkedItemId,
+        setLinkedItemId,
+        linkableItems,
+        isLoadingLinkableItems,
 
         isSubmittingResolution,
         resolutionStatus,

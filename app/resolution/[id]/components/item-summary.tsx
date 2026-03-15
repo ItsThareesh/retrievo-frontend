@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import { EyeOff } from "lucide-react";
 import { LOCATION_MAP } from "@/lib/constants/locations";
+import { formatDateString } from "@/lib/date-formatting";
 
 interface ItemSummaryProps {
     item: Item | null;
@@ -57,7 +58,7 @@ export function ItemSummary({ item }: ItemSummaryProps) {
                                 Found On
                             </p>
                             <p className="text-sm font-medium">
-                                {item.date}
+                                {formatDateString(item.date)}
                             </p>
                         </div>
                     </div>

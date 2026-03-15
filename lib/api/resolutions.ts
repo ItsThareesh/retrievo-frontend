@@ -3,14 +3,24 @@
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
 import { onResolutionCompleted, onResolutionIntermediateStateChanged, onResolutionInvalidated } from "../utils/cacheController";
 import { item_visibility, item_type } from "@/types/item";
+import { LinkableItem } from "@/types/resolutions";
 
-/** POST: Create a resolution (claim) for a found item */
-export async function createResolution(itemId: string, description: string) {
+/** POST: Create a resolution (claim/return) */
+export async function createResolution(
+    lostItemId: string | null,
+    foundItemId: string | null,
+    description: string | null,
+) {
     try {
+        const body: Record<string, string> = {};
+        if (lostItemId) body.lost_item_id = lostItemId;
+        if (foundItemId) body.found_item_id = foundItemId;
+        if (description) body.description = description;
+
         const res = await authFetch('/resolutions/create', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ item_id: itemId, description: description }),
+            body: JSON.stringify(body),
         });
 
         if (!res.ok) {
@@ -18,7 +28,9 @@ export async function createResolution(itemId: string, description: string) {
             return { ok: false, status: res.status };
         }
 
-        onResolutionIntermediateStateChanged(itemId);
+        // Revalidate the cache since a new resolution is now pending against the found item and/or lost item
+        if (foundItemId) await onResolutionIntermediateStateChanged(foundItemId);
+        if (lostItemId) await onResolutionIntermediateStateChanged(lostItemId);
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
@@ -26,6 +38,25 @@ export async function createResolution(itemId: string, description: string) {
 
         console.error("createResolution error:", err);
         return { ok: false, error: String(err) };
+    }
+}
+
+/** GET: Fetch linkable items for the counterpart radio buttons */
+export async function getLinkableItems(itemId: string): Promise<LinkableItem[]> {
+    try {
+        const res = await authFetch(`/resolutions/linkable-items?item_id=${encodeURIComponent(itemId)}`);
+
+        if (!res.ok) {
+            console.error("getLinkableItems failed:", res.status);
+            return [];
+        }
+
+        return await safeJson(res);
+    } catch (err) {
+        if (err instanceof UnauthorizedError) throw err;
+
+        console.error("getLinkableItems error:", err);
+        return [];
     }
 }
 
@@ -60,9 +91,17 @@ export async function approveResolution(claimId: string, itemId: string) {
             return { ok: false, status: res.status };
         }
 
-        await onResolutionIntermediateStateChanged(itemId); // Revalidate the cache since the resolution state has changed (pending -> approved)
+        const result = await safeJson(res);
 
-        return { ok: true, data: await safeJson(res) };
+        // Revalidate the cache since the resolution state has changed (pending -> approved)
+        if (result.found_item_id) {
+            await onResolutionIntermediateStateChanged(result.found_item_id);
+        }
+        if (result.lost_item_id) {
+            await onResolutionIntermediateStateChanged(result.lost_item_id);
+        }
+
+        return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
@@ -85,7 +124,15 @@ export async function rejectResolution(resolutionID: string, rejectionReason: st
             return { ok: false, status: res.status };
         }
 
-        await onResolutionIntermediateStateChanged(itemId); // Revalidate the cache since the resolution state has changed (pending -> rejected)
+        const result = await safeJson(res);
+
+        // Revalidate the cache since the resolution state has changed (pending -> rejected)
+        if (result.found_item_id) {
+            await onResolutionIntermediateStateChanged(result.found_item_id);
+        }
+        if (result.lost_item_id) {
+            await onResolutionIntermediateStateChanged(result.lost_item_id);
+        }
 
         return { ok: true };
     } catch (err) {
@@ -97,12 +144,7 @@ export async function rejectResolution(resolutionID: string, rejectionReason: st
 }
 
 /** POST: Complete a resolution */
-export async function completeResolution(
-    resolutionId: string,
-    itemId: string,
-    item_type: item_type,
-    visibility: item_visibility,
-) {
+export async function completeResolution(resolutionId: string) {
     try {
         const res = await authFetch(`/resolutions/${resolutionId}/complete`, {
             method: "POST",
@@ -116,12 +158,24 @@ export async function completeResolution(
 
         const result = await safeJson(res);
 
-        await onResolutionCompleted(
-            itemId,
-            result.owner_public_id,
-            item_type,
-            visibility
-        ); // Revalidate the cache since the resolution is now completed
+        if (result.lost_item_id) {
+            onResolutionCompleted(
+                result.lost_item_id,
+                result.owner_public_id,
+                "lost",
+                result.lost_item_visibility,
+            )
+        }
+
+        if (result.found_item_id) {
+            // Revalidate the cache since the resolution state has changed (approved -> completed)
+            onResolutionCompleted(
+                result.found_item_id,
+                result.finder_public_id,
+                "found",
+                result.found_item_visibility,
+            )
+        }
 
         return { ok: true, data: result };
     } catch (err) {
@@ -145,9 +199,17 @@ export async function invalidateResolution(resolutionId: string, itemId: string)
             return { ok: false, status: res.status };
         }
 
-        await onResolutionInvalidated(itemId); // Revalidate the cache since the resolution is now invalidated
+        const result = await safeJson(res);
 
-        return { ok: true, data: await safeJson(res) };
+        // Revalidate the cache since the resolution is now invalidated
+        if (result.lost_item_id) {
+            onResolutionInvalidated(result.lost_item_id);
+        }
+        if (result.found_item_id) {
+            onResolutionInvalidated(result.found_item_id);
+        }
+
+        return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
