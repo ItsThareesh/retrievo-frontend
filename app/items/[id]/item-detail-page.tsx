@@ -62,6 +62,10 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
         setIsClaiming,
         claimText,
         setClaimText,
+        linkedItemId,
+        setLinkedItemId,
+        linkableItems,
+        isLoadingLinkableItems,
 
         isSubmittingResolution,
         resolutionStatus,
@@ -515,6 +519,10 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                 setText={setClaimText}
                 isSubmitting={isSubmittingResolution}
                 onSubmit={() => handleResolutionSubmit(item)}
+                linkableItems={linkableItems}
+                isLoadingLinkableItems={isLoadingLinkableItems}
+                linkedItemId={linkedItemId}
+                setLinkedItemId={setLinkedItemId}
             />
 
             <ReportDialog

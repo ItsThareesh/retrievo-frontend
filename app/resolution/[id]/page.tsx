@@ -55,6 +55,7 @@ export default async function ClaimStatusPage({ params }: { params: Promise<{ id
             finderContact={res.data.finder_contact}
             viewer={res.data.viewer}
             allowedActions={res.data.allowed_actions}
+            linkedItem={res.data.linked_item ?? null}
         />
     );
 }
