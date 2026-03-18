@@ -241,7 +241,7 @@ export function ResolutionStatusContent({
 
     const theme = THEMES[config.theme as ThemeKey];
 
-    const handleAction = async (action: AllowedAction) => {
+    async function handleAction(action: AllowedAction) {
         if (action === "reject") {
             setShowRejectDialog(true);
             return;
@@ -249,23 +249,27 @@ export function ResolutionStatusContent({
 
         setLoading(true);
         try {
-            const res =
-                action === "approve"
-                    ? await approveResolution(resolution.id, item.id)
-                    : action === "complete"
-                        ? await completeResolution(resolution.id, item.id)
-                        : await invalidateResolution(resolution.id, item.id);
+            const res = action === "approve"
+                ? await approveResolution(resolution.id, item.id)
+                : action === "complete"
+                    ? await completeResolution(
+                        resolution.id,
+                        item.id,
+                        item.type,
+                        item.visibility
+                    )
+                    : await invalidateResolution(resolution.id, item.id);
 
             if (!res?.ok) throw new Error();
             router.refresh();
-        } catch {
+        } catch (err) {
             toast.error("Action failed. Please try again.");
         } finally {
             setLoading(false);
         }
-    };
+    }
 
-    const handleReject = async () => {
+    async function handleReject() {
         const reason = rejectionReason.trim();
         if (reason.length < 20 || reason.length > 280) {
             toast.error("Rejection reason must be 20-280 characters");
@@ -279,12 +283,12 @@ export function ResolutionStatusContent({
             router.refresh();
             setShowRejectDialog(false);
             setRejectionReason("");
-        } catch {
+        } catch (err) {
             toast.error("Failed to reject claim.");
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     return (
         <div className="min-h-screen py-8 px-4">
