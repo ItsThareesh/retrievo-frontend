@@ -176,7 +176,7 @@ export function NotificationsDropdown() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative rounded-full hover:bg-muted/60 transition-colors"
+                    className="relative rounded-full hover:bg-muted/60 transition-colors cursor-pointer"
                 >
                     <Bell className="h-5 w-5 text-muted-foreground" />
 
@@ -211,8 +211,8 @@ export function NotificationsDropdown() {
                 <Tabs defaultValue="all" className="w-full">
                     <div className="px-4 pt-2">
                         <TabsList className="w-full grid grid-cols-2 h-9">
-                            <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
-                            <TabsTrigger value="unread" className="text-xs">
+                            <TabsTrigger value="all" className="text-xs cursor-pointer">All</TabsTrigger>
+                            <TabsTrigger value="unread" className="text-xs cursor-pointer">
                                 Unread
                                 {unreadCount > 0 && (
                                     <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 min-w-[1.25rem] text-[10px] font-normal">

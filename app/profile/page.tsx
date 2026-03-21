@@ -31,6 +31,9 @@ export default async function ProfilePage() {
                 name: session.user.name,
                 email: session.user.email,
                 image: session.user.image,
+                phone: session.user.phone || '',
+                hostel: session.user.hostel || '',
+                instagramId: session.user.instagramId || '',
             }}
             lostItems={items.lost_items.map(standardizeItemDate)}
             foundItems={items.found_items.map(standardizeItemDate)}

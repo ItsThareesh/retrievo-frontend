@@ -130,7 +130,7 @@ export function ReportDialog({
                     <Button
                         variant="outline"
                         role="combobox"
-                        className="w-full flex items-center justify-between font-normal text-left"
+                        className="w-full flex items-center justify-between font-normal text-left cursor-pointer"
                     >
                         <span
                             className={cn(
@@ -161,13 +161,14 @@ export function ReportDialog({
             <AlertDialogFooter>
                 <AlertDialogCancel
                     onClick={() => setReason("")}
+                    className="cursor-pointer"
                 >
                     Cancel
                 </AlertDialogCancel>
 
                 <AlertDialogAction
                     disabled={reason === ''}
-                    className="shadow-sm"
+                    className="shadow-sm cursor-pointer"
                     onClick={handleReport}
                 >
                     Submit

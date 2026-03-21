@@ -86,6 +86,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCompressing, setIsCompressing] = useState(false);
+    const [calenderOpen, setCalendarOpen] = useState(true);
     const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -219,7 +220,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                 <FormLabel>Category</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                                     <FormControl>
-                                        <SelectTrigger className="h-11 w-full">
+                                        <SelectTrigger className="h-11 w-full cursor-pointer">
                                             <SelectValue placeholder="Select a category" />
                                         </SelectTrigger>
                                     </FormControl>
@@ -243,7 +244,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                 <FormLabel>Type</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                                     <FormControl>
-                                        <SelectTrigger className="h-11 w-full">
+                                        <SelectTrigger className="h-11 w-full cursor-pointer">
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                     </FormControl>
@@ -265,7 +266,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                 <FormLabel>Visibility</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                                     <FormControl>
-                                        <SelectTrigger className="h-11 w-full">
+                                        <SelectTrigger className="h-11 w-full cursor-pointer">
                                             <SelectValue placeholder="Select visibility" />
                                         </SelectTrigger>
                                     </FormControl>
@@ -303,20 +304,20 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                         )} />
 
                     <FormField
-                        // TODO: Date picker component should close upon selection
+                        // TODO: Date picker component should close upon selection - Done
                         control={form.control}
                         name="date"
                         render={({ field }) => (
                             <FormItem className="col-span-1 flex flex-col">
                                 <FormLabel>Date</FormLabel>
-                                <Popover modal={true}>
+                                <Popover modal={true} open={calenderOpen} onOpenChange={setCalendarOpen}>
                                     <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
                                                 variant="outline"
                                                 disabled={isSubmitting}
                                                 className={cn(
-                                                    "w-full pl-3 text-left font-normal h-11",
+                                                    "w-full pl-3 text-left font-normal h-9 cursor-pointer",
                                                     !field.value && "text-muted-foreground"
                                                 )}
                                             >
@@ -330,7 +331,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                         <Calendar
                                             mode="single"
                                             selected={field.value}
-                                            onSelect={field.onChange}
+                                            onSelect={(date) =>{field.onChange(date), setCalendarOpen(false)}}
                                             disabled={(date) => date > new Date() ||
                                                 date < new Date("2025-12-23")} />
                                     </PopoverContent>
