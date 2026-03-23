@@ -113,7 +113,7 @@ export async function onItemDeleted(
 
 /** 
  * Call on any resolution state change that doesn't complete the resolution for the item. 
- * States include: `pending -> approved`, `pending -> rejected`, `return_initiated -> invalidated`.
+ * States include: `pending -> approved`, `pending -> rejected`, `return_initiated -> failed`.
  * Do not call this for resolution complete state changes. Use onResolutionCompleted instead.
 */
 export async function onResolutionIntermediateStateChanged(itemId: string) {
@@ -122,6 +122,19 @@ export async function onResolutionIntermediateStateChanged(itemId: string) {
     invalidateItemCache(itemId);
 
     // No need to update the feed/profile page since they don't indicate resolution state.
+}
+
+/**
+ * Call when a user reports a particular item. This can trigger auto-hiding if the report count threshold is reached, so we need to invalidate the item cache and update the feed/profile cache to reflect the potential visibility change.
+*/
+export async function onItemReported(
+    itemId: string,
+    public_id: string,
+    visibility: item_visibility
+) {
+    invalidateItemCache(itemId);
+    invalidateFeedCache(visibility, "update");
+    invalidateProfileCache(public_id, visibility, "update");
 }
 
 /** 
@@ -147,15 +160,16 @@ export async function onResolutionCompleted(
 }
 
 /**
- * Call when a resolution is `invalidated` as a owner action. Essentially the same as onResolutionIntermediateStateChanged
- * but avoids confusion around `invalidated` state being intermediate when it's actually a final state. 
+ * Call when a resolution is `failed` as a owner action. Essentially the same as onResolutionIntermediateStateChanged
+ * but avoids confusion around `failed` state being intermediate when it's actually a final state. 
  * No feed invalidation needed since the item remains active in the feed, and the feed doesn't indicate resolution state.
 */
-export const onResolutionInvalidated = onResolutionIntermediateStateChanged;
+export const onResolutionFailed = onResolutionIntermediateStateChanged;
 
 /**
  * Call when Admin moderates an item. Admin can either hide, restore, or delete an item.
  * So we must invalidate the item cache, update the feed and profile cache with "update" strategy to ensure correcntess.
+ * Follow exactly the same cache control strategy as onItemDeleted.
 */
 export async function onAdminItemModerationAction(
     itemId: string,

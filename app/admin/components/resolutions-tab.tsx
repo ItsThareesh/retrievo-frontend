@@ -64,7 +64,7 @@ function StatusBadge({ status }: { status: ResolutionStatus }) {
                 </Badge>
             );
 
-        case "invalidated":
+        case "failed":
             return (
                 <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                     <AlertTriangle className="h-3 w-3 mr-1" />

@@ -1,7 +1,7 @@
 "use server";
 
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
-import { onResolutionCompleted, onResolutionIntermediateStateChanged, onResolutionInvalidated } from "../utils/cacheController";
+import { onResolutionCompleted, onResolutionIntermediateStateChanged, onResolutionFailed } from "../utils/cacheController";
 import { item_visibility, item_type } from "@/types/item";
 import { LinkableItem } from "@/types/resolutions";
 
@@ -186,34 +186,34 @@ export async function completeResolution(resolutionId: string) {
     }
 }
 
-/** POST: Invalidate a resolution */
-export async function invalidateResolution(resolutionId: string, itemId: string) {
+/** POST: Fail a resolution */
+export async function failResolution(resolutionId: string, itemId: string) {
     try {
-        const res = await authFetch(`/resolutions/${resolutionId}/invalidate`, {
+        const res = await authFetch(`/resolutions/${resolutionId}/fail`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
         });
 
         if (!res.ok) {
-            console.error("invalidateResolution failed:", res.status);
+            console.error("failResolution failed:", res.status);
             return { ok: false, status: res.status };
         }
 
         const result = await safeJson(res);
 
-        // Revalidate the cache since the resolution is now invalidated
+        // Revalidate the cache since the resolution is now failed
         if (result.lost_item_id) {
-            onResolutionInvalidated(result.lost_item_id);
+            onResolutionFailed(result.lost_item_id);
         }
         if (result.found_item_id) {
-            onResolutionInvalidated(result.found_item_id);
+            onResolutionFailed(result.found_item_id);
         }
 
         return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
-        console.error("invalidateResolution error:", err);
+        console.error("failResolution error:", err);
         return { ok: false, error: String(err) };
     }
 }

@@ -17,7 +17,7 @@ import {
     approveResolution,
     rejectResolution,
     completeResolution,
-    invalidateResolution,
+    failResolution,
 } from "@/lib/api/resolutions";
 
 import { ActionButtons } from "./components/action-buttons";
@@ -154,7 +154,7 @@ const STATUS_UI = {
         },
     },
 
-    invalidated: {
+    failed: {
         owner: {
             theme: "amber",
             title: "Marked as Mismatched",
@@ -170,7 +170,7 @@ const STATUS_UI = {
         admin: {
             theme: "amber",
             title: "Resolution Invalidated",
-            subtitle: "The owner invalidated the return.",
+            subtitle: "The owner failed the return.",
             showStatusCard: false,
         },
     },
@@ -256,7 +256,7 @@ export function ResolutionStatusContent({
                 ? await approveResolution(resolution.id, item.id)
                 : action === "complete"
                     ? await completeResolution(resolution.id)
-                    : await invalidateResolution(resolution.id, item.id);
+                    : await failResolution(resolution.id, item.id);
 
             if (!res?.ok) throw new Error();
             router.refresh();
