@@ -1,4 +1,4 @@
-export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'invalidated';
+export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'failed';
 
 export type ResolutionType = 'owner-initiated' | 'finder-initiated';
 
