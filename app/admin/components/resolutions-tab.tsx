@@ -64,7 +64,7 @@ function StatusBadge({ status }: { status: ResolutionStatus }) {
                 </Badge>
             );
 
-        case "invalidated":
+        case "failed":
             return (
                 <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                     <AlertTriangle className="h-3 w-3 mr-1" />
@@ -126,7 +126,7 @@ export function ResolutionsTab() {
                                 <TableRow key={res.id} className="hover:bg-muted/50 transition-colors">
                                     <TableCell className="px-6 py-5 align-middle">
                                         <span className="text-sm font-medium text-foreground truncate block max-w-xs">
-                                            {res.item_title}
+                                            {res.anchor_item_title}
                                         </span>
                                     </TableCell>
 

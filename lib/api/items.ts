@@ -3,7 +3,7 @@
 import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
 import { auth } from "@/lib/auth";
 import { Item } from "@/types/item";
-import { onItemCreated, onItemDeleted, onItemUpdated } from "../utils/cacheController";
+import { onItemCreated, onItemDeleted, onItemReported, onItemUpdated } from "../utils/cacheController";
 
 // GET: Single Item by ID along with Reporter Info and Claim Status
 export async function fetchItem(itemId: string, token?: string) {
@@ -115,9 +115,7 @@ export async function deleteItem(itemId: string) {
 
         const result = await safeJson(res);
 
-        const session = await auth();
-        const public_id = session!.user.public_id; // Must be authenticated to delete, so session and public_id are guaranteed to exist
-        await onItemDeleted(itemId, public_id, result.visibility); // Handle cache updates on item deletion
+        await onItemDeleted(itemId, result.owner_public_id, result.visibility); // Handle cache updates on item deletion
 
         return { ok: true };
     } catch (err) {
@@ -140,6 +138,12 @@ export async function reportItem(itemId: string, reason: string) {
         if (!res.ok) {
             console.error("reportItem failed:", res.status);
             return { ok: false, status: res.status };
+        }
+
+        const result = await safeJson(res);
+
+        if (result.invalidate_cache) {
+            onItemReported(itemId, result.owner_public_id, result.visibility); // Handle cache updates on item report if the report triggered a visibility change
         }
 
         return { ok: true };

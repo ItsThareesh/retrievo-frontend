@@ -11,13 +11,13 @@ import {
     LucideIcon,
 } from "lucide-react";
 
-import { Resolution, FinderContact, Viewer, AllowedAction } from "@/types/resolutions";
+import { Resolution, FinderContact, Viewer, AllowedAction, LinkedItem } from "@/types/resolutions";
 import { Item } from "@/types/item";
 import {
     approveResolution,
     rejectResolution,
     completeResolution,
-    invalidateResolution,
+    failResolution,
 } from "@/lib/api/resolutions";
 
 import { ActionButtons } from "./components/action-buttons";
@@ -27,6 +27,7 @@ import { ItemSummary } from "./components/item-summary";
 import { StatusAlert } from "./components/status-alert";
 import { FinderContactCard } from "./components/finder-contact";
 import { ThemeKey, THEMES } from "./theme";
+import { formatDateString } from "@/lib/date-formatting";
 
 
 /* STATUS UI MAP */
@@ -153,7 +154,7 @@ const STATUS_UI = {
         },
     },
 
-    invalidated: {
+    failed: {
         owner: {
             theme: "amber",
             title: "Marked as Mismatched",
@@ -169,7 +170,7 @@ const STATUS_UI = {
         admin: {
             theme: "amber",
             title: "Resolution Invalidated",
-            subtitle: "The owner invalidated the return.",
+            subtitle: "The owner failed the return.",
             showStatusCard: false,
         },
     },
@@ -220,6 +221,7 @@ interface Props {
     finderContact: FinderContact | null;
     viewer: Viewer;
     allowedActions: AllowedAction[];
+    linkedItem: LinkedItem | null;
 }
 
 export function ResolutionStatusContent({
@@ -228,6 +230,7 @@ export function ResolutionStatusContent({
     finderContact,
     viewer,
     allowedActions,
+    linkedItem,
 }: Props) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -252,13 +255,8 @@ export function ResolutionStatusContent({
             const res = action === "approve"
                 ? await approveResolution(resolution.id, item.id)
                 : action === "complete"
-                    ? await completeResolution(
-                        resolution.id,
-                        item.id,
-                        item.type,
-                        item.visibility
-                    )
-                    : await invalidateResolution(resolution.id, item.id);
+                    ? await completeResolution(resolution.id)
+                    : await failResolution(resolution.id, item.id);
 
             if (!res?.ok) throw new Error();
             router.refresh();
@@ -337,6 +335,27 @@ export function ResolutionStatusContent({
 
                 <ClaimDescription resolution={resolution} borderClass={theme.border} />
                 <ItemSummary item={item} />
+
+                {linkedItem && (
+                    <div className={`rounded-lg border ${theme.border} p-4 space-y-2`}>
+                        <h3 className="text-sm font-medium text-muted-foreground">
+                            Linked {linkedItem.type === "lost" ? "Lost" : "Found"} Item
+                        </h3>
+                        <a
+                            href={`/items/${linkedItem.id}`}
+                            className="block hover:opacity-80 transition-opacity"
+                        >
+                            <p className="font-medium">{linkedItem.title}</p>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
+                                {linkedItem.category && <span>{linkedItem.category}</span>}
+                                {linkedItem.location && <span>{linkedItem.location}</span>}
+                                {linkedItem.date && <span>{
+                                    formatDateString(linkedItem.date)
+                                }</span>}
+                            </div>
+                        </a>
+                    </div>
+                )}
             </div>
         </div>
     );

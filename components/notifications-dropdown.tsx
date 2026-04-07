@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import { Notification, NotificationType } from "@/types/notification"
+import { Notification, NotificationIconType, NotificationType } from "@/types/notification"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
@@ -51,8 +51,8 @@ export function NotificationsDropdown() {
         }
     };
 
-    const getIcon = (type: NotificationType) => {
-        switch (type) {
+    const getIcon = (icon_type: NotificationIconType) => {
+        switch (icon_type) {
             case "resolution_completed":
             case "resolution_approved":
                 return <div className="rounded-full bg-green-100 p-1.5 dark:bg-green-900/30"><Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /></div>
@@ -101,13 +101,13 @@ export function NotificationsDropdown() {
 
                 if (notification.type === 'potential_match') {
                     router.push('/items/' + notification.item_id);
-                } else if (notification.type !== "system_notice" && notification.type !== "warning_issued") {
+                } else if (notification.type !== "system") {
                     router.push('/resolution/' + notification.resolution_id);
                 }
             }}
         >
             <div className="mt-0.5 shrink-0">
-                {getIcon(notification.type)}
+                {getIcon(notification.icon)}
             </div>
             <div className="flex-1 space-y-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
