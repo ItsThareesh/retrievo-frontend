@@ -160,23 +160,22 @@ export interface PaginatedItemsData {
 
 /**
  * GET: Paginated Items (supports search, category, and type filters)
- * Default feed pages (no search/category filters) are cached via the
- * native Next.js fetch cache with a 120s TTL, tagged per segment for
- * on-demand revalidation via revalidateTag("items-{segment}", "max").
- * 
- * All default pages are cached so infinite scroll
- * hits the cache for every page until the tag is invalidated.
- * Search and filtered queries always bypass cache (cache: "no-store")
- * to guarantee fresh results.
+ * Visibility is enforced server-side by backend identity checks.
+ *
+ * Unauthenticated feed requests use cached public responses.
+ * Authenticated requests bypass cache to avoid sharing user-scoped
+ * results across sessions.
 */
 export async function getPaginatedItems(
-    segment: "public" | "boys" | "girls",
     queryString: string = "",
 ) {
     try {
+        const session = await auth();
+        const token = session?.backendToken;
+
         const url = queryString
-            ? `/items/all?segment=${segment}&${queryString}`
-            : `/items/all?segment=${segment}&page=1&limit=12`;
+            ? `/items/all?${queryString}`
+            : `/items/all?page=1&limit=12`;
 
         const hasFilters =
             queryString.includes("search=") ||
@@ -184,9 +183,16 @@ export async function getPaginatedItems(
 
         const res = await publicFetch(
             url,
-            hasFilters
-                ? { cache: "no-store" }
-                : { next: { revalidate: 120, tags: [`feed-${segment}`] } },
+            {
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                ...(token
+                    ? { cache: "no-store" }
+                    : hasFilters
+                        ? { cache: "no-store" }
+                        : { next: { revalidate: 120, tags: ["feed-public"] } }),
+            },
         );
 
         if (!res.ok) {

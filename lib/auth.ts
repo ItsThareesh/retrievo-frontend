@@ -140,10 +140,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return token;
             }
 
-            // Check if token needs refresh (refresh 10 minutes before expiry)
+            // Check if token needs refresh (refresh 5 minutes before expiry)
             const now = Date.now();
             const timeUntilExpiry = Number(token.expires_at) - now;
-            const REFRESH_WINDOW = 10 * 60 * 1000; // 10 minutes
+            const REFRESH_WINDOW = 5 * 60 * 1000; // 5 minutes
 
             // Already expired, then force logout
             if (timeUntilExpiry <= 0) {
@@ -154,7 +154,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return token;
             }
 
-            // If token expires in less than 10 minutes, refresh it
+            // If token expires in less than 5 minutes, refresh it
             if (timeUntilExpiry <= REFRESH_WINDOW) {
                 try {
                     const res = await internalFetchWithTimeout(
