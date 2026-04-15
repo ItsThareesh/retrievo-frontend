@@ -5,96 +5,75 @@ import { revalidateTag, updateTag } from "next/cache";
 
 // LOW-LEVEL HELPER FUNCTIONS FOR CACHE CONTROL
 
-const VISIBILITY_SEGMENTS: Record<item_visibility, string[]> = {
-    // Public items appear in all three feeds, so we must invalidate all three.
-    // Boys/Girls items only appear in their own feed.
-    public: ["public", "boys", "girls"],
-    boys: ["boys"],
-    girls: ["girls"],
-};
+// Current architecture caches only unauthenticated public views:
+// - feed tag: feed-public
+// - profile tag: profile-{public_id}-public
+// Authenticated feeds/profiles are fetched with no-store, so there are no
+// boys/girls cache tags to invalidate.
 
 function invalidateItemCache(itemId: string) {
     updateTag(`item-${itemId}`);
 }
 
 function invalidateFeedCache(
-    visibility: item_visibility,
     strategy: "update" | "revalidate"
 ) {
-    // Public items appear in all three feeds, so we must invalidate all three.
-    // Boys/girls items only appear in their own feed.
-    VISIBILITY_SEGMENTS[visibility].forEach((tag) => {
-        if (strategy === "update") {
-            // updateTag: correctness-critical — deletion/resolution completed items
-            // must not appear in the feed for any new requests after this point.
-            updateTag(`feed-${tag}`);
-        } else {
-            // revalidateTag with "max" profile: stale-while-revalidate.
-            // Acceptable for cosmetic changes (title, display fields) where
-            // brief staleness causes no functional harm.
-            revalidateTag(`feed-${tag}`, "max");
-        }
-    });
+    if (strategy === "update") {
+        // correctness-critical updates: remove stale public feed entries immediately
+        updateTag("feed-public");
+    } else {
+        // cosmetic-only changes can use stale-while-revalidate
+        revalidateTag("feed-public", "max");
+    }
 }
 
 function invalidateProfileCache(
     public_id: string,
-    visibility: item_visibility,
     strategy: "update" | "revalidate"
 ) {
-    VISIBILITY_SEGMENTS[visibility].forEach((tag) => {
-        if (strategy === "update") {
-            // updateTag: correctness-critical — items that have been deleted/resolved must not appear on profile for any new requests after this point.
-            updateTag(`profile-${public_id}-${tag}`);
-        } else {
-            // revalidateTag with "max" profile: stale-while-revalidate.
-            // Acceptable for cosmetic changes (title, display fields) where
-            // brief staleness causes no functional harm.
-            revalidateTag(`profile-${public_id}-${tag}`, "max");
-        }
-    });
+    const tag = `profile-${public_id}-public`;
+
+    if (strategy === "update") {
+        // correctness-critical updates: remove stale public profile entries immediately
+        updateTag(tag);
+    } else {
+        // cosmetic-only changes can use stale-while-revalidate
+        revalidateTag(tag, "max");
+    }
 }
 
 // HIGH-LEVEL CACHE CONTROL FUNCTIONS
 
 /** Call when a new item is posted. Feed must reflect the new item promptly. */
 export async function onItemCreated(
-    visibility: item_visibility,
+    is_public: boolean,
     public_id: string
 ) {
+    if (!is_public) {
+        return;
+    }
+
     // Correctness-critical to update feed (no SWR staleness for now, can optimize later if needed)
-    invalidateFeedCache(visibility, "update");
+    invalidateFeedCache("update");
     // Correctness-critical to update profile cache
-    invalidateProfileCache(public_id, visibility, "update");
+    invalidateProfileCache(public_id, "update");
 }
 
 /** Call when an item's details are changed (title, category, date, location and visibility). */
 export async function onItemUpdated(
     itemId: string,
     public_id: string,
-    change: {
-        display_fields_changed: boolean;
-        visibility_changed: boolean;
-        old_visibility: item_visibility;
-        new_visibility: item_visibility;
-    }
+    public_cache_action: "none" | "update" | "revalidate"
 ) {
     // Invalidate the item cache so the detail page reflects the new visibility when refreshed.
     invalidateItemCache(itemId);
 
-    if (change.visibility_changed) {
-        // Invalidate both old and new visibility feeds so the item disappears from the old feed and appears in the new feed.
-        invalidateFeedCache(change.old_visibility, "update");
-        invalidateFeedCache(change.new_visibility, "update");
-
-        // Invalidate both old and new visibility segments on profile so the item disappears from the old segment and appears in the new segment.
-        invalidateProfileCache(public_id, change.old_visibility, "update");
-        invalidateProfileCache(public_id, change.new_visibility, "update");
-    } else if (change.display_fields_changed) {
-        // If visibility didn't change but display fields did, we can use the less aggressive 
-        // "revalidate" strategy since the item is still actionable in the feed and profile pages.
-        invalidateFeedCache(change.new_visibility, "revalidate");
-        invalidateProfileCache(public_id, change.new_visibility, "revalidate");
+    if (public_cache_action === "update") {
+        invalidateFeedCache("update");
+        invalidateProfileCache(public_id, "update");
+    } else if (public_cache_action === "revalidate") {
+        invalidateFeedCache("revalidate");
+        invalidateProfileCache(public_id, "revalidate");
     }
 }
 
@@ -102,13 +81,17 @@ export async function onItemUpdated(
 export async function onItemDeleted(
     itemId: string,
     public_id: string,
-    visibility: item_visibility
+    was_public: boolean
 ) {
     invalidateItemCache(itemId);
 
+    if (!was_public) {
+        return;
+    }
+
     // Must use update — stale deleted item in feed/profile page causes 404 on click.
-    invalidateFeedCache(visibility, "update");
-    invalidateProfileCache(public_id, visibility, "update");
+    invalidateFeedCache("update");
+    invalidateProfileCache(public_id, "update");
 }
 
 /** 
@@ -138,8 +121,8 @@ export async function onResolutionCompleted(
     if (item_type === "lost") {
         // For lost items, backend hides the item immediately upon resolution completed status to prevent
         // confusion and dead links, updating the feed with "update" strategy to ensure correctness.
-        invalidateFeedCache(visibility, "update");
-        invalidateProfileCache(public_id, visibility, "update");
+        invalidateFeedCache("update");
+        invalidateProfileCache(public_id, "update");
     }
 
     // For found items, backend keeps the item visible in the feed after resolution completion to allow
@@ -163,8 +146,8 @@ export async function onAdminItemModerationAction(
     visibility: item_visibility,
 ) {
     invalidateItemCache(itemId);
-    invalidateFeedCache(visibility, "update");
-    invalidateProfileCache(public_id, visibility, "update");
+    invalidateFeedCache("update");
+    invalidateProfileCache(public_id, "update");
 }
 
 /**
@@ -172,7 +155,7 @@ export async function onAdminItemModerationAction(
  * - warn: no cache changes needed since no visibility or item state changes occur.
  * - temp_ban/unban: correctness-critical — items are hidden/restored, so feeds, profile pages,
  *   and item detail pages must reflect the change immediately.
- *   User can have items in any visibility segment; using "public" covers all three (public, boys, girls).
+ *   Since only public unauthenticated views are cached, invalidate public tags only.
 */
 export async function onAdminUserModerationAction(
     public_id: string,
@@ -185,10 +168,9 @@ export async function onAdminUserModerationAction(
         return;
     }
 
-    // For ban/unban: items are hidden/restored — use update strategy to prevent dead links / phantom items.
-    // "public" visibility segment covers all three feed tags (public, boys, girls).
-    invalidateFeedCache("public", "update");
-    invalidateProfileCache(public_id, "public", "update");
+    // For ban/unban: items are hidden/restored. Only cached public views need invalidation.
+    invalidateFeedCache("update");
+    invalidateProfileCache(public_id, "update");
 
     // Invalidate individual item detail caches for each affected item.
     item_ids.forEach((id) => invalidateItemCache(id));
