@@ -88,7 +88,7 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                             </CardHeader>
                             <CardContent className="space-y-4 p-4">
                                 <div className="flex flex-col space-y-3 w-full max-w-[260px] mx-auto justify-center">
-                                    
+
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <Phone className="mr-3 h-4 w-4 shrink-0" />
                                         <p className='mr-5 '>Phone: </p>
@@ -108,17 +108,17 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                                             <span>{user.instagramId}</span>
                                         </div>
                                     )}
-                                    <hr className='my-2'/>
-                                <Button
-                                    variant="ghost"
-                                    className="w-full justify-center h-10 cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={() => signOut({ callbackUrl: '/' })}
-                                >
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    Sign Out
-                                </Button>
+                                    <hr className='my-2' />
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-center h-10 cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={() => signOut({ callbackUrl: '/' })}
+                                    >
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Sign Out
+                                    </Button>
                                 </div>
-                                
+
                             </CardContent>
                         </Card>
                     </div>

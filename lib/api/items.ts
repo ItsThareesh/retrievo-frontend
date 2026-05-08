@@ -51,7 +51,7 @@ export async function postLostFoundItem(formData: FormData) {
         const session = await auth();
         const public_id = session!.user.public_id; // Must be authenticated to post, so session and public_id are guaranteed to exist
 
-        await onItemCreated(result.visibility, public_id); // Handle cache updates on item creation
+        await onItemCreated(result.is_public, public_id); // Handle cache updates on item creation
 
         return { ok: true, data: result };
     } catch (err) {
@@ -84,12 +84,7 @@ export async function updateItem(itemId: string, data: Record<string, any>) {
         await onItemUpdated(
             itemId,
             public_id,
-            {
-                visibility_changed: result.visibility_changed,
-                display_fields_changed: result.display_fields_changed,
-                old_visibility: result.old_visibility,
-                new_visibility: result.new_visibility
-            }
+            result.public_cache_action,
         ); // Handle cache updates on item update based on what changed
 
         return { ok: true, data: result };
@@ -117,7 +112,8 @@ export async function deleteItem(itemId: string) {
 
         const session = await auth();
         const public_id = session!.user.public_id; // Must be authenticated to delete, so session and public_id are guaranteed to exist
-        await onItemDeleted(itemId, public_id, result.visibility); // Handle cache updates on item deletion
+        
+        await onItemDeleted(itemId, public_id, result.was_public); // Handle cache updates on item deletion
 
         return { ok: true };
     } catch (err) {
