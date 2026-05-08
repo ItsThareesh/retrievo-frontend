@@ -16,16 +16,6 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.watchOptions = {
-        poll: 1000, // Check for changes every 1s
-        aggregateTimeout: 300,
-      };
-    }
-    return config;
-  },
-  turbopack: {}
 };
 
 export default nextConfig;
