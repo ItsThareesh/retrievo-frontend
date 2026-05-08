@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Instagram, Phone, House, SearchX } from 'lucide-react';
+import { Instagram, Phone, House, Search } from 'lucide-react';
 import { ItemCard } from '@/components/item-card';
 import { signOut } from 'next-auth/react';
 import Image from 'next/image';
@@ -98,7 +98,9 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <House className="mr-3 h-4 w-4 shrink-0" />
                                         <p className='mr-5'>Hostel: </p>
-                                        <span>{user.hostel || "No hostel set"}</span>
+                                        {user.hostel && (
+                                            <span>{user.hostel.charAt(0).toUpperCase() + user.hostel?.slice(1)}</span>
+                                        )}
                                     </div>
 
                                     {/*Only show if it exists */}
@@ -148,6 +150,7 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                                 </div>
                             ) : (
                                 <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                    <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No items reported yet.</p>
                                 </div>
                             )}
@@ -162,6 +165,7 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                                 </div>
                             ) : (
                                 <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                    <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No lost items reported.</p>
                                 </div>
                             )}
@@ -176,7 +180,7 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                                 </div>
                             ) : (
                                 <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
-                                    <SearchX className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
+                                    <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No found items reported.</p>
                                 </div>
                             )}

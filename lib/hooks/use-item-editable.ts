@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import { User as UserType } from "@/types/user";
-import { updateItem, deleteItem, reportItem } from "@/lib/api/items";
+import { updateItem, deleteItem, flagItem } from "@/lib/api/items";
 import { createResolution } from "@/lib/api/resolutions";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
@@ -220,17 +220,17 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         setIsReporting(true);
 
         try {
-            const res = await reportItem(item.id, reason);
+            const res = await flagItem(item.id, reason);
 
             if (res.ok) {
-                toast.success("Item reported successfully");
+                toast.success("Item flagged successfully");
             } else {
                 if (res.status === 409) {
-                    toast.error("You have already reported this item");
+                    toast.error("You have already flagged this item");
                 } else if (res.status === 400) {
-                    toast.error("Cannot self-report your own item post");
+                    toast.error("Cannot self-flag your own item post");
                 } else {
-                    toast.error("Failed to report item");
+                    toast.error("Failed to flag item");
                 }
             }
         } finally {

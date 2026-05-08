@@ -124,17 +124,17 @@ export async function deleteItem(itemId: string) {
     }
 }
 
-/** POST: Report Item */
-export async function reportItem(itemId: string, reason: string) {
+/** POST: Flag Item */
+export async function flagItem(itemId: string, reason: string) {
     try {
-        const res = await authFetch(`/items/${itemId}/report`, {
+        const res = await authFetch(`/items/${itemId}/flag`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ reason }),
         });
 
         if (!res.ok) {
-            console.error("reportItem failed:", res.status);
+            console.error("flagItem failed:", res.status);
             return { ok: false, status: res.status };
         }
 
@@ -142,7 +142,7 @@ export async function reportItem(itemId: string, reason: string) {
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
-        console.error("reportItem error:", err);
+        console.error("flagItem error:", err);
         return { ok: false, error: String(err) };
     }
 }
