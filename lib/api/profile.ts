@@ -3,6 +3,7 @@
 import { Item } from "@/types/item";
 import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
 import { OnboardingPayload } from "@/types/user";
+import { auth } from "@/lib/auth";
 
 /** POST: Onboarding Completion */
 export async function updateOnboarding(payload: OnboardingPayload) {
@@ -61,15 +62,22 @@ export async function getUserItems() {
     }
 }
 
-// GET: User Profile (public, segment-based visibility — cached like /items/all)
-export async function getUserProfile(
-    publicID: string,
-    segment: "public" | "boys" | "girls" = "public",
-) {
+// GET: User Profile with backend-enforced visibility based on viewer identity
+export async function getUserProfile(publicID: string) {
     try {
+        const session = await auth();
+        const token = session?.backendToken;
+
         const res = await publicFetch(
-            `/profile/${publicID}?segment=${segment}`,
-            { next: { revalidate: 120, tags: [`profile-${publicID}-${segment}`] } },
+            `/profile/${publicID}`,
+            {
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                ...(token
+                    ? { cache: "no-store" }
+                    : { next: { revalidate: 120, tags: [`profile-${publicID}-public`] } }),
+            },
         );
 
         if (!res.ok) {

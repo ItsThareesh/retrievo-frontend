@@ -33,11 +33,10 @@ function buildQueryString(
 }
 
 interface ItemsGridClientProps {
-    segment: "public" | "boys" | "girls";
     initialData: PaginatedItemsData | null;
 }
 
-export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) {
+export function ItemsGridClient({ initialData }: ItemsGridClientProps) {
     const [searchInput, setSearchInput] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [activeTab, setActiveTab] = useState<"all" | "found" | "lost">("all");
@@ -91,7 +90,6 @@ export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) 
         nextPageRef.current = 2;
 
         getPaginatedItems(
-            segment,
             buildQueryString(1, searchQuery, categoryFilter, typeFilter),
         ).then((result) => {
             // Discard if a newer filter change superseded this one.
@@ -104,7 +102,7 @@ export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) 
             }
             setIsLoading(false);
         });
-    }, [searchQuery, categoryFilter, typeFilter, segment, initialData]);
+    }, [searchQuery, categoryFilter, typeFilter, initialData]);
 
     // Load the next page and append items. Guarded by refs so only one
     // concurrent load runs at a time, and stale results are discarded.
@@ -118,7 +116,6 @@ export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) 
         const page = nextPageRef.current;
 
         const result = await getPaginatedItems(
-            segment,
             buildQueryString(page, searchQuery, categoryFilter, typeFilter),
         );
 
@@ -138,7 +135,7 @@ export function ItemsGridClient({ segment, initialData }: ItemsGridClientProps) 
 
         loadingMoreRef.current = false;
         setIsLoadingMore(false);
-    }, [searchQuery, categoryFilter, typeFilter, segment]);
+    }, [searchQuery, categoryFilter, typeFilter]);
 
     // Infinite scroll — IntersectionObserver triggers loadMore when the
     // sentinel enters the viewport. Reconnects when dependencies change.

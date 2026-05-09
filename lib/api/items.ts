@@ -51,7 +51,7 @@ export async function postLostFoundItem(formData: FormData) {
         const session = await auth();
         const public_id = session!.user.public_id; // Must be authenticated to post, so session and public_id are guaranteed to exist
 
-        await onItemCreated(result.visibility, public_id); // Handle cache updates on item creation
+        await onItemCreated(result.is_public, public_id); // Handle cache updates on item creation
 
         return { ok: true, data: result };
     } catch (err) {
@@ -84,12 +84,7 @@ export async function updateItem(itemId: string, data: Record<string, any>) {
         await onItemUpdated(
             itemId,
             public_id,
-            {
-                visibility_changed: result.visibility_changed,
-                display_fields_changed: result.display_fields_changed,
-                old_visibility: result.old_visibility,
-                new_visibility: result.new_visibility
-            }
+            result.public_cache_action,
         ); // Handle cache updates on item update based on what changed
 
         return { ok: true, data: result };
@@ -115,7 +110,10 @@ export async function deleteItem(itemId: string) {
 
         const result = await safeJson(res);
 
-        await onItemDeleted(itemId, result.owner_public_id, result.visibility); // Handle cache updates on item deletion
+        const session = await auth();
+        const public_id = session!.user.public_id; // Must be authenticated to delete, so session and public_id are guaranteed to exist
+        
+        await onItemDeleted(itemId, public_id, result.was_public); // Handle cache updates on item deletion
 
         return { ok: true };
     } catch (err) {
@@ -126,17 +124,17 @@ export async function deleteItem(itemId: string) {
     }
 }
 
-/** POST: Report Item */
-export async function reportItem(itemId: string, reason: string) {
+/** POST: Flag Item */
+export async function flagItem(itemId: string, reason: string) {
     try {
-        const res = await authFetch(`/items/${itemId}/report`, {
+        const res = await authFetch(`/items/${itemId}/flag`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ reason }),
         });
 
         if (!res.ok) {
-            console.error("reportItem failed:", res.status);
+            console.error("flagItem failed:", res.status);
             return { ok: false, status: res.status };
         }
 
@@ -150,7 +148,7 @@ export async function reportItem(itemId: string, reason: string) {
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
-        console.error("reportItem error:", err);
+        console.error("flagItem error:", err);
         return { ok: false, error: String(err) };
     }
 }
@@ -164,23 +162,22 @@ export interface PaginatedItemsData {
 
 /**
  * GET: Paginated Items (supports search, category, and type filters)
- * Default feed pages (no search/category filters) are cached via the
- * native Next.js fetch cache with a 120s TTL, tagged per segment for
- * on-demand revalidation via revalidateTag("items-{segment}", "max").
- * 
- * All default pages are cached so infinite scroll
- * hits the cache for every page until the tag is invalidated.
- * Search and filtered queries always bypass cache (cache: "no-store")
- * to guarantee fresh results.
+ * Visibility is enforced server-side by backend identity checks.
+ *
+ * Unauthenticated feed requests use cached public responses.
+ * Authenticated requests bypass cache to avoid sharing user-scoped
+ * results across sessions.
 */
 export async function getPaginatedItems(
-    segment: "public" | "boys" | "girls",
     queryString: string = "",
 ) {
     try {
+        const session = await auth();
+        const token = session?.backendToken;
+
         const url = queryString
-            ? `/items/all?segment=${segment}&${queryString}`
-            : `/items/all?segment=${segment}&page=1&limit=12`;
+            ? `/items/all?${queryString}`
+            : `/items/all?page=1&limit=12`;
 
         const hasFilters =
             queryString.includes("search=") ||
@@ -188,9 +185,16 @@ export async function getPaginatedItems(
 
         const res = await publicFetch(
             url,
-            hasFilters
-                ? { cache: "no-store" }
-                : { next: { revalidate: 120, tags: [`feed-${segment}`] } },
+            {
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                ...(token
+                    ? { cache: "no-store" }
+                    : hasFilters
+                        ? { cache: "no-store" }
+                        : { next: { revalidate: 120, tags: ["feed-public"] } }),
+            },
         );
 
         if (!res.ok) {

@@ -86,7 +86,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCompressing, setIsCompressing] = useState(false);
-    const [calenderOpen, setCalendarOpen] = useState(true);
+    const [calenderOpen, setCalendarOpen] = useState(false);
     const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
