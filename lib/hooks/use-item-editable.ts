@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Item } from "@/types/item";
@@ -31,10 +32,14 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const [claimText, setClaimText] = useState("");
     const [isSubmittingResolution, setIsSubmittingResolution] = useState(false);
     const [linkedItemId, setLinkedItemId] = useState<string | null>(null);
-    const [linkableItems, setLinkableItems] = useState<LinkableItem[]>([]);
-    const [isLoadingLinkableItems, setIsLoadingLinkableItems] = useState(false);
 
     const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
+
+    const isLoggedIn = !!session;
+    const isReporter = reporter.public_id === session?.user?.public_id;
+    const isFoundItem = item.type === "found";
+    const isLostItem = item.type === "lost";
+    const hasResolution = resolutionStatus !== "none";
 
     const [formData, setFormData] = useState({
         title: item.title,
@@ -45,40 +50,23 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         date: item.date ?? "",
     });
 
-    const isLoggedIn = !!session;
-    const isReporter = reporter.public_id === session?.user?.public_id;
-    const isFoundItem = item.type === "found";
-    const isLostItem = item.type === "lost";
-    const hasResolution = resolutionStatus !== "none";
-
     // Determine permissions
     const canEdit = isLoggedIn && isReporter && !hasResolution;
-
     const canClaim = isLoggedIn && isFoundItem && !isReporter && !hasResolution;
     const canReturn = isLoggedIn && isLostItem && !isReporter && !hasResolution;
 
-    // Fetch linkable items when claim dialog opens
-    const fetchLinkableItems = useCallback(async () => {
-        setIsLoadingLinkableItems(true);
-        try {
-            const items = await getLinkableItems(item.id);
-            setLinkableItems(items);
-        } catch {
-            setLinkableItems([]);
-        } finally {
-            setIsLoadingLinkableItems(false);
-        }
-    }, [item.id]);
+    const { data: linkableItemsData, isLoading: isLoadingLinkableItems } = useSWR(
+        canClaim || canReturn ? `/api/v1/items/${item.id}/linkable` : null,
+        () => getLinkableItems(item.id)
+    );
+    const linkableItems = linkableItemsData || [];
 
     useEffect(() => {
-        if (isClaiming) {
-            fetchLinkableItems();
-        } else {
+        if (!isClaiming) {
             // Reset state when dialog closes
             setLinkedItemId(null);
-            setLinkableItems([]);
         }
-    }, [isClaiming, fetchLinkableItems]);
+    }, [isClaiming]);
 
     async function handleSave() {
         setIsSaving(true);
