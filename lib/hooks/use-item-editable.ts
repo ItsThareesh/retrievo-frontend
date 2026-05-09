@@ -198,6 +198,8 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             if (!res.ok) {
                 if (res.status === 409) {
                     toast.error("You have already submitted a resolution for this item.");
+                } else if (res.status === 403 && res.detail?.code === "ITEMS_NOT_MUTUALLY_VISIBLE") {
+                    toast.error("Modify your linked item's visibility to public or visible to other user to create a resolution.");
                 } else {
                     toast.error("Failed to submit request. Please try again.");
                 }

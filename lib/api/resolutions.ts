@@ -2,7 +2,6 @@
 
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
 import { onResolutionCompleted, onResolutionIntermediateStateChanged, onResolutionFailed } from "../utils/cacheController";
-import { item_visibility, item_type } from "@/types/item";
 import { LinkableItem } from "@/types/resolutions";
 
 /** POST: Create a resolution (claim/return) */
@@ -24,8 +23,9 @@ export async function createResolution(
         });
 
         if (!res.ok) {
+            const errorData = await safeJson(res);
             console.error("createResolution failed:", res.status);
-            return { ok: false, status: res.status };
+            return { ok: false, status: res.status, detail: errorData.detail };
         }
 
         // Revalidate the cache since a new resolution is now pending against the found item and/or lost item

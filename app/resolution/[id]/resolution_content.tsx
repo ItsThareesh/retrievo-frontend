@@ -9,6 +9,7 @@ import {
     CheckCircle2,
     X,
     LucideIcon,
+    ArrowUpRight,
 } from "lucide-react";
 
 import { Resolution, FinderContact, Viewer, AllowedAction, LinkedItem } from "@/types/resolutions";
@@ -333,7 +334,7 @@ export function ResolutionStatusContent({
                     onCancel={() => setShowRejectDialog(false)}
                 />
 
-                <ClaimDescription resolution={resolution} borderClass={theme.border} />
+                {resolution.description && <ClaimDescription resolution={resolution} borderClass={theme.border} />}
                 <ItemSummary item={item} />
 
                 {linkedItem && (
@@ -341,17 +342,23 @@ export function ResolutionStatusContent({
                         <h3 className="text-sm font-medium text-muted-foreground">
                             Linked {linkedItem.type === "lost" ? "Lost" : "Found"} Item
                         </h3>
+
                         <a
                             href={`/items/${linkedItem.id}`}
                             className="block hover:opacity-80 transition-opacity"
                         >
-                            <p className="font-medium">{linkedItem.title}</p>
+                            <div className="flex items-center gap-1">
+                                <p className="font-medium">{linkedItem.title}</p>
+
+                                <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                            </div>
+
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
                                 {linkedItem.category && <span>{linkedItem.category}</span>}
                                 {linkedItem.location && <span>{linkedItem.location}</span>}
-                                {linkedItem.date && <span>{
-                                    formatDateString(linkedItem.date)
-                                }</span>}
+                                {linkedItem.date && (
+                                    <span>{formatDateString(linkedItem.date)}</span>
+                                )}
                             </div>
                         </a>
                     </div>
