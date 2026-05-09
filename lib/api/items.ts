@@ -141,7 +141,7 @@ export async function flagItem(itemId: string, reason: string) {
         const result = await safeJson(res);
 
         if (result.invalidate_cache) {
-            onItemReported(itemId, result.owner_public_id, result.visibility); // Handle cache updates on item report if the report triggered a visibility change
+            onItemReported(itemId, result.owner_public_id); // Handle cache updates on item report if the report triggered a visibility change
         }
 
         return { ok: true };

@@ -113,11 +113,10 @@ export async function onResolutionIntermediateStateChanged(itemId: string) {
 export async function onItemReported(
     itemId: string,
     public_id: string,
-    visibility: item_visibility
 ) {
     invalidateItemCache(itemId);
-    invalidateFeedCache(visibility, "update");
-    invalidateProfileCache(public_id, visibility, "update");
+    invalidateFeedCache("update");
+    invalidateProfileCache(public_id, "update");
 }
 
 /** 
