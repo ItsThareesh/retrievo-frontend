@@ -2,6 +2,9 @@ import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import { internalFetchWithTimeout } from "./api/helpers";
 
+// Deduplicate concurrent token refresh requests
+let pendingRefreshPromise: Promise<{ access_token: string; expires_at: number }> | null = null;
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Google({
@@ -140,7 +143,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return token;
             }
 
-            // Check if token needs refresh (refresh 5 minutes before expiry)
+            // Check if token needs refresh (refresh 10 minutes before expiry)
             const now = Date.now();
             const timeUntilExpiry = Number(token.expires_at) - now;
             const REFRESH_WINDOW = 5 * 60 * 1000; // 5 minutes
@@ -157,25 +160,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // If token expires in less than 5 minutes, refresh it
             if (timeUntilExpiry <= REFRESH_WINDOW) {
                 try {
-                    const res = await internalFetchWithTimeout(
-                        `${process.env.INTERNAL_BACKEND_URL}/auth/refresh`,
-                        {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ token: token.backendToken })
-                        },
-                    );
-
-                    if (!res.ok) {
-                        console.error("Token refresh failed, forcing logout");
-                        token.backendToken = null;
-                        token.expires_at = null;
-                        token.user = null;
-
-                        return token;
+                    if (!pendingRefreshPromise) {
+                        pendingRefreshPromise = internalFetchWithTimeout(
+                            `${process.env.INTERNAL_BACKEND_URL}/auth/refresh`,
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ token: token.backendToken })
+                            },
+                        ).then(async (res) => {
+                            if (!res.ok) {
+                                throw new Error("Token refresh failed");
+                            }
+                            return res.json();
+                        }).finally(() => {
+                            pendingRefreshPromise = null;
+                        });
                     }
 
-                    const data = await res.json();
+                    const data = await pendingRefreshPromise;
                     token.backendToken = data.access_token;
                     token.expires_at = data.expires_at * 1000; // Convert to ms
                 } catch (err) {
