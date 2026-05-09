@@ -53,22 +53,18 @@ export function NotificationsDropdown() {
 
     const getIcon = (icon_type: NotificationIconType) => {
         switch (icon_type) {
-            case "resolution_completed":
-            case "resolution_approved":
+            case "success":
                 return <div className="rounded-full bg-green-100 p-1.5 dark:bg-green-900/30"><Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /></div>
 
-            case "resolution_invalidated":
-            case "resolution_rejected":
+            case "error":
                 return <div className="rounded-full bg-red-100 p-1.5 dark:bg-red-900/30"><X className="h-3.5 w-3.5 text-red-600 dark:text-red-400" /></div>
 
-            case "warning_issued":
+            case "warning":
                 return <div className="rounded-full bg-orange-200 p-1.5 dark:bg-orange-900/40">
                     <AlertOctagon className="h-3.5 w-3.5 text-orange-700 dark:text-orange-300" />
                 </div>
 
-            case "return_initiated":
-            case "resolution_created":
-            case "system_notice":
+            case "info":
             default:
                 return <div className="rounded-full bg-blue-100 p-1.5 dark:bg-blue-900/30"><Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" /></div>
         }
@@ -182,7 +178,7 @@ export function NotificationsDropdown() {
 
                     {unreadCount > 0 && (
                         unreadCount < 10 ? (
-                            <span className="absolute -top-0.5 -right-0.5 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-medium flex items-center justify-center ring-2 ring-background animate-in zoom-in duration-300">
+                            <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-medium flex items-center justify-center ring-2 ring-background animate-in zoom-in duration-300">
                                 {unreadCount}
                             </span>
                         ) : (
@@ -215,7 +211,7 @@ export function NotificationsDropdown() {
                             <TabsTrigger value="unread" className="text-xs cursor-pointer">
                                 Unread
                                 {unreadCount > 0 && (
-                                    <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 min-w-[1.25rem] text-[10px] font-normal">
+                                    <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 min-w-5 text-[10px] font-normal">
                                         {unreadCount}
                                     </Badge>
                                 )}

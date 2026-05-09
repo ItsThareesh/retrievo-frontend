@@ -88,13 +88,13 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
     function mapClaimStatusToText(status: ResolutionStatus) {
         switch (status) {
             case "pending":
-                return "Pending";
+                return item.type === "lost" ? "Claim Requested" : "Claim Pending";
             case "approved":
                 return "Approved";
             case "completed":
                 return "Completed";
             case "return_initiated":
-                return "Return Initiated";
+                return item.type === "lost" ? "Return Initiated" : "Return Requested";
         }
     }
 
