@@ -202,6 +202,33 @@ const STATUS_UI = {
             Icon: X,
         },
     },
+
+    invalidated: {
+        owner: {
+            theme: "orange",
+            title: "Resolution Invalidated",
+            subtitle: "This resolution has been invalidated.",
+            cardTitle: "Resolution Invalidated",
+            cardBody: "This resolution has been invalidated because the item is no longer available.",
+            Icon: X,
+        },
+        finder: {
+            theme: "orange",
+            title: "Resolution Invalidated",
+            subtitle: "This resolution has been invalidated.",
+            cardTitle: "Resolution Invalidated",
+            cardBody: "This resolution has been invalidated because the item is no longer available.",
+            Icon: X,
+        },
+        admin: {
+            theme: "orange",
+            title: "Resolution Invalidated",
+            subtitle: "This resolution has been invalidated.",
+            cardTitle: "Resolution Invalidated",
+            cardBody: "This resolution has been invalidated because the item is no longer available.",
+            Icon: X,
+        },
+    }
 } as const satisfies StatusUIMap;
 
 
@@ -295,8 +322,14 @@ export function ResolutionStatusContent({
 
                 {/* Header */}
                 <header className="text-center">
-                    <h1 className={`text-3xl font-bold bg-gradient-to-r ${theme.gradient} bg-clip-text text-transparent`}>
-                        {config.title}
+                    <h1 className={`
+                        text-3xl font-bold
+                        bg-gradient-to-r ${theme.gradient}
+                        bg-clip-text text-transparent
+                        inline-block
+                        will-change-transform
+                    `}>
+                            {config.title}
                     </h1>
                     <p className="text-muted-foreground">{config.subtitle}</p>
                 </header>

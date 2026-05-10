@@ -47,9 +47,9 @@ export function ActionButtons({ allowedActions, loading, onAction }: ActionButto
                     Mark as Completed
                 </Button>
             )}
-            {allowedActions.includes("invalidate") && (
+            {allowedActions.includes("fail") && (
                 <Button
-                    onClick={() => onAction("invalidate")}
+                    onClick={() => onAction("fail")}
                     disabled={loading}
                     size="lg"
                     variant="outline"

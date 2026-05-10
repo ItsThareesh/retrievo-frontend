@@ -12,4 +12,5 @@ export interface Notification {
     item_id?: string;
     resolution_id?: string;
     is_read: boolean;
+    updated_at: string;
 }

@@ -70,7 +70,7 @@ export function NotificationsDropdown() {
         }
     }
 
-    function RelativeTime({ createdAt }: { createdAt: string }) {
+    function RelativeTime({ updatedAt }: { updatedAt: string }) {
         const [mounted, setMounted] = useState(false)
 
         useEffect(() => {
@@ -79,7 +79,7 @@ export function NotificationsDropdown() {
 
         return (
             <span className="text-[10px] text-muted-foreground shrink-0">
-                {mounted ? formatDistanceToNow(new Date(createdAt), { addSuffix: true }) : ""}
+                {mounted ? formatDistanceToNow(new Date(updatedAt), { addSuffix: true }) : ""}
             </span>
         )
     }
@@ -116,7 +116,7 @@ export function NotificationsDropdown() {
                         {notification.title}
                     </p>
 
-                    <RelativeTime createdAt={notification.created_at} />
+                    <RelativeTime updatedAt={notification.updated_at} />
                 </div>
 
                 <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">

@@ -1,4 +1,4 @@
-export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'failed';
+export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'failed' | 'invalidated';
 
 export type ResolutionType = 'owner-initiated' | 'finder-initiated';
 
@@ -27,7 +27,7 @@ export interface Viewer {
     role: ViewerRole;
 }
 
-export type AllowedAction = 'approve' | 'reject' | 'complete' | 'invalidate';
+export type AllowedAction = 'approve' | 'reject' | 'complete' | 'fail';
 
 export interface LinkedItem {
     id: string;
