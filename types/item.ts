@@ -15,4 +15,7 @@ export interface Item {
     image: string | null;
     type: item_type;
     visibility: item_visibility;
+    hidden?: boolean;
+    hidden_reason?: string;
+    deleted?: boolean;
 }

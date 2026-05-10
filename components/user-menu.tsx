@@ -2,6 +2,8 @@
 
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,8 +13,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { User, LogOut, ShieldCheck } from 'lucide-react';
+import { User, LogOut, ShieldCheck, Sun, Moon } from 'lucide-react';
 
 interface UserMenuProps {
     user: {
@@ -24,11 +25,22 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setMounted(true);
+    }, []);
+
     const initials = user?.name
         ?.split(' ')
         .map(n => n[0])
         .join('')
         .toUpperCase() || 'U';
+
+    const isDark = theme === "dark";
+    const ThemeIcon = mounted ? (isDark ? Sun : Moon) : Moon;
 
     return (
         <DropdownMenu>
@@ -66,12 +78,17 @@ export function UserMenu({ user }: UserMenuProps) {
                         <DropdownMenuSeparator />
                     </>
                 )}
-                <DropdownMenuItem asChild>
-                            <Link href="" className="cursor-pointer">
-                                <ThemeToggle />
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        setTheme(isDark ? "light" : "dark");
+                    }}
+                >
+                    <ThemeIcon className={`mr-2 h-4 w-4 ${!mounted && 'opacity-50'}`} />
+                    <span>{mounted ? (isDark ? "Light Mode" : "Dark Mode") : "Toggle Theme"}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                     className="text-destructive focus:text-destructive cursor-pointer"
                     onClick={() => signOut({

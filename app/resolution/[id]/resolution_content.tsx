@@ -10,6 +10,7 @@ import {
     X,
     LucideIcon,
     ArrowUpRight,
+    ShieldAlert
 } from "lucide-react";
 
 import { Resolution, FinderContact, Viewer, AllowedAction, LinkedItem } from "@/types/resolutions";
@@ -372,18 +373,28 @@ export function ResolutionStatusContent({
 
                 {linkedItem && (
                     <div className={`rounded-lg border ${theme.border} p-4 space-y-2`}>
-                        <h3 className="text-sm font-medium text-muted-foreground">
-                            Linked {linkedItem.type === "lost" ? "Lost" : "Found"} Item
-                        </h3>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                Linked {linkedItem.type === "lost" ? "Lost" : "Found"} Item
+                            </h3>
+                            {linkedItem.hidden && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">
+                                    <ShieldAlert className="h-3 w-3" />
+                                    Hidden Item
+                                </span>
+                            )}
+                        </div>
 
                         <a
                             href={`/items/${linkedItem.id}`}
-                            className="block hover:opacity-80 transition-opacity"
+                            className={`block transition-opacity ${linkedItem.hidden ? 'opacity-80 pointer-events-none' : 'hover:opacity-80'}`}
+                            onClick={(e) => linkedItem.hidden && e.preventDefault()}
                         >
                             <div className="flex items-center gap-1">
-                                <p className="font-medium">{linkedItem.title}</p>
-
-                                <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                                <p className={`font-medium`}>
+                                    {linkedItem.title}
+                                </p>
+                                {!linkedItem.hidden && <ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
                             </div>
 
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
@@ -394,6 +405,16 @@ export function ResolutionStatusContent({
                                 )}
                             </div>
                         </a>
+                        
+                        {linkedItem.hidden && linkedItem.hidden_reason && (
+                            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-start gap-2.5 text-destructive text-sm mt-3">
+                                <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
+                                <div className="flex flex-col">
+                                    <span className="font-semibold text-[11px] uppercase tracking-wider">Hidden Reason</span>
+                                    <span className="font-medium mt-0.5 capitalize">{linkedItem.hidden_reason.replace(/_/g, ' ')}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

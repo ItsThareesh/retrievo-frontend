@@ -97,8 +97,10 @@ export function NotificationsDropdown() {
 
                 if (notification.type === 'potential_match') {
                     router.push('/items/' + notification.item_id);
-                } else if (notification.type !== "system") {
+                } else if (notification.type === "resolution") {
                     router.push('/resolution/' + notification.resolution_id);
+                } else if (notification.type === 'item' && notification.item_id !== undefined) {
+                    router.push('/items/' + notification.item_id);
                 }
             }}
         >

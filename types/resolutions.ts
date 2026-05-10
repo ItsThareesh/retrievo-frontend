@@ -37,6 +37,8 @@ export interface LinkedItem {
     date?: string;
     image?: string | null;
     type: 'lost' | 'found';
+    hidden?: boolean;
+    hidden_reason?: string;
 }
 
 export interface LinkableItem {
