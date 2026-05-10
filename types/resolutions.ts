@@ -39,6 +39,7 @@ export interface LinkedItem {
     type: 'lost' | 'found';
     hidden?: boolean;
     hidden_reason?: string;
+    deleted?: boolean;
 }
 
 export interface LinkableItem {

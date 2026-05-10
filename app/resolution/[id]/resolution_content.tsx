@@ -10,7 +10,8 @@ import {
     X,
     LucideIcon,
     ArrowUpRight,
-    ShieldAlert
+    ShieldAlert,
+    Trash2
 } from "lucide-react";
 
 import { Resolution, FinderContact, Viewer, AllowedAction, LinkedItem } from "@/types/resolutions";
@@ -377,24 +378,32 @@ export function ResolutionStatusContent({
                             <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 Linked {linkedItem.type === "lost" ? "Lost" : "Found"} Item
                             </h3>
-                            {linkedItem.hidden && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">
-                                    <ShieldAlert className="h-3 w-3" />
-                                    Hidden Item
-                                </span>
-                            )}
+                            <div className="flex gap-2">
+                                {linkedItem.hidden && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">
+                                        <ShieldAlert className="h-3 w-3" />
+                                        Hidden Item
+                                    </span>
+                                )}
+                                {linkedItem.deleted && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">
+                                        <Trash2 className="h-3 w-3" />
+                                        Deleted Item
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <a
                             href={`/items/${linkedItem.id}`}
-                            className={`block transition-opacity ${linkedItem.hidden ? 'opacity-80 pointer-events-none' : 'hover:opacity-80'}`}
-                            onClick={(e) => linkedItem.hidden && e.preventDefault()}
+                            className={`block transition-opacity ${(linkedItem.hidden || linkedItem.deleted) ? 'opacity-80 pointer-events-none' : 'hover:opacity-80'}`}
+                            onClick={(e) => (linkedItem.hidden || linkedItem.deleted) && e.preventDefault()}
                         >
                             <div className="flex items-center gap-1">
                                 <p className={`font-medium`}>
                                     {linkedItem.title}
                                 </p>
-                                {!linkedItem.hidden && <ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
+                                {!(linkedItem.hidden || linkedItem.deleted) && <ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
                             </div>
 
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
@@ -412,6 +421,15 @@ export function ResolutionStatusContent({
                                 <div className="flex flex-col">
                                     <span className="font-semibold text-[11px] uppercase tracking-wider">Hidden Reason</span>
                                     <span className="font-medium mt-0.5 capitalize">{linkedItem.hidden_reason.replace(/_/g, ' ')}</span>
+                                </div>
+                            </div>
+                        )}
+                        {linkedItem.deleted && (
+                            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-start gap-2.5 text-destructive text-sm mt-3">
+                                <Trash2 className="h-4 w-4 mt-0.5 shrink-0" />
+                                <div className="flex flex-col">
+                                    <span className="font-semibold text-[11px] uppercase tracking-wider">Deleted</span>
+                                    <span className="font-medium mt-0.5">This item has been deleted and is no longer available.</span>
                                 </div>
                             </div>
                         )}

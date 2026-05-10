@@ -2,7 +2,7 @@ import { Item } from "@/types/item";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { EyeOff, MapPin, Calendar, ShieldAlert } from "lucide-react";
+import { EyeOff, MapPin, Calendar, ShieldAlert, Trash2 } from "lucide-react";
 import { LOCATION_MAP } from "@/lib/constants/locations";
 import { formatDateString } from "@/lib/date-formatting";
 
@@ -14,17 +14,26 @@ export function ItemSummary({ item }: ItemSummaryProps) {
     if (!item) return null;
 
     const isHidden = item.hidden;
+    const isDeleted = item.deleted;
 
     return (
         <Card className="overflow-hidden shadow-sm">
             <div className="border-b bg-muted/40 px-4 py-3 sm:px-6 flex justify-between items-center">
                 <h2 className="text-base font-semibold">Item Summary</h2>
-                {isHidden && (
-                    <Badge variant="destructive" className="flex items-center gap-1 uppercase text-[10px]">
-                        <ShieldAlert className="h-3 w-3" />
-                        Hidden Item
-                    </Badge>
-                )}
+                <div className="flex gap-2">
+                    {isHidden && (
+                        <Badge variant="destructive" className="flex items-center gap-1 uppercase text-[10px]">
+                            <ShieldAlert className="h-3 w-3" />
+                            Hidden Item
+                        </Badge>
+                    )}
+                    {isDeleted && (
+                        <Badge variant="destructive" className="flex items-center gap-1 uppercase text-[10px]">
+                            <Trash2 className="h-3 w-3" />
+                            Deleted Item
+                        </Badge>
+                    )}
+                </div>
             </div>
             <div className="p-4 sm:p-6">
                 <div className="flex flex-col md:flex-row gap-6">
@@ -68,6 +77,16 @@ export function ItemSummary({ item }: ItemSummaryProps) {
                                 <div className="flex flex-col">
                                     <span className="font-semibold text-[11px] uppercase tracking-wider">Hidden Reason</span>
                                     <span className="font-medium mt-0.5 capitalize">{item.hidden_reason.replace(/_/g, ' ')}</span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {isDeleted && (
+                            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-start gap-2.5 text-destructive text-sm mt-2">
+                                <Trash2 className="h-4 w-4 mt-0.5 shrink-0" />
+                                <div className="flex flex-col">
+                                    <span className="font-semibold text-[11px] uppercase tracking-wider">Deleted</span>
+                                    <span className="font-medium mt-0.5">This item has been deleted and is no longer available.</span>
                                 </div>
                             </div>
                         )}
