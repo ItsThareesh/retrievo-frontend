@@ -379,7 +379,7 @@ export function ResolutionStatusContent({
                                 Linked {linkedItem.type === "lost" ? "Lost" : "Found"} Item
                             </h3>
                             <div className="flex gap-2">
-                                {linkedItem.hidden && (
+                                {linkedItem.hidden && !linkedItem.deleted && (
                                     <span className="inline-flex items-center gap-1 rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">
                                         <ShieldAlert className="h-3 w-3" />
                                         Hidden Item
@@ -394,44 +394,45 @@ export function ResolutionStatusContent({
                             </div>
                         </div>
 
-                        <a
-                            href={`/items/${linkedItem.id}`}
-                            className={`block transition-opacity ${(linkedItem.hidden || linkedItem.deleted) ? 'opacity-80 pointer-events-none' : 'hover:opacity-80'}`}
-                            onClick={(e) => (linkedItem.hidden || linkedItem.deleted) && e.preventDefault()}
-                        >
-                            <div className="flex items-center gap-1">
-                                <p className={`font-medium`}>
-                                    {linkedItem.title}
-                                </p>
-                                {!(linkedItem.hidden || linkedItem.deleted) && <ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
+                        {linkedItem.deleted ? (
+                            <div className="flex flex-col items-center justify-center text-center py-6 bg-muted/30 rounded-md border border-dashed mt-2">
+                                <Trash2 className="h-8 w-8 text-muted-foreground mb-3 opacity-50" />
+                                <span className="text-sm font-medium text-foreground">Item Deleted</span>
+                                <span className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">This linked item has been deleted and is no longer available.</span>
                             </div>
+                        ) : (
+                            <>
+                                <a
+                                    href={`/items/${linkedItem.id}`}
+                                    className={`block transition-opacity ${linkedItem.hidden ? 'opacity-80 pointer-events-none' : 'hover:opacity-80'}`}
+                                    onClick={(e) => linkedItem.hidden && e.preventDefault()}
+                                >
+                                    <div className="flex items-center gap-1 mt-2">
+                                        <p className={`font-medium`}>
+                                            {linkedItem.title}
+                                        </p>
+                                        {!linkedItem.hidden && <ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
+                                    </div>
 
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
-                                {linkedItem.category && <span>{linkedItem.category}</span>}
-                                {linkedItem.location && <span>{linkedItem.location}</span>}
-                                {linkedItem.date && (
-                                    <span>{formatDateString(linkedItem.date)}</span>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
+                                        {linkedItem.category && <span>{linkedItem.category}</span>}
+                                        {linkedItem.location && <span>{linkedItem.location}</span>}
+                                        {linkedItem.date && (
+                                            <span>{formatDateString(linkedItem.date)}</span>
+                                        )}
+                                    </div>
+                                </a>
+                                
+                                {linkedItem.hidden && linkedItem.hidden_reason && (
+                                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-start gap-2.5 text-destructive text-sm mt-3">
+                                        <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-[11px] uppercase tracking-wider">Hidden Reason</span>
+                                            <span className="font-medium mt-0.5 capitalize">{linkedItem.hidden_reason.replace(/_/g, ' ')}</span>
+                                        </div>
+                                    </div>
                                 )}
-                            </div>
-                        </a>
-                        
-                        {linkedItem.hidden && linkedItem.hidden_reason && (
-                            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-start gap-2.5 text-destructive text-sm mt-3">
-                                <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
-                                <div className="flex flex-col">
-                                    <span className="font-semibold text-[11px] uppercase tracking-wider">Hidden Reason</span>
-                                    <span className="font-medium mt-0.5 capitalize">{linkedItem.hidden_reason.replace(/_/g, ' ')}</span>
-                                </div>
-                            </div>
-                        )}
-                        {linkedItem.deleted && (
-                            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-start gap-2.5 text-destructive text-sm mt-3">
-                                <Trash2 className="h-4 w-4 mt-0.5 shrink-0" />
-                                <div className="flex flex-col">
-                                    <span className="font-semibold text-[11px] uppercase tracking-wider">Deleted</span>
-                                    <span className="font-medium mt-0.5">This item has been deleted and is no longer available.</span>
-                                </div>
-                            </div>
+                            </>
                         )}
                     </div>
                 )}
