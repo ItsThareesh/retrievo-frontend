@@ -2,8 +2,32 @@ import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import { internalFetchWithTimeout } from "./api/helpers";
 
-// Deduplicate concurrent token refresh requests
-let pendingRefreshPromise: Promise<{ access_token: string; expires_at: number }> | null = null;
+// Deduplicate concurrent token refresh requests per token
+const pendingRefreshPromises = new Map<string, Promise<{ access_token: string; expires_at: number }>>();
+
+async function refreshProfile(tokenString: string) {
+    const res = await internalFetchWithTimeout(
+        `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
+        { headers: { Authorization: `Bearer ${tokenString}` } },
+        5000
+    );
+
+    if (!res.ok) {
+        throw new Error(`Failed to fetch user data, status: ${res.status}`);
+    }
+
+    const userData = await res.json();
+    return {
+        public_id: userData.public_id,
+        name: userData.name,
+        email: userData.email,
+        image: userData.image,
+        hostel: userData.hostel || null,
+        phone: userData.phone || null,
+        instagramId: userData.instagram_id || null,
+        role: userData.role
+    };
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -79,60 +103,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // Fetch and cache user profile data in JWT on initial sign-in
                 try {
-                    const res = await internalFetchWithTimeout(
-                        `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
-                        { headers: { Authorization: `Bearer ${token.backendToken}` } },
-                        5000
-                    );
-
-                    if (res.ok) {
-                        const userData = await res.json();
-
-                        token.user = {
-                            public_id: userData.public_id,
-                            name: userData.name,
-                            email: userData.email,
-                            image: userData.image,
-                            hostel: userData.hostel || null,
-                            phone: userData.phone || null,
-                            instagramId: userData.instagram_id || null,
-                            role: userData.role
-                        };
-                    }
+                    token.user = await refreshProfile(token.backendToken as string);
                 } catch (err) {
                     console.error("Failed to fetch user profile during initial sign-in:", err);
                 }
             }
 
             // If update() was called, refresh user data from backend containing hostel/phone update
-            if (trigger === "update") {
-                if (token.backendToken) {
-                    try {
-                        const res = await internalFetchWithTimeout(
-                            `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
-                            { headers: { Authorization: `Bearer ${token.backendToken}` } },
-                            5000
-                        );
-
-                        if (res.ok) {
-                            const userData = await res.json();
-
-                            token.user = {
-                                public_id: userData.public_id,
-                                name: userData.name,
-                                email: userData.email,
-                                image: userData.image,
-                                hostel: userData.hostel || null,
-                                phone: userData.phone || null,
-                                instagramId: userData.instagram_id || null,
-                                role: userData.role
-                            };
-                        } else {
-                            console.error("Failed to fetch user data, status:", res.status);
-                        }
-                    } catch (err) {
-                        console.error("Failed to refresh user profile:", err);
-                    }
+            if (trigger === "update" && token.backendToken) {
+                try {
+                    token.user = await refreshProfile(token.backendToken as string);
+                } catch (err) {
+                    console.error("Failed to refresh user profile:", err);
                 }
 
                 return token;
@@ -160,13 +142,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // If token expires in less than 5 minutes, refresh it
             if (timeUntilExpiry <= REFRESH_WINDOW) {
                 try {
-                    if (!pendingRefreshPromise) {
-                        pendingRefreshPromise = internalFetchWithTimeout(
+                    const tokenStr = token.backendToken as string;
+                    let refreshPromise = pendingRefreshPromises.get(tokenStr);
+
+                    // Start a new refresh request if one isn't already pending for this token
+                    if (!refreshPromise) {
+                        refreshPromise = internalFetchWithTimeout(
                             `${process.env.INTERNAL_BACKEND_URL}/auth/refresh`,
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ token: token.backendToken })
+                                body: JSON.stringify({ token: tokenStr })
                             },
                         ).then(async (res) => {
                             if (!res.ok) {
@@ -174,11 +160,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             }
                             return res.json();
                         }).finally(() => {
-                            pendingRefreshPromise = null;
+                            pendingRefreshPromises.delete(tokenStr);
                         });
+                        
+                        pendingRefreshPromises.set(tokenStr, refreshPromise);
                     }
 
-                    const data = await pendingRefreshPromise;
+                    const data = await refreshPromise;
                     token.backendToken = data.access_token;
                     token.expires_at = data.expires_at * 1000; // Convert to ms
                 } catch (err) {
@@ -195,8 +183,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
 
         async session({ session, token }) {
+            // If the backend token was cleared (e.g., failed refresh, expired), 
+            // completely invalidate the session object to prevent partial authenticated states.
             if (!token.backendToken) {
-                return session;
+                return {
+                    ...session,
+                    user: undefined as any,
+                    expires_at: 0,
+                    backendToken: ""
+                };
             }
 
             // Attach backend token and expiry to session

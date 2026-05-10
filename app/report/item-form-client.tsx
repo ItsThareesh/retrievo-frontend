@@ -178,7 +178,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
         <div className="max-w-3xl mx-auto py-10 px-4">
             <div className="mb-8 text-center">
                 <h1 className="text-3xl font-bold tracking-tight mb-2">
-                    Report {form.getValues("item_type") === 'lost' ? 'Lost' : 'Found'} Item
+                    Report Item
                 </h1>
                 <p className="text-muted-foreground max-w-lg mx-auto">
                     Please provide as much detail as possible to help us connect the item with its owner.
