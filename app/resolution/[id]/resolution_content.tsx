@@ -9,15 +9,18 @@ import {
     CheckCircle2,
     X,
     LucideIcon,
+    ArrowUpRight,
+    ShieldAlert,
+    Trash2
 } from "lucide-react";
 
-import { Resolution, FinderContact, Viewer, AllowedAction } from "@/types/resolutions";
+import { Resolution, FinderContact, Viewer, AllowedAction, LinkedItem } from "@/types/resolutions";
 import { Item } from "@/types/item";
 import {
     approveResolution,
     rejectResolution,
     completeResolution,
-    invalidateResolution,
+    failResolution,
 } from "@/lib/api/resolutions";
 
 import { ActionButtons } from "./components/action-buttons";
@@ -27,6 +30,7 @@ import { ItemSummary } from "./components/item-summary";
 import { StatusAlert } from "./components/status-alert";
 import { FinderContactCard } from "./components/finder-contact";
 import { ThemeKey, THEMES } from "./theme";
+import { formatDateString } from "@/lib/date-formatting";
 
 
 /* STATUS UI MAP */
@@ -153,7 +157,7 @@ const STATUS_UI = {
         },
     },
 
-    invalidated: {
+    failed: {
         owner: {
             theme: "amber",
             title: "Marked as Mismatched",
@@ -169,7 +173,7 @@ const STATUS_UI = {
         admin: {
             theme: "amber",
             title: "Resolution Invalidated",
-            subtitle: "The owner invalidated the return.",
+            subtitle: "The owner failed the return.",
             showStatusCard: false,
         },
     },
@@ -200,6 +204,33 @@ const STATUS_UI = {
             Icon: X,
         },
     },
+
+    invalidated: {
+        owner: {
+            theme: "orange",
+            title: "Resolution Invalidated",
+            subtitle: "This resolution has been invalidated.",
+            cardTitle: "Resolution Invalidated",
+            cardBody: "This resolution has been invalidated because the item is no longer available.",
+            Icon: X,
+        },
+        finder: {
+            theme: "orange",
+            title: "Resolution Invalidated",
+            subtitle: "This resolution has been invalidated.",
+            cardTitle: "Resolution Invalidated",
+            cardBody: "This resolution has been invalidated because the item is no longer available.",
+            Icon: X,
+        },
+        admin: {
+            theme: "orange",
+            title: "Resolution Invalidated",
+            subtitle: "This resolution has been invalidated.",
+            cardTitle: "Resolution Invalidated",
+            cardBody: "This resolution has been invalidated because the item is no longer available.",
+            Icon: X,
+        },
+    }
 } as const satisfies StatusUIMap;
 
 
@@ -220,6 +251,7 @@ interface Props {
     finderContact: FinderContact | null;
     viewer: Viewer;
     allowedActions: AllowedAction[];
+    linkedItem: LinkedItem | null;
 }
 
 export function ResolutionStatusContent({
@@ -228,6 +260,7 @@ export function ResolutionStatusContent({
     finderContact,
     viewer,
     allowedActions,
+    linkedItem,
 }: Props) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -252,13 +285,8 @@ export function ResolutionStatusContent({
             const res = action === "approve"
                 ? await approveResolution(resolution.id, item.id)
                 : action === "complete"
-                    ? await completeResolution(
-                        resolution.id,
-                        item.id,
-                        item.type,
-                        item.visibility
-                    )
-                    : await invalidateResolution(resolution.id, item.id);
+                    ? await completeResolution(resolution.id)
+                    : await failResolution(resolution.id, item.id);
 
             if (!res?.ok) throw new Error();
             router.refresh();
@@ -296,8 +324,14 @@ export function ResolutionStatusContent({
 
                 {/* Header */}
                 <header className="text-center">
-                    <h1 className={`text-3xl font-bold bg-gradient-to-r ${theme.gradient} bg-clip-text text-transparent`}>
-                        {config.title}
+                    <h1 className={`
+                        text-3xl font-bold
+                        bg-gradient-to-r ${theme.gradient}
+                        bg-clip-text text-transparent
+                        inline-block
+                        will-change-transform
+                    `}>
+                            {config.title}
                     </h1>
                     <p className="text-muted-foreground">{config.subtitle}</p>
                 </header>
@@ -335,8 +369,73 @@ export function ResolutionStatusContent({
                     onCancel={() => setShowRejectDialog(false)}
                 />
 
-                <ClaimDescription resolution={resolution} borderClass={theme.border} />
+                {resolution.description && <ClaimDescription resolution={resolution} borderClass={theme.border} />}
                 <ItemSummary item={item} />
+
+                {linkedItem && (
+                    <div className={`rounded-lg border ${theme.border} p-4 space-y-2`}>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                Linked {linkedItem.type === "lost" ? "Lost" : "Found"} Item
+                            </h3>
+                            <div className="flex gap-2">
+                                {linkedItem.hidden && !linkedItem.deleted && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">
+                                        <ShieldAlert className="h-3 w-3" />
+                                        Hidden Item
+                                    </span>
+                                )}
+                                {linkedItem.deleted && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-destructive text-destructive-foreground px-2 py-0.5 text-xs font-semibold uppercase tracking-wider">
+                                        <Trash2 className="h-3 w-3" />
+                                        Deleted Item
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {linkedItem.deleted ? (
+                            <div className="flex flex-col items-center justify-center text-center py-6 bg-muted/30 rounded-md border border-dashed mt-2">
+                                <Trash2 className="h-8 w-8 text-muted-foreground mb-3 opacity-50" />
+                                <span className="text-sm font-medium text-foreground">Item Deleted</span>
+                                <span className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">This linked item has been deleted and is no longer available.</span>
+                            </div>
+                        ) : (
+                            <>
+                                <a
+                                    href={`/items/${linkedItem.id}`}
+                                    className={`block transition-opacity ${linkedItem.hidden ? 'opacity-80 pointer-events-none' : 'hover:opacity-80'}`}
+                                    onClick={(e) => linkedItem.hidden && e.preventDefault()}
+                                >
+                                    <div className="flex items-center gap-1 mt-2">
+                                        <p className={`font-medium`}>
+                                            {linkedItem.title}
+                                        </p>
+                                        {!linkedItem.hidden && <ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
+                                        {linkedItem.category && <span>{linkedItem.category}</span>}
+                                        {linkedItem.location && <span>{linkedItem.location}</span>}
+                                        {linkedItem.date && (
+                                            <span>{formatDateString(linkedItem.date)}</span>
+                                        )}
+                                    </div>
+                                </a>
+                                
+                                {linkedItem.hidden && linkedItem.hidden_reason && (
+                                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-start gap-2.5 text-destructive text-sm mt-3">
+                                        <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-[11px] uppercase tracking-wider">Hidden Reason</span>
+                                            <span className="font-medium mt-0.5 capitalize">{linkedItem.hidden_reason.replace(/_/g, ' ')}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

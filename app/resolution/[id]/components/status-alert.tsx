@@ -19,7 +19,7 @@ export function StatusAlert({ title, body, icon: Icon, theme }: StatusAlertProps
                     <h3 className={`font-semibold ${theme.textMain} mb-2`}>
                         {title}
                     </h3>
-                    <p className={`text-sm ${theme.textSub} mb-3`}>
+                    <p className={`text-sm ${theme.textSub}`}>
                         {body}
                     </p>
                     {theme.rejectionReason && (
