@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
     Table,
     TableBody,
@@ -153,7 +154,9 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                                             <AvatarImage src={user.image} alt={user.name} />
                                             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                                         </Avatar>
-                                        <div className="text-sm font-medium text-foreground">{user.name}</div>
+                                        <Link href={`/profile/${user.public_id}`} className="text-sm font-medium text-foreground hover:underline">
+                                            {user.name}
+                                        </Link>
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle">

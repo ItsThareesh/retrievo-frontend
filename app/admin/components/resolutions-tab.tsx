@@ -71,6 +71,13 @@ function StatusBadge({ status }: { status: ResolutionStatus }) {
                     Invalidated
                 </Badge>
             );
+        case "invalidated":
+            return (
+                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Invalidated
+                </Badge>
+            );
 
         default:
             return null;
@@ -132,7 +139,9 @@ export function ResolutionsTab() {
 
                                     <TableCell className="px-6 py-5 align-middle">
                                         <div className="space-y-1">
-                                            <div className="text-sm font-medium text-foreground">{res.owner_name}</div>
+                                            <Link href={`/profile/${res.owner_id}`} className="text-sm font-medium text-foreground hover:underline">
+                                                {res.owner_name}
+                                            </Link>
                                             <div className="text-xs text-muted-foreground leading-relaxed">
                                                 {res.owner_email}
                                             </div>
@@ -141,7 +150,9 @@ export function ResolutionsTab() {
 
                                     <TableCell className="px-6 py-5 align-middle">
                                         <div className="space-y-1">
-                                            <div className="text-sm font-medium text-foreground">{res.finder_name}</div>
+                                            <Link href={`/profile/${res.finder_id}`} className="text-sm font-medium text-foreground hover:underline">
+                                                {res.finder_name}
+                                            </Link>
                                             <div className="text-xs text-muted-foreground leading-relaxed">
                                                 {res.finder_email}
                                             </div>
