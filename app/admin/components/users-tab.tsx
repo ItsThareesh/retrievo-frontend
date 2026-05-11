@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     Table,
@@ -11,6 +11,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,7 +25,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AlertCircle, Ban } from "lucide-react";
+import { AlertCircle, Ban, Search } from "lucide-react";
 import { getUsers, moderateUser } from "@/lib/api/admin";
 import { UserDetail } from "@/types/admin";
 import useSWR from "swr";
@@ -228,21 +229,52 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
     );
 }
 
-export function UsersTab() {
-    const { data: users, isLoading, mutate } = useSWR(['users', 50, 0], () => fetchData(() => getUsers(50, 0)));
+function useDebounce<T>(value: T, delay?: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
-    if (isLoading) {
-        return <UsersSkeleton />;
-    }
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+}
+
+export function UsersTab() {
+    const [search, setSearch] = useState("");
+    const debouncedSearch = useDebounce(search, 500);
+
+    const { data: users, isLoading, mutate } = useSWR(
+        ['users', 50, 0, debouncedSearch], 
+        () => fetchData(() => getUsers(50, 0, debouncedSearch))
+    );
 
     return (
         <Card>
-            <CardHeader className="px-6 py-6">
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Monitor and moderate platform users</CardDescription>
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-                <UsersTable users={users || []} onUpdate={mutate} />
+            <div className="px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b">
+                <div>
+                    <CardTitle className="text-xl">User Management</CardTitle>
+                    <CardDescription className="mt-1.5">Monitor and moderate platform users</CardDescription>
+                </div>
+                <div className="relative w-full sm:w-80">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-200" />
+                    <Input
+                        type="search"
+                        placeholder="Search by name or email..."
+                        className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+            </div>
+            <CardContent className="px-6 pt-6 pb-6">
+                {isLoading ? (
+                    <UsersSkeleton />
+                ) : (
+                    <UsersTable users={users || []} onUpdate={mutate} />
+                )}
             </CardContent>
         </Card>
     );
