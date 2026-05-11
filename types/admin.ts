@@ -91,4 +91,5 @@ export interface ModerateUserRequest {
 
 export interface ModerateItemRequest {
     action: "hide" | "restore" | "delete";
+    force?: boolean;
 }

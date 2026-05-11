@@ -155,7 +155,12 @@ export async function moderateItem(itemId: string, request: ModerateItemRequest)
 
         if (!res.ok) {
             console.error("moderateItem failed:", res.status);
-            return { ok: false, status: res.status };
+            try {
+                const errorData = await res.json();
+                return { ok: false, status: res.status, errorData };
+            } catch (e) {
+                return { ok: false, status: res.status };
+            }
         }
 
         const result = await safeJson(res);
