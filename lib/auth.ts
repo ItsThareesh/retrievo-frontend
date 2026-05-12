@@ -5,7 +5,7 @@ import { internalFetchWithTimeout } from "./api/helpers";
 // Deduplicate concurrent token refresh requests per token
 const pendingRefreshPromises = new Map<string, Promise<{ access_token: string; expires_at: number }>>();
 
-async function refreshProfile(tokenString: string) {
+async function getProfile(tokenString: string) {
     const res = await internalFetchWithTimeout(
         `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
         { headers: { Authorization: `Bearer ${tokenString}` } },
@@ -22,10 +22,10 @@ async function refreshProfile(tokenString: string) {
         name: userData.name,
         email: userData.email,
         image: userData.image,
-        hostel: userData.hostel || null,
-        phone: userData.phone || null,
-        instagramId: userData.instagram_id || null,
-        role: userData.role
+        hostel: (userData.hostel ?? null) as "boys" | "girls" | null,
+        phone: userData.phone ?? null,
+        instagramId: userData.instagram_id ?? null,
+        role: userData.role as "user" | "admin",
     };
 }
 
@@ -41,141 +41,126 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         }),
     ],
-    session: { strategy: "jwt" },
+    session: {
+        strategy: "jwt",
+        maxAge: 60 * 60 * 24, // 24 hours, Adjust to match your backend.
+    },
     callbacks: {
         async signIn({ account, profile }) {
             if (!profile?.email) return "/auth/error?error=NoEmail";
 
-            // Enforce domain restriction in production environment
             if (process.env.APP_ENV === "production") {
-                const email = profile.email.toLowerCase();
-
-                if (!email.endsWith('@nitc.ac.in')) {
+                if (!profile.email.toLowerCase().endsWith("@nitc.ac.in")) {
                     return "/auth/error?error=AccessDenied";
                 }
             }
 
-            // ID must exist for secure backend verification
             if (!account?.id_token) {
                 return "/auth/error?error=MissingIdToken";
             }
 
             try {
-                // Returns access token and user ID from backend
                 const res = await internalFetchWithTimeout(
                     `${process.env.INTERNAL_BACKEND_URL}/auth/google`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id_token: account.id_token })
+                        body: JSON.stringify({ id_token: account.id_token }),
                     },
-                    8000 // 8 second timeout for auth
+                    8000
                 );
 
-                // Backend reachable, but rejected
-                if (res.status === 403) {
-                    return "/auth/error?error=UserBanned";
-                }
-
-                if (!res.ok) {
-                    return "/auth/error?error=Default";
-                }
+                if (res.status === 403) return "/auth/error?error=UserBanned";
+                if (!res.ok) return "/auth/error?error=Default";
 
                 const data = await res.json();
-
-                // Attach to account (will be available in jwt callback)
                 account.backendToken = data.access_token;
-                account.expires_at = data.expires_at * 1000; // Convert to ms for JS Date
+                account.expires_at = data.expires_at * 1000; // to ms
 
                 return true;
-            }
-            catch (err) {
-                console.error("Backend unreachable:", err);
+            } catch (err) {
+                console.error("Backend unreachable during signIn:", err);
                 return "/auth/error?error=BackendAuthFailed";
             }
         },
 
         async jwt({ token, account, profile, trigger }) {
-            // On initial sign in, account and profile are available
+            // Initial sign-in 
+            // account + profile are only present on the very first call.
+            // Populate the token and return early; no refresh logic needed yet.
             if (account && profile) {
                 token.backendToken = account.backendToken;
                 token.expires_at = account.expires_at;
-
-                // Fetch and cache user profile data in JWT on initial sign-in
                 try {
-                    token.user = await refreshProfile(token.backendToken as string);
+                    token.user = await getProfile(account.backendToken!);
                 } catch (err) {
-                    console.error("Failed to fetch user profile during initial sign-in:", err);
+                    console.error("Failed to fetch user profile on sign-in:", err);
                 }
+                return token;
             }
 
-            // If update() was called, refresh user data from backend containing hostel/phone update
+            // Explicit session update (e.g. hostel/phone change) 
             if (trigger === "update" && token.backendToken) {
                 try {
-                    token.user = await refreshProfile(token.backendToken as string);
+                    token.user = await getProfile(token.backendToken as string);
                 } catch (err) {
-                    console.error("Failed to refresh user profile:", err);
+                    console.error("Failed to refresh user profile on update:", err);
                 }
-
                 return token;
             }
 
-            // Only check refresh if we have a token and expiry time
-            if (!token.backendToken || !token.expires_at) {
-                return token;
-            }
+            // Guard: nothing to validate 
+            if (!token.backendToken || !token.expires_at) return token;
 
-            // Check if token needs refresh (refresh 10 minutes before expiry)
+            // Token expiry handling 
             const now = Date.now();
-            const timeUntilExpiry = Number(token.expires_at) - now;
-            const REFRESH_WINDOW = 5 * 60 * 1000; // 5 minutes
+            const timeUntilExpiry = (token.expires_at as number) - now;
+            const REFRESH_WINDOW = 10 * 60 * 1000; // 10 minutes
 
-            // Already expired, then force logout
             if (timeUntilExpiry <= 0) {
-                token.backendToken = null;
-                token.expires_at = null;
-                token.user = null;
-
+                // Fully expired — force logout on next session check
+                token.backendToken = undefined;
+                token.expires_at = undefined;
+                token.user = undefined;
                 return token;
             }
 
-            // If token expires in less than 5 minutes, refresh it
             if (timeUntilExpiry <= REFRESH_WINDOW) {
+                const tokenStr = token.backendToken as string;
                 try {
-                    const tokenStr = token.backendToken as string;
+                    // Safety valve against map growth during outages
+                    if (pendingRefreshPromises.size > 100) {
+                        pendingRefreshPromises.clear();
+                    }
+
                     let refreshPromise = pendingRefreshPromises.get(tokenStr);
 
-                    // Start a new refresh request if one isn't already pending for this token
                     if (!refreshPromise) {
                         refreshPromise = internalFetchWithTimeout(
                             `${process.env.INTERNAL_BACKEND_URL}/auth/refresh`,
                             {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ token: tokenStr })
-                            },
-                        ).then(async (res) => {
-                            if (!res.ok) {
-                                throw new Error("Token refresh failed");
+                                body: JSON.stringify({ token: tokenStr }),
                             }
-                            return res.json();
+                        ).then(async (res) => {
+                            if (!res.ok) throw new Error("Token refresh failed");
+                            return res.json() as Promise<{ access_token: string; expires_at: number }>;
                         }).finally(() => {
                             pendingRefreshPromises.delete(tokenStr);
                         });
-                        
+
                         pendingRefreshPromises.set(tokenStr, refreshPromise);
                     }
 
                     const data = await refreshPromise;
                     token.backendToken = data.access_token;
-                    token.expires_at = data.expires_at * 1000; // Convert to ms
+                    token.expires_at = data.expires_at * 1000; // to ms
                 } catch (err) {
                     console.error("Token refresh error:", err);
-                    token.backendToken = null;
-                    token.expires_at = null;
-                    token.user = null;
-
-                    return token;
+                    token.backendToken = undefined;
+                    token.expires_at = undefined;
+                    token.user = undefined;
                 }
             }
 
@@ -183,54 +168,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
 
         async session({ session, token }) {
-            // If the backend token was cleared (e.g., failed refresh, expired), 
-            // completely invalidate the session object to prevent partial authenticated states.
+            // backendToken being absent means the token expired or refresh failed.
+            // Return a blank session so the client treats the user as logged out.
             if (!token.backendToken) {
                 return {
                     ...session,
-                    user: undefined as any,
-                    expires_at: 0,
-                    backendToken: ""
+                    backendToken: undefined,
+                    expires_at: undefined,
+                    user: {
+                        ...session.user,
+                        public_id: "",
+                        hostel: null,
+                        phone: null,
+                        instagramId: null,
+                        role: "user" as const,
+                    },
                 };
             }
 
-            // Attach backend token and expiry to session
             session.backendToken = token.backendToken as string;
             session.expires_at = token.expires_at as number;
 
-            // Use cached user data from JWT token if available
             if (token.user) {
-                const userData = token.user as {
-                    public_id: string;
-                    name: string;
-                    email: string;
-                    image: string;
-                    hostel: "boys" | "girls" | null;
-                    phone: string | null;
-                    instagramId: string | null;
-                    role: "user" | "admin";
-                };
-
                 session.user = {
                     ...session.user,
-                    public_id: userData.public_id,
-                    name: userData.name,
-                    email: userData.email,
-                    image: userData.image,
-                    hostel: userData.hostel,
-                    phone: userData.phone,
-                    instagramId: userData.instagramId,
-                    role: userData.role
+                    ...token.user,
                 };
-
-                return session;
             }
 
             return session;
         },
     },
     pages: {
-        error: '/auth/error',
-        signIn: '/auth/signin',
-    }
+        error: "/auth/error",
+        signIn: "/auth/signin",
+    },
 });

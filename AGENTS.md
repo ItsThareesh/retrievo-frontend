@@ -4,7 +4,7 @@
 
 ## Auth Flow
 - Google OAuth → POST `id_token` → receive `{ access_token, expires_at }`
-- `@nitc.ac.in` only; redirect others to error
+- `@nitc.ac.in` only in production; redirect others to error. Otherwise allow all domains in testing.
 - JWT: initial sign-in caches `/profile/me`; refresh on `trigger="update"`; auto-refresh if within 10min expiry
 - **Guards in page.tsx:** redirect to signin or onboarding; never in middleware
 

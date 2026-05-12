@@ -1,10 +1,10 @@
 export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'failed' | 'invalidated';
 
-export type ResolutionType = 'owner-initiated' | 'finder-initiated';
+export type ResolutionType = 'owner_initiated' | 'finder_initiated';
 
 export interface Resolution {
     id: string;
-    anchor_item_type: 'lost' | 'found';
+    type: ResolutionType;
     lost_item_id?: string;
     found_item_id?: string;
     created_by: string;
