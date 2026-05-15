@@ -354,7 +354,8 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                     placeholder="Mention where it was found or its general appearance. Avoid sharing unique identifying details."
                                     className="resize-none min-h-[120px]"
                                     disabled={isSubmitting}
-                                    {...field} />
+                                    {...field} 
+                                />
                             </FormControl>
 
                             <FormDescription>

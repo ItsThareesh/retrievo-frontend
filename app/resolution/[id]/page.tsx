@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { getResolutionStatus } from "@/lib/api/resolutions";
 import { notFound, redirect } from "next/navigation";
-import { ResolutionStatusContent } from "./resolution_content";
+import { ResolutionStatusContent } from "./resolution-content";
 import Link from "next/link";
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 

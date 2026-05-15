@@ -95,9 +95,9 @@ export function NotificationsDropdown() {
                     markAsRead(notification.id);
                 }
 
-                if (notification.type === 'potential_match') {
+                if (notification.type === 'potential_match' && notification.item_id !== undefined) {
                     router.push('/items/' + notification.item_id);
-                } else if (notification.type === "resolution") {
+                } else if (notification.type === "resolution" && notification.resolution_id !== undefined) {
                     router.push('/resolution/' + notification.resolution_id);
                 } else if (notification.type === 'item' && notification.item_id !== undefined) {
                     router.push('/items/' + notification.item_id);

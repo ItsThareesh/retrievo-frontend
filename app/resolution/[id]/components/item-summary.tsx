@@ -78,7 +78,7 @@ export function ItemSummary({ item }: ItemSummaryProps) {
                         <div>
                             <div className="flex items-start justify-between gap-4 mb-2">
                                 <h3 className="text-xl font-bold leading-tight">{item.title}</h3>
-                                <Badge variant={item.type === "lost" ? "destructive" : "default"} className="capitalize">
+                                <Badge variant="default" className="capitalize">
                                     {item.type}
                                 </Badge>
                             </div>
