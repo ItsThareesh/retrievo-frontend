@@ -104,6 +104,7 @@ export function useNotifications() {
         notificationsFetcher,
         {
             fallbackData: storedData?.data ?? undefined,
+            revalidateOnMount: false,
             revalidateOnFocus: false,
             revalidateOnReconnect: false,
             dedupingInterval: 300_000, // 5 minutes
@@ -120,6 +121,7 @@ export function useNotifications() {
         COUNT_KEY,
         countFetcher,
         {
+            
             revalidateOnFocus: false,
             revalidateOnReconnect: true,
             dedupingInterval: 10_000, // 10 seconds

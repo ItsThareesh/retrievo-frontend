@@ -3,11 +3,12 @@ import Google from "next-auth/providers/google"
 import { internalFetchWithTimeout } from "./api/helpers";
 
 // Deduplicate concurrent token refresh requests per token
-const pendingRefreshPromises = new Map<string, Promise<{ access_token: string; expires_at: number }>>();
+// TOKEN_REFRESH_DISABLED: Used for token refresh when switching to proper refresh library
+// const pendingRefreshPromises = new Map<string, Promise<{ access_token: string; expires_at: number }>>();
 
 async function getProfile(tokenString: string) {
     const res = await internalFetchWithTimeout(
-        `${process.env.INTERNAL_BACKEND_URL}/profile/me`,
+        `${process.env.INTERNAL_BACKEND_URL}/auth/me`,
         { headers: { Authorization: `Bearer ${tokenString}` } },
         5000
     );
@@ -43,7 +44,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     ],
     session: {
         strategy: "jwt",
-        maxAge: 60 * 60 * 24, // 24 hours, Adjust to match your backend.
+        maxAge: 60 * 60 * 1, // 1 hour, matches backend token expiry (no refresh)
     },
     callbacks: {
         async signIn({ account, profile }) {
@@ -75,7 +76,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 const data = await res.json();
                 account.backendToken = data.access_token;
-                account.expires_at = data.expires_at * 1000; // to ms
+                account.expires_at = data.expires_at * 1000; // Convert to ms
 
                 return true;
             } catch (err) {
@@ -91,6 +92,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (account && profile) {
                 token.backendToken = account.backendToken;
                 token.expires_at = account.expires_at;
+                
                 try {
                     token.user = await getProfile(account.backendToken!);
                 } catch (err) {
@@ -109,60 +111,60 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return token;
             }
 
-            // Guard: nothing to validate 
+            // Guard: nothing to validate
             if (!token.backendToken || !token.expires_at) return token;
 
-            // Token expiry handling 
-            const now = Date.now();
-            const timeUntilExpiry = (token.expires_at as number) - now;
-            const REFRESH_WINDOW = 10 * 60 * 1000; // 10 minutes
-
-            if (timeUntilExpiry <= 0) {
-                // Fully expired — force logout on next session check
-                token.backendToken = undefined;
-                token.expires_at = undefined;
-                token.user = undefined;
-                return token;
-            }
-
-            if (timeUntilExpiry <= REFRESH_WINDOW) {
-                const tokenStr = token.backendToken as string;
-                try {
-                    // Safety valve against map growth during outages
-                    if (pendingRefreshPromises.size > 100) {
-                        pendingRefreshPromises.clear();
-                    }
-
-                    let refreshPromise = pendingRefreshPromises.get(tokenStr);
-
-                    if (!refreshPromise) {
-                        refreshPromise = internalFetchWithTimeout(
-                            `${process.env.INTERNAL_BACKEND_URL}/auth/refresh`,
-                            {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ token: tokenStr }),
-                            }
-                        ).then(async (res) => {
-                            if (!res.ok) throw new Error("Token refresh failed");
-                            return res.json() as Promise<{ access_token: string; expires_at: number }>;
-                        }).finally(() => {
-                            pendingRefreshPromises.delete(tokenStr);
-                        });
-
-                        pendingRefreshPromises.set(tokenStr, refreshPromise);
-                    }
-
-                    const data = await refreshPromise;
-                    token.backendToken = data.access_token;
-                    token.expires_at = data.expires_at * 1000; // to ms
-                } catch (err) {
-                    console.error("Token refresh error:", err);
-                    token.backendToken = undefined;
-                    token.expires_at = undefined;
-                    token.user = undefined;
-                }
-            }
+            // TOKEN_REFRESH_DISABLED: Token refresh logic disabled
+            // Backend now issues 1-hour tokens without refresh support
+            // When switching to proper refresh library, re-enable this block:
+            //
+            // const now = Date.now();
+            // console.log("Current Token", token.backendToken);
+            // console.log("Persisted token expiry", new Date(token.expires_at as number).toISOString());
+            //
+            // if (now > (token.expires_at as number)) {
+            //     const tokenStr = token.backendToken as string;
+            //     try {
+            //         // Safety valve against map growth during outages
+            //         if (pendingRefreshPromises.size > 100) {
+            //             pendingRefreshPromises.clear();
+            //         }
+            //
+            //         let refreshPromise = pendingRefreshPromises.get(tokenStr);
+            //
+            //         if (!refreshPromise) {
+            //             refreshPromise = internalFetchWithTimeout(
+            //                 `${process.env.INTERNAL_BACKEND_URL}/auth/refresh`,
+            //                 {
+            //                     method: "POST",
+            //                     headers: { "Content-Type": "application/json" },
+            //                     body: JSON.stringify({ token: tokenStr }),
+            //                 }
+            //             ).then(async (res) => {
+            //                 if (!res.ok) throw new Error("Token refresh failed");
+            //                 const data = await res.json();
+            //                 console.log(data.expires_at);
+            //                 return data as Promise<{ access_token: string; expires_at: number }>;
+            //             }).finally(() => {
+            //                 pendingRefreshPromises.delete(tokenStr);
+            //             });
+            //
+            //             pendingRefreshPromises.set(tokenStr, refreshPromise);
+            //         }
+            //
+            //         const data = await refreshPromise;
+            //         token.backendToken = data.access_token;
+            //         token.expires_at = data.expires_at * 1000;
+            //         console.log("New Token", token.backendToken);
+            //         console.log("New Expiry Time", new Date(token.expires_at as number).toISOString());
+            //         return token;
+            //     } catch (err) {
+            //         console.error("Token refresh error:", err);
+            //         token.backendToken = undefined;
+            //         token.expires_at = undefined;
+            //         token.user = undefined;
+            //     }
+            // }
 
             return token;
         },

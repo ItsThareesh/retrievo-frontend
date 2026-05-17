@@ -3,18 +3,19 @@ import { DefaultSession } from "next-auth";
 declare module "next-auth" {
     interface Session {
         backendToken?: string;
+        // expires_at: No longer refreshed - backend handles 1-hour token expiry
         expires_at?: number;
-
-        user: {
+        user?: {
             public_id: string;
-            email: string;
             name: string;
+            email: string;
             image: string;
             hostel: "boys" | "girls" | null;
-            phone?: string | null;
-            instagramId?: string | null;
+            phone: string | null;
+            instagramId: string | null;
             role: "user" | "admin";
-        } & DefaultSession["user"];
+        };
+        error?: "RefreshTokenError";
     }
 
     interface Account {
@@ -26,16 +27,18 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
     interface JWT {
         backendToken?: string;
+        // expires_at: No longer refreshed - backend handles 1-hour token expiry
         expires_at?: number;
         user?: {
             public_id: string;
-            email: string;
             name: string;
+            email: string;
             image: string;
             hostel: "boys" | "girls" | null;
-            phone?: string | null;
-            instagramId?: string | null;
+            phone: string | null;
+            instagramId: string | null;
             role: "user" | "admin";
         };
+        error?: "RefreshTokenError";
     }
 }
