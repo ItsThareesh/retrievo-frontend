@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR, { mutate } from "swr";
+import { useEffect, useRef } from "react";
 import { Notification } from "@/types/notification";
 import {
     getNotifications,
@@ -11,14 +12,18 @@ import {
 
 interface NotificationsResponse {
     notifications: Notification[];
+    last_updated_at: string;
 }
 
 interface CountResponse {
     count: number;
+    last_updated_at: string;
 }
 
 const NOTIFICATIONS_KEY = "notifications/all";
 const COUNT_KEY = "notifications/count";
+const STORAGE_KEY = "notifications_cache";
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 async function notificationsFetcher(): Promise<NotificationsResponse> {
     const res = await getNotifications();
@@ -34,6 +39,45 @@ async function countFetcher(): Promise<CountResponse> {
     return res.data;
 }
 
+interface StoredData {
+    data: NotificationsResponse;
+    timestamp: number;
+    last_updated_at: string;
+}
+
+function getStoredNotifications(): StoredData | null {
+    if (typeof window === "undefined") return null;
+    try {
+        const stored = sessionStorage.getItem(STORAGE_KEY);
+        if (!stored) return null;
+        const parsed = JSON.parse(stored) as StoredData;
+        
+        if (Date.now() - parsed.timestamp > CACHE_DURATION) {
+            sessionStorage.removeItem(STORAGE_KEY);
+            return null;
+        }
+        
+        return parsed;
+    } catch {
+        return null;
+    }
+}
+
+function setStoredNotifications(
+    data: NotificationsResponse,
+    lastUpdatedAt: string
+): void {
+    if (typeof window === "undefined") return;
+    try {
+        sessionStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({ data, timestamp: Date.now(), last_updated_at: lastUpdatedAt })
+        );
+    } catch {
+        // Storage full or unavailable - ignore
+    }
+}
+
 // Apply an update to the notifications list and derive the new payload.
 // Centralises the shape of the single SWR cache entry so mutations
 // never construct the object ad-hoc.
@@ -43,23 +87,12 @@ function applyUpdate(
 ): NotificationsResponse {
     return {
         notifications: (current?.notifications ?? []).map(updater),
+        last_updated_at: current?.last_updated_at ?? new Date().toISOString(),
     };
 }
 
 export function useNotifications() {
-    // Lightweight count endpoint — used only as the badge value before the
-    // full list has been fetched for the first time.  All write operations
-    // target NOTIFICATIONS_KEY exclusively, so this key is never touched
-    // by mutations, eliminating the dual-key synchronisation race.
-    const { data: countData } = useSWR<CountResponse>(
-        COUNT_KEY,
-        countFetcher,
-        {
-            revalidateOnFocus: false,
-            revalidateOnReconnect: true,
-            dedupingInterval: 5_000,
-        }
-    );
+    const storedData = getStoredNotifications();
 
     const {
         data: notificationsData,
@@ -70,24 +103,53 @@ export function useNotifications() {
         NOTIFICATIONS_KEY,
         notificationsFetcher,
         {
+            fallbackData: storedData?.data ?? undefined,
             revalidateOnFocus: false,
             revalidateOnReconnect: false,
-            // SWR is the sole caching layer; the server action no longer
-            // uses next.revalidate so this interval is the only TTL.
             dedupingInterval: 300_000, // 5 minutes
-            keepPreviousData: true,
+            onSuccess: (data) => {
+                setStoredNotifications(data, data.last_updated_at);
+            },
         }
     );
 
-    const notifications = notificationsData?.notifications ?? [];
+    // Count endpoint serves as change detector - always fetch to detect
+    // new notifications. Redis makes this fast. Compare last_updated_at
+    // to determine if background refresh is needed.
+    const { data: countData } = useSWR<CountResponse>(
+        COUNT_KEY,
+        countFetcher,
+        {
+            revalidateOnFocus: false,
+            revalidateOnReconnect: true,
+            dedupingInterval: 10_000, // 10 seconds
+        }
+    );
 
-    // Single source of truth.  Once the full list is in the SWR cache the
-    // count is derived locally — no separate network call, no sync needed.
-    // The count endpoint acts only as a lightweight bootstrap before the
-    // first full fetch completes.
-    const unreadCount = notificationsData
-        ? notifications.filter((n) => !n.is_read).length
-        : (countData?.count ?? 0);
+    const cachedNotifications = notificationsData ?? storedData?.data;
+    const notifications = cachedNotifications?.notifications ?? [];
+    const cachedLastUpdated = storedData?.last_updated_at ?? null;
+
+    // Detect changes: compare count's last_updated_at with cached last_updated_at.
+    // Null-safe comparison ensures we don't trigger refresh when either is missing.
+    const hasNewNotifications =
+        countData?.last_updated_at != null &&
+        cachedLastUpdated != null &&
+        countData.last_updated_at !== cachedLastUpdated;
+
+    const backgroundRefreshRef = useRef(false);
+
+    // Background refresh when new notifications detected or cache expired
+    useEffect(() => {
+        if (hasNewNotifications && !backgroundRefreshRef.current) {
+            backgroundRefreshRef.current = true;
+            mutateNotifications().finally(() => {
+                backgroundRefreshRef.current = false;
+            });
+        }
+    }, [hasNewNotifications, mutateNotifications]);
+
+    const unreadCount = countData?.count ?? notifications.filter((n) => !n.is_read).length;
 
     // Trigger a fresh fetch when the user opens the dropdown.  Because the
     // server action now uses cache:"no-store", this always returns live data.
@@ -105,21 +167,21 @@ export function useNotifications() {
     // Mark a single notification as read.
     //
     // Uses SWR's built-in optimistic pattern:
-    //   • optimisticData  — applied synchronously before the async fn runs.
-    //                       Omitted when the list is not yet in cache to avoid
-    //                       committing { notifications: [] } as ground truth.
-    //   • rollbackOnError — SWR reverts to the pre-mutation snapshot if the
-    //                       async fn throws; no manual snapshot needed.
-    //   • revalidate:false — do NOT re-fetch after the async fn resolves;
-    //                        the returned value IS the new cache state, and
-    //                        re-fetching would be a wasted round trip.
-    //   • populateCache:true — use the async fn's return value to update
-    //                          NOTIFICATIONS_KEY (default for async mutators;
-    //                          stated explicitly for clarity).
-    //
+    //   optimisticData  — applied synchronously before the async fn runs.
+    //                     Omitted when the list is not yet in cache to avoid
+    //                     committing { notifications: [] } as ground truth.
+    //   rollbackOnError — SWR reverts to the pre-mutation snapshot if the
+    //                     async fn throws; no manual snapshot needed.
+    //   revalidate:false — do NOT re-fetch after the async fn resolves;
+    //                      the returned value IS the new cache state, and
+    //                      re-fetching would be a wasted round trip.
+    //   populateCache:true — use the async fn's return value to update
+    //                        NOTIFICATIONS_KEY (default for async mutators;
+    //                        stated explicitly for clarity).
+
     const markAsRead = async (id: string) => {
         try {
-            await mutateNotifications(
+            const updated = await mutateNotifications(
                 async (current) => {
                     const res = await readNotification(id);
                     if (!res.ok) {
@@ -133,9 +195,6 @@ export function useNotifications() {
                     );
                 },
                 {
-                    // Guard: if the full list is not yet cached, providing an
-                    // optimistic payload of { notifications: [] } would be
-                    // worse than showing no change — skip optimistic update.
                     ...(notificationsData && {
                         optimisticData: (current: NotificationsResponse | undefined) =>
                             applyUpdate(
@@ -148,16 +207,16 @@ export function useNotifications() {
                     populateCache: true,
                 }
             );
+            if (updated) setStoredNotifications(updated, new Date().toISOString());
             return { ok: true };
         } catch {
             return { ok: false };
         }
     };
 
-    // Mark all notifications as read.  Same atomic pattern as markAsRead.
     const markAllAsRead = async () => {
         try {
-            await mutateNotifications(
+            const updated = await mutateNotifications(
                 async (current) => {
                     const res = await readAllNotifications();
                     if (!res.ok) {
@@ -177,6 +236,7 @@ export function useNotifications() {
                     populateCache: true,
                 }
             );
+            if (updated) setStoredNotifications(updated, new Date().toISOString());
             return { ok: true };
         } catch {
             return { ok: false };
@@ -195,9 +255,11 @@ export function useNotifications() {
 }
 
 // Global trigger for out-of-hook refresh (WebSocket / SSE / background action).
-// Always revalidates both keys so the badge stays correct even if the
-// dropdown has never been opened.
+// Clears sessionStorage and revalidates both keys.
 export function refreshNotifications() {
+    if (typeof window !== "undefined") {
+        sessionStorage.removeItem(STORAGE_KEY);
+    }
     mutate(NOTIFICATIONS_KEY);
     mutate(COUNT_KEY);
 }

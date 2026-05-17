@@ -370,6 +370,12 @@ export function ResolutionStatusContent({
                 />
 
                 {resolution.description && <ClaimDescription resolution={resolution} borderClass={theme.border} />}
+                
+                {/* TODO: Display contents of `failure_reason` or `rejection_reason` or `invalidated_reason` for the user
+                If it's the finder, show `failure` reason
+                If it's the owner, show `rejection` reason
+                Both users can see `invalidated` reason if applicable */}
+
                 <ItemSummary item={item} />
 
                 {linkedItem && (
