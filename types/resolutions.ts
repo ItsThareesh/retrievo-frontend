@@ -1,3 +1,5 @@
+import { LocationKey } from "@/lib/constants/locations";
+
 export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'failed' | 'invalidated';
 
 export type ResolutionType = 'owner_initiated' | 'finder_initiated';
@@ -33,7 +35,7 @@ export interface LinkedItem {
     id: string;
     title: string;
     category: string;
-    location: string;
+    location: LocationKey;
     date?: string;
     image?: string | null;
     type: 'lost' | 'found';
@@ -46,6 +48,6 @@ export interface LinkableItem {
     id: string;
     title: string;
     date?: string;
-    location: string;
+    location: LocationKey;
     image?: string | null;
 }

@@ -181,7 +181,8 @@ export async function getPaginatedItems(
 
         const hasFilters =
             queryString.includes("search=") ||
-            queryString.includes("category=");
+            queryString.includes("category=") || 
+            queryString.includes("item_type=");
 
         const res = await publicFetch(
             url,

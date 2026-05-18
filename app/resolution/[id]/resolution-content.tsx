@@ -31,6 +31,7 @@ import { StatusAlert } from "./components/status-alert";
 import { FinderContactCard } from "./components/finder-contact";
 import { ThemeKey, THEMES } from "./theme";
 import { formatDateString } from "@/lib/date-formatting";
+import { LOCATION_MAP } from "@/lib/constants/locations";
 
 
 /* STATUS UI MAP */
@@ -422,7 +423,7 @@ export function ResolutionStatusContent({
 
                                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
                                         {linkedItem.category && <span>{linkedItem.category}</span>}
-                                        {linkedItem.location && <span>{linkedItem.location}</span>}
+                                        {linkedItem.location && <span>{LOCATION_MAP[linkedItem.location]?.label || "Unknown Location"}</span>}
                                         {linkedItem.date && (
                                             <span>{formatDateString(linkedItem.date)}</span>
                                         )}

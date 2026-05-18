@@ -23,6 +23,7 @@ import { ChevronDown, Trash2, X, Link2, FileText, MapPin, Calendar, Loader2 } fr
 import { Dispatch, SetStateAction, useState } from "react";
 import { LinkableItem } from "@/types/resolutions";
 import { formatDateString } from "@/lib/date-formatting";
+import { LOCATION_MAP } from "@/lib/constants/locations";
 
 interface SubmitClaimDialogProps {
     mode: "claim" | "return";
@@ -160,7 +161,7 @@ export function SubmitClaimDialog({
                                                     {li.location && (
                                                         <span className="flex items-center gap-1">
                                                             <MapPin className="size-3" />
-                                                            {li.location}
+                                                            {LOCATION_MAP[li.location]?.label || "Unknown Location"}
                                                         </span>
                                                     )}
                                                     {li.date && (
