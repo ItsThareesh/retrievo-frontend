@@ -410,14 +410,14 @@ export function ResolutionStatusContent({
                             <>
                                 <a
                                     href={`/items/${linkedItem.id}`}
-                                    className={`block transition-opacity ${linkedItem.hidden ? 'opacity-80 pointer-events-none' : 'hover:opacity-80'}`}
+                                    className={`block ${linkedItem.hidden ? 'pointer-events-none' : ''}`}
                                     onClick={(e) => linkedItem.hidden && e.preventDefault()}
                                 >
-                                    <div className="flex items-center gap-1 mt-2">
-                                        <p className={`font-medium`}>
+                                    <div className="flex items-center gap-1 mt-2 group">
+                                        <p className={`font-medium ${linkedItem.hidden ? '' : 'group-hover:opacity-80'} transition-opacity`}>
                                             {linkedItem.title}
                                         </p>
-                                        {!linkedItem.hidden && <ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
+                                        {!linkedItem.hidden && <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:opacity-80 transition-opacity" />}
                                     </div>
 
                                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">

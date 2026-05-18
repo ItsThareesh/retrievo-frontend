@@ -180,15 +180,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     user: {
                         ...session.user,
                         public_id: "",
-                        hostel: null,
-                        phone: null,
-                        instagramId: null,
-                        role: "user" as const,
+                        hostel: undefined,
+                        phone: undefined,
+                        instagramId: undefined,
+                        role: undefined,
                     },
                 };
             }
 
-            session.backendToken = token.backendToken as string;
+session.backendToken = token.backendToken as string;
             session.expires_at = token.expires_at as number;
 
             if (token.user) {

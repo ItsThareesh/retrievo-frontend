@@ -3,9 +3,8 @@ import { DefaultSession } from "next-auth";
 declare module "next-auth" {
     interface Session {
         backendToken?: string;
-        // expires_at: No longer refreshed - backend handles 1-hour token expiry
         expires_at?: number;
-        user?: {
+        user: {
             public_id: string;
             name: string;
             email: string;
@@ -27,8 +26,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
     interface JWT {
         backendToken?: string;
-        // expires_at: No longer refreshed - backend handles 1-hour token expiry
-        expires_at?: number;
+        expires_at?: number; // expires_at: No longer refreshed - backend handles 1-hour token expiry
         user?: {
             public_id: string;
             name: string;

@@ -151,7 +151,7 @@ export function useNotifications() {
         }
     }, [hasNewNotifications, mutateNotifications]);
 
-    const unreadCount = countData?.count ?? notifications.filter((n) => !n.is_read).length;
+    const unreadCount = notifications.filter((n) => !n.is_read).length;
 
     // Trigger a fresh fetch when the user opens the dropdown.  Because the
     // server action now uses cache:"no-store", this always returns live data.
