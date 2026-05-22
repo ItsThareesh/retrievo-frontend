@@ -26,7 +26,7 @@ export async function createResolution(
             const errorData = await safeJson(res);
             console.error("createResolution failed:", res.status);
             return { ok: false, status: res.status, detail: errorData.detail };
-        }
+        }        
 
         // Revalidate the cache since a new resolution is now pending against the found item and/or lost item
         if (foundItemId) await onResolutionIntermediateStateChanged(foundItemId);

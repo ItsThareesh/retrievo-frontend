@@ -196,10 +196,15 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             const res = await createResolution(lostItemId, foundItemId, description);
 
             if (!res.ok) {
-                if (res.status === 409) {
-                    toast.error("You have already submitted a resolution for this item.");
-                } else if (res.status === 403 && res.detail?.code === "ITEMS_NOT_MUTUALLY_VISIBLE") {
+                const errorCode = res.detail?.code;
+                if (errorCode === "RESOLUTION_COOLDOWN_ACTIVE") {
+                    toast.error("Cooldown Active: Please wait before creating a new one.");
+                } else if (errorCode === "PAIR_TEMPORARILY_SUPPRESSED") {
+                    toast.error("Cooldown Active: A resolution between these items was recently created.");
+                } else if (errorCode === "ITEMS_NOT_MUTUALLY_VISIBLE") {
                     toast.error("Modify your linked item's visibility to public or visible to other user to create a resolution.");
+                } else if (res.status === 409) {
+                    toast.error("You have already submitted a resolution for this item.");
                 } else {
                     toast.error("Failed to submit request. Please try again.");
                 }

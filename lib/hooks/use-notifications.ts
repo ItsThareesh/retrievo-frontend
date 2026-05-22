@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR, { mutate } from "swr";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Notification } from "@/types/notification";
 import {
     getNotifications,
@@ -92,7 +92,7 @@ function applyUpdate(
 }
 
 export function useNotifications() {
-    const storedData = getStoredNotifications();
+    const [storedData, setStoredData] = useState<StoredData | null>(null);
 
     const {
         data: notificationsData,
@@ -103,7 +103,7 @@ export function useNotifications() {
         NOTIFICATIONS_KEY,
         notificationsFetcher,
         {
-            fallbackData: storedData?.data ?? undefined,
+            fallbackData: undefined,
             revalidateOnMount: false,
             revalidateOnFocus: false,
             revalidateOnReconnect: false,
@@ -128,16 +128,27 @@ export function useNotifications() {
         }
     );
 
+    useEffect(() => {
+        const cached = getStoredNotifications();
+        if (cached) {
+            setStoredData(cached);
+            mutateNotifications(cached.data, false);
+        }
+    }, [mutateNotifications]);
+
     const cachedNotifications = notificationsData ?? storedData?.data;
     const notifications = cachedNotifications?.notifications ?? [];
     const cachedLastUpdated = storedData?.last_updated_at ?? null;
 
     // Detect changes: compare count's last_updated_at with cached last_updated_at.
-    // Null-safe comparison ensures we don't trigger refresh when either is missing.
+    // If there is no cached last_updated_at yet, treat a non-zero count as stale
+    // so we trigger the initial background fetch (e.g., right after signup).
     const hasNewNotifications =
-        countData?.last_updated_at != null &&
-        cachedLastUpdated != null &&
-        countData.last_updated_at !== cachedLastUpdated;
+        countData != null &&
+        (cachedLastUpdated == null
+            ? countData.count > 0
+            : countData.last_updated_at != null &&
+              countData.last_updated_at !== cachedLastUpdated);
 
     const backgroundRefreshRef = useRef(false);
 
@@ -151,7 +162,8 @@ export function useNotifications() {
         }
     }, [hasNewNotifications, mutateNotifications]);
 
-    const unreadCount = notifications.filter((n) => !n.is_read).length;
+    const unreadCount =
+        countData?.count ?? notifications.filter((n) => !n.is_read).length;
 
     // Trigger a fresh fetch when the user opens the dropdown.  Because the
     // server action now uses cache:"no-store", this always returns live data.
@@ -210,6 +222,17 @@ export function useNotifications() {
                 }
             );
             if (updated) setStoredNotifications(updated, new Date().toISOString());
+            await mutate(
+                COUNT_KEY,
+                (current?: CountResponse) => {
+                    if (!current || current.count <= 0) return current;
+                    return {
+                        ...current,
+                        count: Math.max(0, current.count - 1),
+                    };
+                },
+                false
+            );
             return { ok: true };
         } catch {
             return { ok: false };
@@ -239,6 +262,17 @@ export function useNotifications() {
                 }
             );
             if (updated) setStoredNotifications(updated, new Date().toISOString());
+            await mutate(
+                COUNT_KEY,
+                (current?: CountResponse) => {
+                    if (!current) return current;
+                    return {
+                        ...current,
+                        count: 0,
+                    };
+                },
+                false
+            );
             return { ok: true };
         } catch {
             return { ok: false };
