@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Search, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
-import { FeaturesSection, FAQSection, Glow } from "@/components/landing-page";
+import { FeaturesSection, FAQSection, Glow, Footer} from "@/components/landing-page";
 
 export default function Home() {
 
@@ -81,6 +81,7 @@ export default function Home() {
 
       <FeaturesSection/>
       <FAQSection/>
+      <Footer/>
     </div >
     </>
   );
