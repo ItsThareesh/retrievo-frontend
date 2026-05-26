@@ -91,13 +91,13 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
 
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <Phone className="mr-3 h-4 w-4 shrink-0" />
-                                        <p className='mr-5 '>Phone: </p>
+                                        <p className='mr-10'>Phone: </p>
                                         <span>{user.phone || "No phone linked"}</span>
                                     </div>
 
                                     <div className="flex items-center text-sm text-muted-foreground">
                                         <House className="mr-3 h-4 w-4 shrink-0" />
-                                        <p className='mr-5'>Hostel: </p>
+                                        <p className='mr-10'>Hostel: </p>
                                         {user.hostel && (
                                             <span>{user.hostel.charAt(0).toUpperCase() + user.hostel?.slice(1)}</span>
                                         )}
@@ -107,6 +107,7 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                                     {user.instagramId && (
                                         <div className="flex items-center text-sm text-muted-foreground">
                                             <Instagram className="mr-3 h-4 w-4 shrink-0" />
+                                            <p className='mr-5'>Instagram: </p>
                                             <span>{user.instagramId}</span>
                                         </div>
                                     )}

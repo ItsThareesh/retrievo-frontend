@@ -17,11 +17,8 @@ import Link from "next/link";
             const scrollY = window.scrollY;
             const factor = Math.min(scrollY / 600, 1);
 
-            glow.style.transform = `
-            scale(${1 - factor * 0.7})
-            `;
-
-            glow.style.opacity = `${1 - factor * 0.8}`;
+            glow.style.setProperty("--glow-scale", `${1 - factor * 0.7}`);
+            glow.style.setProperty("--glow-opacity", `${1 - factor * 0.8}`);
 
             ticking = false;
         });
@@ -39,18 +36,20 @@ import Link from "next/link";
     return (
         <div
           id="scrollGlow"
+          style={{
+            // Use CSS variables so Chrome doesn't fight with Tailwind transitions
+            transform: "translateX(-50%) scale(var(--glow-scale, 1))",
+            opacity: "var(--glow-opacity, 1)",
+          }}
           className="
             pointer-events-none
             absolute bottom-0 left-1/2
-            w-[300%] h-[700px]
+            w-[200%] h-[400px]
             origin-bottom
-            -translate-x-1/2
-            dark:bg-[radial-gradient(ellipse_at_bottom,rgba(93,96,241,0.35),transparent_30%)]
+            dark:bg-[radial-gradient(ellipse_at_bottom,rgba(93,96,241,0.35),transparent_60%)]
             [mask-image:linear-gradient(to_top,black,transparent)]
-            blur-[900px]
+            blur-[120px]
             will-change-transform
-            transition-transform duration-200 ease-out
-            transition-opacity duration-200 ease-out
           "
         ></div>
     )
