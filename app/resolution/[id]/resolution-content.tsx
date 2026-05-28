@@ -231,7 +231,62 @@ const STATUS_UI = {
             cardBody: "This resolution has been invalidated because the item is no longer available.",
             Icon: X,
         },
+    },
+
+    pending_admin_review: {
+        owner: {
+            theme: "amber",
+            title: "Pending Admin Review",
+            subtitle: "Your resolution is being reviewed by admins due to extended inactivity.",
+            cardTitle: "Pending Admin Review",
+            cardBody: "The moderation team is reviewing this resolution. You will be contacted soon.",
+            Icon: AlertTriangle,
+        },
+        finder: {
+            theme: "amber",
+            title: "Pending Admin Review",
+            subtitle: "This resolution is under admin review due to extended inactivity.",
+            cardTitle: "Pending Admin Review",
+            cardBody: "The moderation team is reviewing this resolution. You will be notified soon about the outcome.",
+            Icon: AlertTriangle,
+        },
+        admin: {
+            theme: "amber",
+            title: "Pending Admin Review",
+            subtitle: "This resolution is pending review due to extended inactivity.",
+            cardTitle: "Action Required",
+            cardBody: "Review the case details and take appropriate action to resolve or close this case.",
+            Icon: AlertTriangle,
+        },
+    },
+
+    expired: {
+        owner: {
+            theme: "amber",
+            title: "Resolution Expired",
+            subtitle: "This resolution has expired due to inactivity.",
+            cardTitle: "Resolution Expired",
+            cardBody: "This resolution has expired because there was no activity for an extended period.",
+            Icon: X,
+        },
+        finder: {
+            theme: "amber",
+            title: "Resolution Expired",
+            subtitle: "This resolution has expired due to inactivity.",
+            cardTitle: "Resolution Expired",
+            cardBody: "This resolution has expired because there was no activity for an extended period.",
+            Icon: X,
+        },
+        admin: {
+            theme: "amber",
+            title: "Resolution Expired",
+            subtitle: "This resolution has expired due to inactivity.",
+            cardTitle: "System Status",
+            cardBody: "No action is needed.",
+            Icon: X,
+        },
     }
+
 } as const satisfies StatusUIMap;
 
 
