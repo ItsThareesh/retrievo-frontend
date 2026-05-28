@@ -121,10 +121,10 @@ export function useNotifications() {
         COUNT_KEY,
         countFetcher,
         {
-            
-            revalidateOnFocus: false,
+            revalidateOnFocus: true,
             revalidateOnReconnect: true,
             dedupingInterval: 10_000, // 10 seconds
+            refreshInterval: 120_000, // 2 minutes — lightweight Redis-backed poll
         }
     );
 
@@ -162,8 +162,9 @@ export function useNotifications() {
         }
     }, [hasNewNotifications, mutateNotifications]);
 
-    const unreadCount =
-        countData?.count ?? notifications.filter((n) => !n.is_read).length;
+    const unreadCount = notifications.length > 0
+        ? notifications.filter((n) => !n.is_read).length
+        : countData?.count ?? 0;
 
     // Trigger a fresh fetch when the user opens the dropdown.  Because the
     // server action now uses cache:"no-store", this always returns live data.
