@@ -95,6 +95,8 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                 return "Completed";
             case "return_initiated":
                 return item.type === "lost" ? "Return Initiated" : "Return Requested";
+            case "pending_admin_review":
+                return "Admin Review";
         }
     }
 
@@ -107,6 +109,8 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                 return "bg-emerald-500";
             case "completed":
                 return "bg-green-600";
+            case "pending_admin_review":
+                return "bg-violet-500";
         }
     }
 

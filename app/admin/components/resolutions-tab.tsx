@@ -71,11 +71,28 @@ function StatusBadge({ status }: { status: ResolutionStatus }) {
                     Invalidated
                 </Badge>
             );
+
         case "invalidated":
             return (
                 <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     Invalidated
+                </Badge>
+            );
+
+        case "pending_admin_review":
+            return (
+                <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Admin Review
+                </Badge>
+            );
+
+        case "expired":
+            return (
+                <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Expired
                 </Badge>
             );
 
