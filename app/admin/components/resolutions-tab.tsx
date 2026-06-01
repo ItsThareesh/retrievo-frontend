@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -9,15 +10,18 @@ import {
     XCircle,
     RotateCcw,
     AlertTriangle,
+    Search,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 import { getResolutions } from "@/lib/api/admin";
 import { fetchData } from "@/lib/utils/swrHelper";
+import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 import { ClaimsSkeleton } from "./skeletons";
 import { ResolutionStatus } from "@/types/resolutions";
 import { ResolutionDetail } from "@/types/admin";
@@ -102,9 +106,12 @@ function StatusBadge({ status }: { status: ResolutionStatus }) {
 }
 
 export function ResolutionsTab() {
+    const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearch = useDebouncedValue(searchQuery, 500);
+    
     const { data, isLoading } = useSWR(
-        ["resolutions", undefined, 50, 0],
-        () => fetchData(() => getResolutions(undefined, 50, 0))
+        ["resolutions", undefined, 50, 0, debouncedSearch],
+        () => fetchData(() => getResolutions(undefined, 50, 0, debouncedSearch))
     );
 
     if (isLoading) {
@@ -115,19 +122,33 @@ export function ResolutionsTab() {
 
     return (
         <Card>
-            <CardHeader className="px-6 py-6">
-                <CardTitle>Resolution Moderation</CardTitle>
-                <CardDescription>
-                    Review all claims and return requests across the platform
-                </CardDescription>
-            </CardHeader>
+            <div className="px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b">
+                <div>
+                    <CardTitle className="text-xl">Resolution Moderation</CardTitle>
+                    <CardDescription className="mt-1.5">
+                        Review all claims and return requests across the platform
+                    </CardDescription>
+                </div>
+                <div className="relative w-full sm:w-80">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-200" />
+                    <Input
+                        type="search"
+                        placeholder="Search by ID, claimant, or finder"
+                        className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
 
-            <CardContent className="px-6 pb-6">
+            <CardContent className="px-6 pt-6 pb-6">
                 <Table>
                     <TableHeader>
                         <TableRow className="border-b-2 border-muted">
-                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Item</TableHead>
-                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Owner</TableHead>
+                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">ID</TableHead>
+                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Lost Item</TableHead>
+                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Found Item</TableHead>
+                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Claimant</TableHead>
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Finder</TableHead>
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Status</TableHead>
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Submitted</TableHead>
@@ -139,7 +160,7 @@ export function ResolutionsTab() {
                         {resolutions.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={6}
+                                    colSpan={8}
                                     className="text-center text-muted-foreground py-12 text-sm"
                                 >
                                     No resolutions found
@@ -149,9 +170,39 @@ export function ResolutionsTab() {
                             resolutions.map((res) => (
                                 <TableRow key={res.id} className="hover:bg-muted/50 transition-colors">
                                     <TableCell className="px-6 py-5 align-middle">
-                                        <span className="text-sm font-medium text-foreground truncate block max-w-xs">
-                                            {res.anchor_item_title}
+                                        <span className="text-sm font-medium text-foreground block max-w-xs">
+                                            {`${res.id.slice(0, 8)}...${res.id.slice(-7)}`}
                                         </span>
+                                    </TableCell>
+
+                                    <TableCell className="px-6 py-5 align-middle">
+                                        <div className="space-y-1">
+                                            {res.lost_item_id ? (
+                                                <Link
+                                                    href={`/items/${res.lost_item_id}`}
+                                                    className="text-sm font-medium text-foreground hover:underline"
+                                                >
+                                                    {res.lost_item_title || "N/A"}
+                                                </Link>
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground">N/A</span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+
+                                    <TableCell className="px-6 py-5 align-middle">
+                                        <div className="space-y-1">
+                                            {res.found_item_id ? (
+                                                <Link
+                                                    href={`/items/${res.found_item_id}`}
+                                                    className="text-sm font-medium text-foreground hover:underline"
+                                                >
+                                                    {res.found_item_title || "N/A"}
+                                                </Link>
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground">N/A</span>
+                                            )}
+                                        </div>
                                     </TableCell>
 
                                     <TableCell className="px-6 py-5 align-middle">

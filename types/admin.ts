@@ -30,8 +30,11 @@ export interface ActivityItem {
 
 export interface ResolutionDetail {
     id: string;
-    anchor_item_id: string;
-    anchor_item_title: string;
+    
+    lost_item_id: string | null;
+    lost_item_title: string | null;
+    found_item_id: string | null;
+    found_item_title: string | null;
 
     resolution_type: ResolutionType;
     status: ResolutionStatus;
