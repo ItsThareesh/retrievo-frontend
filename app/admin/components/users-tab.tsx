@@ -32,6 +32,8 @@ import useSWR from "swr";
 import { UsersSkeleton } from "./skeletons";
 import { fetchData } from "@/lib/utils/swrHelper";
 
+import { useDebouncedValue } from "@/lib/hooks/useDebounce";
+
 function getInitials(name: string) {
     return name
         .split(" ")
@@ -229,22 +231,9 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
     );
 }
 
-function useDebounce<T>(value: T, delay?: number): T {
-    const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
-        return () => {
-            clearTimeout(timer);
-        };
-    }, [value, delay]);
-
-    return debouncedValue;
-}
-
 export function UsersTab() {
     const [search, setSearch] = useState("");
-    const debouncedSearch = useDebounce(search, 500);
+    const debouncedSearch = useDebouncedValue(search, 500);
 
     const { data: users, isLoading, mutate } = useSWR(
         ['users', 50, 0, debouncedSearch], 
@@ -262,7 +251,7 @@ export function UsersTab() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-200" />
                     <Input
                         type="search"
-                        placeholder="Search by name or email..."
+                        placeholder="Search by name or email"
                         className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}

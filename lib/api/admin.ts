@@ -48,11 +48,13 @@ export async function getActivity(limit = 20) {
     }
 }
 
-export async function getResolutions(status?: string, limit = 50, skip = 0) {
+export async function getResolutions(status?: string, limit = 50, skip = 0, search?: string) {
     const params = new URLSearchParams();
     if (status) params.append("status", status);
     params.append("limit", limit.toString());
     params.append("skip", skip.toString());
+    
+    if (search) params.append("search", search);
 
     try {
         const res = await authFetch(`/admin/resolutions?${params}`);
