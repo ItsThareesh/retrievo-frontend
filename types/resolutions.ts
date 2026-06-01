@@ -1,6 +1,6 @@
 import { LocationKey } from "@/lib/constants/locations";
 
-export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'failed' | 'invalidated';
+export type ResolutionStatus = 'pending' | 'return_initiated' | 'approved' | 'rejected' | 'completed' | 'failed' | 'invalidated' | 'expired' | 'pending_admin_review';
 
 export type ResolutionType = 'owner_initiated' | 'finder_initiated';
 

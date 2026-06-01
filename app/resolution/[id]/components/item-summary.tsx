@@ -41,7 +41,7 @@ export function ItemSummary({ item }: ItemSummaryProps) {
 
     return (
         <Card className="overflow-hidden shadow-sm">
-            <div className="border-b bg-muted/40 px-4 py-3 sm:px-6 flex justify-between items-center">
+            <div className="border-b px-4 py-3 sm:px-6 flex justify-between items-center">
                 <h2 className="text-base font-semibold">Item Summary</h2>
                 <div className="flex gap-2">
                     {isHidden && (
