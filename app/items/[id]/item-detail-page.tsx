@@ -105,6 +105,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
             case "pending":
                 return "bg-sky-500";
             case "return_initiated":
+
             case "approved":
                 return "bg-emerald-500";
             case "completed":
@@ -136,7 +137,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
     })();
 
     return (
-        <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+        <div className="container mx-auto px-4 pt-8 min-h-[calc(100vh-4rem)]">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image */}
                 <div className="lg:col-span-2 space-y-6">
@@ -149,10 +150,10 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                     fill
                                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
-                                <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
+                                <div className="absolute top-2 left-2 flex flex-row gap-2 p-2 rounded-lg">
                                     <Badge
                                         className={
-                                            `text-lg px-4 py-1.5 shadow-md text-white 
+                                            `text-md px-2 py-1 shadow-md text-white 
                                         ${item.type === "lost" ? "bg-red-500" : "bg-amber-500"}`
                                         }
                                     >
@@ -161,7 +162,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
 
                                     {resolutionStatus !== "none" && (
                                         <Badge
-                                            className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
+                                            className={`text-md px-2 py-1 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
                                         >
                                             {mapClaimStatusToText(resolutionStatus)}
                                         </Badge>
@@ -170,32 +171,62 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                             </div>
                         </ImageViewer>
                     )}
+                    <div className="space-y-3">
+                        {canClaim ? (
+                            <div className="flex justify-center">
+                            <Button
+                                size="lg"
+                                className="w-1/2 h-12 text-lg font-bold text-red-700 shadow-sm mb-6"
+                                onClick={() => {
+                                    const isAuthenticated =
+                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
-                    <div>
-                        <h3 className="text-lg font-semibold mb-3">Description</h3>
+                                    if (!isAuthenticated) {
+                                        router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
+                                        return
+                                    }
 
-                        <Card className={cn(
-                            "group transition-all duration-200",
-                            isEditing && "ring-2 ring-primary/20 shadow-sm"
-                        )}>
-                            <CardContent className="p-6">
-                                {isEditing ? (
-                                    <Textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        rows={6}
-                                        className="resize-none text-sm leading-relaxed border-2 focus-visible:ring-2"
-                                        disabled={isSaving}
-                                        placeholder="Describe the item in detail..."
-                                    />
-                                ) : (
-                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed wrap-break-word">
-                                        {formData.description || "No description provided."}
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
+                                    if (needsOnboarding(session)) {
+                                        router.push('/onboarding');
+                                        return;
+                                    }
+
+                                    setIsClaiming(true);
+                                }}
+                            >
+                                This is Mine!
+                            </Button>
+                            </div>
+                        ) : null}
+                        {canReturn ? (
+                            <div className="flex justify-center">
+                            <Button
+                                size="lg"
+                                className="w-1/2 h-12 text-lg font-bold text-green-700 shadow-sm mb-6"
+                                onClick={async () => {
+                                    const isAuthenticated =
+                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
+
+                                    if (!isAuthenticated) {
+                                        router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
+                                        return
+                                    }
+
+                                    if (needsOnboarding(session)) {
+                                        router.push('/onboarding');
+                                        return;
+                                    }
+
+                                    setIsClaiming(true);
+                                }}
+                            >
+                                I Found This!   
+                            </Button>
+                            </div>
+                        ) : null}
+                        
                     </div>
+
                 </div>
 
                 {/* Right Column: Details & Actions */}
@@ -424,59 +455,35 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border">
+                                <User className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                                <div>
+                                    <p className="font-medium text-sm">Description</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        {isEditing ? (
+                                    <Textarea
+                                        value={formData.description}
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                        rows={6}
+                                        className="resize-none text-sm leading-relaxed border-2 focus-visible:ring-2"
+                                        disabled={isSaving}
+                                        placeholder="Describe the item in detail..."
+                                    />
+                                ) : (
+                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed wrap-break-word">
+                                        {formData.description || "No description provided."}
+                                    </p>
+                                )}
+                                        
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="space-y-3">
-                        {canClaim ? (
-                            <Button
-                                size="lg"
-                                className="w-full h-12 text-lg shadow-sm mb-6"
-                                onClick={() => {
-                                    const isAuthenticated =
-                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
-
-                                    if (!isAuthenticated) {
-                                        router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
-                                        return
-                                    }
-
-                                    if (needsOnboarding(session)) {
-                                        router.push('/onboarding');
-                                        return;
-                                    }
-
-                                    setIsClaiming(true);
-                                }}
-                            >
-                                This is Mine!
-                            </Button>
-                        ) : null}
-                        {canReturn ? (
-                            <Button
-                                size="lg"
-                                className="w-full h-12 text-lg shadow-sm mb-6"
-                                onClick={async () => {
-                                    const isAuthenticated =
-                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
-
-                                    if (!isAuthenticated) {
-                                        router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
-                                        return
-                                    }
-
-                                    if (needsOnboarding(session)) {
-                                        router.push('/onboarding');
-                                        return;
-                                    }
-
-                                    setIsClaiming(true);
-                                }}
-                            >
-                                I Found This!
-                            </Button>
-                        ) : null}
-                        <div className="grid grid-cols-2 gap-3">
-                            <Button
+                    <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-row">
+                        <Button
                                 onClick={handleShare}
                                 variant="ghost"
                                 size="sm"
@@ -504,7 +511,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                 <Flag className="w-4 h-4 mr-2" />
                                 Report
                             </Button>
-                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
