@@ -4,66 +4,66 @@ import Link from "next/link";
 
 //------------------Glow Element----------------
 
-  export function Glow() {
-        useEffect(() => {
-        const glow = document.getElementById("scrollGlow");
-        if (!glow) return;
+export function Glow() {
+  useEffect(() => {
+    const glow = document.getElementById("scrollGlow");
+    if (!glow) return;
 
-        let ticking = false;
+    let ticking = false;
 
-        const handleScroll = () => {
-        if (!ticking) {
-            window.requestAnimationFrame(() => {
-            const scrollY = window.scrollY;
-            const factor = Math.min(scrollY / 600, 1);
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const factor = Math.min(scrollY / 600, 1);
 
-            glow.style.setProperty("--glow-scale", `${1 - factor * 0.7}`);
-            glow.style.setProperty("--glow-opacity", `${1 - factor * 0.8}`);
+          glow.style.setProperty("--glow-scale", `${1 - factor * 0.7}`);
+          glow.style.setProperty("--glow-opacity", `${1 - factor * 0.8}`);
 
-            ticking = false;
+          ticking = false;
         });
 
-            ticking = true;
-        }
-        };
+        ticking = true;
+      }
+    };
 
-        window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
-        return () => {
-        window.removeEventListener("scroll", handleScroll);
-        };
-    }, []);
-    return (
-        <div
-          id="scrollGlow"
-          style={{
-            // Use CSS variables so Chrome doesn't fight with Tailwind transitions
-            transform: "translateX(-50%) scale(var(--glow-scale, 1))",
-            opacity: "var(--glow-opacity, 1)",
-          }}
-          className="
-            pointer-events-none
-            absolute bottom-0 left-1/2
-            w-[200%] h-[400px]
-            origin-bottom
-            dark:bg-[radial-gradient(ellipse_at_bottom,rgba(93,96,241,0.35),transparent_60%)]
-            [mask-image:linear-gradient(to_top,black,transparent)]
-            blur-[120px]
-            will-change-transform
-          "
-        ></div>
-    )
-  }
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  return (
+    <div
+      id="scrollGlow"
+      style={{
+        transform: "translateX(-50%) scale(var(--glow-scale, 1))",
+        opacity: "var(--glow-opacity, 1)",
+      }}
+      className="
+        pointer-events-none
+        absolute -bottom-40 left-1/2
+        w-[200%] h-[550px]
+        origin-bottom
+        dark:bg-[radial-gradient(ellipse_at_bottom,rgba(0,31,91,0.5)_0%,rgba(0,82,204,0.3)_30%,rgba(0,180,216,0.15)_55%,transparent_70%)]
+        blur-[120px]
+        will-change-transform
+      "
+    ></div>
+  );
+}
+
 //-------------------FEATURES-------------------
 
 const featuresData = [
-    {
-        title: "Report Lost Items",
-        description: "Create a detailed report with photos, location and description to alert the community instantly.",
-        icon: AlertCircle,
-        colorClasses: "bg-green-100 dark:bg-green-900/20 text-green-600"
-    },
-    {
+  {
+    title: "Report Lost Items",
+    description: "Create a detailed report with photos, location and description to alert the community instantly.",
+    icon: AlertCircle,
+    colorClasses: "bg-red-100 dark:bg-red-900/20 text-red-600"
+  },
+  {
     title: "Report Found Items",
     description: "Found something? Post it here to help it find its way back to its rightful owner.",
     icon: CheckCircle2,
@@ -79,13 +79,19 @@ const featuresData = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-24 bg-muted/30 border-t">
-      <div className="container mx-auto px-4">
+    <section className="py-24 relative">
+      {/* Soft gradient wash — no hard top/bottom edge */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent pointer-events-none" />
+
+      <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {featuresData.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div key={index} className="group p-8 rounded-2xl bg-popover border shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
+              <div
+                key={index}
+                className="group p-8 rounded-2xl bg-popover/60 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
+              >
                 <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${feature.colorClasses}`}>
                   <Icon className="w-7 h-7" />
                 </div>
@@ -102,8 +108,7 @@ export function FeaturesSection() {
   );
 }
 
-
-//---------------------Frequently asked questions------------------
+//---------------------FAQ------------------
 
 const faqsData = [
     {
@@ -130,8 +135,11 @@ const faqsData = [
 
 export function FAQSection() {
   return (
-    <section className="py-24 px-4 border-t bg-background/50 backdrop-blur">
-      <div className="max-w-3xl mx-auto">
+    <section className="py-24 px-4 relative">
+      {/* Gradient wash — blends with Features above and Footer below */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/10 to-transparent pointer-events-none" />
+
+      <div className="max-w-3xl mx-auto relative z-10">
         <div className="text-center mb-14">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
             Frequently Asked Questions
@@ -145,7 +153,7 @@ export function FAQSection() {
           {faqsData.map((faq, index) => (
             <details
               key={index}
-              className="group rounded-2xl border bg-background/60 backdrop-blur-xl p-6 transition-all duration-300 hover:border-blue-600/20 hover:shadow-sm hover:shadow-blue-900/30"
+              className="group rounded-2xl border border-border/50 bg-background/40 backdrop-blur-xl p-6 transition-all duration-300 hover:border-blue-600/20 hover:shadow-sm hover:shadow-blue-900/30"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-lg">
                 {faq.question}
@@ -168,71 +176,76 @@ export function FAQSection() {
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/20">
+    <footer className="border-t border-border/30 bg-gradient-to-t from-muted/10 to-transparent">
       <div className="container mx-auto px-4 py-4 md:py-8">
         <div className="px-4 md:px-30 grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          
+
           {/* Brand & Description */}
           <div className="md:col-span-2 space-y-4">
             <h3 className="text-2xl font-bold tracking-tight">Retrievo</h3>
             <p className="text-muted-foreground text-sm max-w-lg leading-relaxed">
               A centralized lost-and-found platform designed exclusively for the NIT Calicut community.
-               Retrievo provides a secure and efficient system to report, match, 
-               and recover misplaced belongings across the campus.
+              Retrievo provides a secure and efficient system to report, match,
+              and recover misplaced belongings across the campus.
             </p>
           </div>
-            <div className="flex flex-row justify-between">
-          {/* Quick Links */}
-          <div className="space-y-4 flex flex-col">
-            <h4 className="font-semibold">Platform</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li>
-                <Link href="/items" className="hover:text-primary transition-colors underline">
-                  Browse Items
-                </Link>
-              </li>
-              <li>
-                <Link href="/report?type=lost" className="hover:text-primary transition-colors underline">
-                  Report Lost
-                </Link>
-              </li>
-              <li>
-                <Link href="/report?type=found" className="hover:text-primary transition-colors underline">
-                  Report Found
-                </Link>
-              </li>
-            </ul>
-          </div>
 
-          {/* Legal Links */}
-          <div className="space-y-4">
-            <h4 className="font-semibold">Legal</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li>
-                <Link href="/privacy" className="hover:text-primary transition-colors underline">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="hover:text-primary transition-colors underline">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-primary transition-colors underline">
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <div className="flex flex-row justify-between">
+            {/* Quick Links */}
+            <div className="space-y-4 flex flex-col">
+              <h4 className="font-semibold">Platform</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link href="/items" className="hover:text-primary transition-colors underline">
+                    Browse Items
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/report?type=lost" className="hover:text-primary transition-colors underline">
+                    Report Lost
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/report?type=found" className="hover:text-primary transition-colors underline">
+                    Report Found
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal Links */}
+            <div className="space-y-4">
+              <h4 className="font-semibold">Legal</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link href="/privacy" className="hover:text-primary transition-colors underline">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:text-primary transition-colors underline">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:text-primary transition-colors underline">
+                    Contact Us
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Bar - use current year near copyright */}
-        <div className="pt-4 border-t flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+        {/* Bottom Bar */}
+        <div className="pt-4 border-t border-border/30 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} Retrievo. All rights reserved.</p>
-          <div className="flex items-center gap-4"> 
-            <span className="hover:text-primary cursor-pointer flex flex-row gap-2 items-centertransition-colors"> <Github/>GitHub</span>
+          <div className="flex items-center gap-4">
+            <span className="hover:text-primary cursor-pointer flex flex-row gap-2 items-center transition-colors">
+              <Link href="https://github.com/ItsThareesh/retrievo-frontend" target="_blank" rel="noopener noreferrer">
+              <Github />
+              </Link>
+            </span>
           </div>
         </div>
       </div>

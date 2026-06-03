@@ -231,7 +231,6 @@ const STATUS_UI = {
             cardBody: "This resolution has been invalidated because the item is no longer available.",
             Icon: X,
         },
-
     },
     expired: {
         owner: {
