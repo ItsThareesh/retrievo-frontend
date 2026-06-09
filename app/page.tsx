@@ -76,8 +76,8 @@ export default function Home() {
           {/* Glow element */}
           <Glow />
 
-          {/* Hero → Features fade: the single most impactful change */}
-          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-b from-transparent to-background pointer-events-none z-10" />
+          {/* Soft fade: blends hero glow into Features below */}
+          {/* <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent via-background/10 to-background pointer-events-none z-10" /> */}
         </section>
 
         <FeaturesSection />

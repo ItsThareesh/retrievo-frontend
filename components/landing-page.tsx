@@ -14,8 +14,12 @@ export function Glow() {
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-          const factor = Math.min(scrollY / 600, 1);
+          const section = glow.closest("section");
+          if (!section) return;
+          const rect = section.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+
+          const factor = Math.max(0, Math.min(1, 1 - rect.bottom / viewportHeight));
 
           glow.style.setProperty("--glow-scale", `${1 - factor * 0.7}`);
           glow.style.setProperty("--glow-opacity", `${1 - factor * 0.8}`);
@@ -43,8 +47,8 @@ export function Glow() {
       }}
       className="
         pointer-events-none
-        absolute -bottom-40 left-1/2
-        w-[200%] h-[550px]
+        absolute bottom-0 left-1/2
+        w-[200%] h-[350px]
         origin-bottom
         dark:bg-[radial-gradient(ellipse_at_bottom,rgba(0,31,91,0.5)_0%,rgba(0,82,204,0.3)_30%,rgba(0,180,216,0.15)_55%,transparent_70%)]
         blur-[120px]
@@ -80,8 +84,8 @@ const featuresData = [
 export function FeaturesSection() {
   return (
     <section className="py-24 relative">
-      {/* Soft gradient wash — no hard top/bottom edge */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent pointer-events-none" />
+      {/* Subtle ambient tint — no middle band */}
+      <div className="absolute inset-0 bg-gradient-to-b from-muted/5 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -137,7 +141,7 @@ export function FAQSection() {
   return (
     <section className="py-24 px-4 relative">
       {/* Gradient wash — blends with Features above and Footer below */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/10 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-muted/5 to-transparent pointer-events-none" />
 
       <div className="max-w-3xl mx-auto relative z-10">
         <div className="text-center mb-14">
@@ -176,7 +180,7 @@ export function FAQSection() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/30 bg-gradient-to-t from-muted/10 to-transparent">
+    <footer className="border-t border-border/30">
       <div className="container mx-auto px-4 py-4 md:py-8">
         <div className="px-4 md:px-30 grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
 
