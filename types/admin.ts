@@ -6,11 +6,16 @@ export interface OverviewStats {
     items_this_month: number;
     items_last_month: number;
 
-    claims_approved_this_month: number;
-    claims_approved_last_month: number;
-    claims_rejected_this_month: number;
-    claims_rejected_last_month: number;
+    claims_completed_this_month: number;
+    claims_completed_last_month: number;
+    claims_unsuccessful_this_month: number;
+    claims_unsuccessful_last_month: number;
+    claims_invalidated_this_month: number;
+    claims_invalidated_last_month: number;
     claims_pending: number;
+    claims_return_initiated: number;
+    claims_approved: number;
+    claims_pending_admin_review: number;
 
     active_reports: number;
     reports_this_month: number;
@@ -38,6 +43,7 @@ export interface ResolutionDetail {
 
     resolution_type: ResolutionType;
     status: ResolutionStatus;
+    archived: boolean;
 
     owner_name: string;
     owner_id: string;
