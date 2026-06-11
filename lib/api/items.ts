@@ -3,7 +3,6 @@
 import { authFetch, publicFetch, safeJson, UnauthorizedError } from "./helpers";
 import { auth } from "@/lib/auth";
 import { Item } from "@/types/item";
-import { onItemCreated, onItemDeleted, onItemReported, onItemUpdated } from "../utils/cacheController";
 
 // GET: Single Item by ID along with Reporter Info and Claim Status
 export async function fetchItem(itemId: string, token?: string) {
@@ -13,12 +12,7 @@ export async function fetchItem(itemId: string, token?: string) {
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
-            // Authenticated requests must bypass the cache
-            // Only unauthenticated requests share the tagged cache entry.
-            ...(token
-                ? { cache: "no-store" }
-                : { next: { revalidate: 120, tags: [`item-${itemId}`] } }
-            ),
+            ...(token ? { cache: "no-store" } : {}),
         });
 
         if (!res.ok) {
@@ -48,11 +42,6 @@ export async function postLostFoundItem(formData: FormData) {
 
         const result = await safeJson(res);
 
-        const session = await auth();
-        const public_id = session!.user.public_id; // Must be authenticated to post, so session and public_id are guaranteed to exist
-
-        await onItemCreated(result.is_public, public_id); // Handle cache updates on item creation
-
         return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
@@ -78,15 +67,6 @@ export async function updateItem(itemId: string, data: Record<string, any>) {
 
         const result = await safeJson(res);
 
-        const session = await auth();
-        const public_id = session!.user.public_id; // Must be authenticated to update, so session and public_id are guaranteed to exist
-
-        await onItemUpdated(
-            itemId,
-            public_id,
-            result.public_cache_action,
-        ); // Handle cache updates on item update based on what changed
-
         return { ok: true, data: result };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
@@ -107,13 +87,6 @@ export async function deleteItem(itemId: string) {
             console.error("deleteItem failed:", res.status);
             return { ok: false, status: res.status };
         }
-
-        const result = await safeJson(res);
-
-        const session = await auth();
-        const public_id = session!.user.public_id; // Must be authenticated to delete, so session and public_id are guaranteed to exist
-        
-        await onItemDeleted(itemId, public_id, result.was_public); // Handle cache updates on item deletion
 
         return { ok: true };
     } catch (err) {
@@ -138,12 +111,6 @@ export async function flagItem(itemId: string, reason: string) {
             return { ok: false, status: res.status };
         }
 
-        const result = await safeJson(res);
-
-        if (result.invalidate_cache) {
-            onItemReported(itemId, result.owner_public_id); // Handle cache updates on item report if the report triggered a visibility change
-        }
-
         return { ok: true };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
@@ -155,18 +122,17 @@ export async function flagItem(itemId: string, reason: string) {
 
 export interface PaginatedItemsData {
     items: Item[];
-    page: number;
-    limit: number;
+    cursor: string | null;
     has_more: boolean;
 }
 
 /**
- * GET: Paginated Items (supports search, category, and type filters)
+ * GET: Paginated Items (supports search, category, type filters, and cursor).
  * Visibility is enforced server-side by backend identity checks.
  *
- * Unauthenticated feed requests use cached public responses.
- * Authenticated requests bypass cache to avoid sharing user-scoped
- * results across sessions.
+ * Authenticated calls use cache: "no-store" to prevent Next.js Data Cache
+ * from leaking hostel-filtered responses across users. Unauthenticated calls
+ * are cacheable since public data is not user-specific.
 */
 export async function getPaginatedItems(
     queryString: string = "",
@@ -177,12 +143,7 @@ export async function getPaginatedItems(
 
         const url = queryString
             ? `/items/all?${queryString}`
-            : `/items/all?page=1&limit=12`;
-
-        const hasFilters =
-            queryString.includes("search=") ||
-            queryString.includes("category=") || 
-            queryString.includes("item_type=");
+            : `/items/all?limit=12`;
 
         const res = await publicFetch(
             url,
@@ -190,11 +151,7 @@ export async function getPaginatedItems(
                 headers: {
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                ...(token
-                    ? { cache: "no-store" }
-                    : hasFilters
-                        ? { cache: "no-store" }
-                        : { next: { revalidate: 120, tags: ["feed-public"] } }),
+                ...(token ? { cache: "no-store" } : {}),
             },
         );
 
@@ -212,8 +169,7 @@ export async function getPaginatedItems(
             ok: true,
             data: {
                 items: data.items as Item[],
-                page: data.page,
-                limit: data.limit,
+                cursor: data.cursor,
                 has_more: data.has_more,
             },
         };

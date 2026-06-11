@@ -7,7 +7,7 @@ export default async function BrowseItemsPage() {
     // Fetch page 1 with default filters in the RSC.
     // Backend enforces visibility scope from identity when available.
     // Passed to the client component for instant render — no loading skeleton on first paint.
-    const initialResult = await getPaginatedItems("page=1&limit=12");
+    const initialResult = await getPaginatedItems("limit=12");
     const initialData = initialResult.ok && initialResult.data
         ? { ...initialResult.data, items: initialResult.data.items.map(standardizeItemDate) }
         : null;

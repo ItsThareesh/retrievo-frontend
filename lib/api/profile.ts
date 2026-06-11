@@ -76,7 +76,7 @@ export async function getUserProfile(publicID: string) {
                 },
                 ...(token
                     ? { cache: "no-store" }
-                    : { next: { revalidate: 120, tags: [`profile-${publicID}-public`] } }),
+                    : { next: { revalidate: 120 } }),
             },
         );
 

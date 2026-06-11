@@ -10,7 +10,6 @@ import {
     ModerateItemRequest,
 } from "@/types/admin";
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
-import { onAdminItemModerationAction, onAdminUserModerationAction } from "../utils/cacheController";
 
 export async function getStats() {
     try {
@@ -111,15 +110,7 @@ export async function moderateUser(userId: number, request: ModerateUserRequest)
             return { ok: false, status: res.status };
         }
 
-        const result = await safeJson(res);
-
-        await onAdminUserModerationAction(
-            result.invalidate.public_id,
-            request.action,
-            result.invalidate.item_ids
-        );
-
-        return { ok: true, data: result };
+        return { ok: true, data: await safeJson(res) };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
@@ -168,15 +159,7 @@ export async function moderateItem(itemId: string, request: ModerateItemRequest)
             }
         }
 
-        const result = await safeJson(res);
-
-        await onAdminItemModerationAction(
-            itemId,
-            result.invalidate.owner_public_id,
-            result.invalidate.visibility
-        )
-
-        return { ok: true, data: result };
+        return { ok: true, data: await safeJson(res) };
     } catch (err) {
         if (err instanceof UnauthorizedError) throw err;
 
