@@ -66,7 +66,7 @@ const STATUS_UI = {
             Icon: Clock,
         },
         finder: {
-            theme: "amber",
+            theme: "blue",
             title: "Review Claim",
             subtitle: "Someone is claiming this item.",
             cardTitle: "Action Required",
@@ -139,19 +139,19 @@ const STATUS_UI = {
 
     completed: {
         owner: {
-            theme: "green",
+            theme: "emerald",
             title: "Item Returned",
             subtitle: "You successfully received your item.",
             showStatusCard: false,
         },
         finder: {
-            theme: "green",
+            theme: "emerald",
             title: "Return Completed",
             subtitle: "The owner confirmed receipt.",
             showStatusCard: false,
         },
         admin: {
-            theme: "green",
+            theme: "emerald",
             title: "Resolution Completed",
             subtitle: "This resolution is fully closed.",
             showStatusCard: false,
@@ -160,19 +160,19 @@ const STATUS_UI = {
 
     failed: {
         owner: {
-            theme: "amber",
+            theme: "darkRed",
             title: "Marked as Mismatched",
             subtitle: "You marked the return as mismatched.",
             showStatusCard: false,
         },
         finder: {
-            theme: "amber",
+            theme: "darkRed",
             title: "Mismatch Reported",
             subtitle: "The owner reported the item did not match.",
             showStatusCard: false,
         },
         admin: {
-            theme: "amber",
+            theme: "darkRed",
             title: "Resolution Invalidated",
             subtitle: "The owner failed the return.",
             showStatusCard: false,
@@ -181,7 +181,7 @@ const STATUS_UI = {
 
     rejected: {
         owner: {
-            theme: "orange",
+            theme: "red",
             title: "Claim Not Approved",
             subtitle: "The finder rejected your claim.",
             cardTitle: "Claim Rejected",
@@ -189,7 +189,7 @@ const STATUS_UI = {
             Icon: X,
         },
         finder: {
-            theme: "orange",
+            theme: "red",
             title: "Claim Rejected",
             subtitle: "You rejected this claim.",
             cardTitle: "No Further Action",
@@ -197,7 +197,7 @@ const STATUS_UI = {
             Icon: X,
         },
         admin: {
-            theme: "orange",
+            theme: "red",
             title: "Claim Rejected",
             subtitle: "Finder rejected the claim.",
             cardTitle: "System Status",
@@ -232,61 +232,60 @@ const STATUS_UI = {
             Icon: X,
         },
     },
-
-    pending_admin_review: {
-        owner: {
-            theme: "amber",
-            title: "Pending Admin Review",
-            subtitle: "Your resolution is being reviewed by admins due to extended inactivity.",
-            cardTitle: "Pending Admin Review",
-            cardBody: "The moderation team is reviewing this resolution. You will be contacted soon.",
-            Icon: AlertTriangle,
-        },
-        finder: {
-            theme: "amber",
-            title: "Pending Admin Review",
-            subtitle: "This resolution is under admin review due to extended inactivity.",
-            cardTitle: "Pending Admin Review",
-            cardBody: "The moderation team is reviewing this resolution. You will be notified soon about the outcome.",
-            Icon: AlertTriangle,
-        },
-        admin: {
-            theme: "amber",
-            title: "Pending Admin Review",
-            subtitle: "This resolution is pending review due to extended inactivity.",
-            cardTitle: "Action Required",
-            cardBody: "Review the case details and take appropriate action to resolve or close this case.",
-            Icon: AlertTriangle,
-        },
-    },
-
     expired: {
         owner: {
             theme: "amber",
             title: "Resolution Expired",
-            subtitle: "This resolution has expired due to inactivity.",
+            subtitle: "This resolution has expired.",
             cardTitle: "Resolution Expired",
-            cardBody: "This resolution has expired because there was no activity for an extended period.",
+            cardBody: "This resolution has expired due to inactivity and is no longer valid.",
             Icon: X,
         },
         finder: {
             theme: "amber",
             title: "Resolution Expired",
-            subtitle: "This resolution has expired due to inactivity.",
+            subtitle: "This resolution has expired.",
             cardTitle: "Resolution Expired",
-            cardBody: "This resolution has expired because there was no activity for an extended period.",
+            cardBody: "This resolution has expired due to inactivity and is no longer valid.",
             Icon: X,
         },
         admin: {
             theme: "amber",
             title: "Resolution Expired",
-            subtitle: "This resolution has expired due to inactivity.",
-            cardTitle: "System Status",
-            cardBody: "No action is needed.",
+            subtitle: "This resolution has expired.",
+            cardTitle: "Resolution Expired",
+            cardBody: "This resolution has expired due to inactivity and is no longer valid.",
             Icon: X,
         },
+        
+    },
+    pending_admin_review: {
+        owner: {
+            theme: "purple",
+            title: "Awaiting Admin Review",
+            subtitle: "This resolution is awaiting administrative review.",
+            cardTitle: "Awaiting Admin Review",
+            cardBody: "This resolution has been inactive for an extended period and is currently being reviewed by an administrator. It may be reactivated or marked as expired.",
+            Icon: ShieldAlert,
+        },
+        finder: {
+            theme: "purple",
+            title: "Awaiting Admin Review",
+            subtitle: "This resolution is awaiting administrative review.",
+            cardTitle: "Awaiting Admin Review",
+            cardBody: "This resolution has been inactive for an extended period and is now under administrative review. An administrator may reactivate it or allow it to expire.",
+            Icon: ShieldAlert,
+        },
+        admin: {
+            theme: "purple",
+            title: "Review Required",
+            subtitle: "Administrative action is required.",
+            cardTitle: "Resolution Pending Review",
+            cardBody: "No activity has been recorded for this resolution within the review period. You may reactivate the resolution if it is still relevant or mark it as expired.",
+            Icon: ShieldAlert,
+        },
+        
     }
-
 } as const satisfies StatusUIMap;
 
 
@@ -382,7 +381,7 @@ export function ResolutionStatusContent({
                 <header className="text-center">
                     <h1 className={`
                         text-3xl font-bold
-                        bg-gradient-to-r ${theme.gradient}
+                        bg-gradient-to-t ${theme.gradient}
                         bg-clip-text text-transparent
                         inline-block
                         will-change-transform
@@ -410,6 +409,8 @@ export function ResolutionStatusContent({
                     <FinderContactCard contact={finderContact} theme={theme} />
                 )}
 
+                {resolution.description && <ClaimDescription resolution={resolution} />}
+
                 <ActionButtons
                     allowedActions={allowedActions}
                     loading={loading}
@@ -424,8 +425,6 @@ export function ResolutionStatusContent({
                     onConfirm={handleReject}
                     onCancel={() => setShowRejectDialog(false)}
                 />
-
-                {resolution.description && <ClaimDescription resolution={resolution} borderClass={theme.border} />}
                 
                 {/* TODO: Display contents of `failure_reason` or `rejection_reason` or `invalidated_reason` for the user
                 If it's the finder, show `failure` reason

@@ -18,7 +18,7 @@ export function ActionButtons({ allowedActions, loading, onAction }: ActionButto
                     onClick={() => onAction("approve")}
                     disabled={loading}
                     size="lg"
-                    className="w-full sm:flex-1 p-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 dark:from-emerald-500 dark:to-teal-500 dark:hover:from-emerald-600 dark:hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                    className="w-full sm:flex-1 p-2 bg-green-800 dark:bg-lime-700 dark:hover:bg-lime-600 cursor-pointer text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
                 >
                     <ThumbsUp className="shrink-0 h-5 w-5 mr-2" />
                     Approve Claim
@@ -29,8 +29,7 @@ export function ActionButtons({ allowedActions, loading, onAction }: ActionButto
                     onClick={() => onAction("reject")}
                     disabled={loading}
                     size="lg"
-                    variant="destructive"
-                    className="w-full sm:flex-1 p-2 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                    className="w-full sm:flex-1 p-2 bg-red-800 dark:bg-red-700 dark:hover:bg-red-600 cursor-pointer text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
                 >
                     <ThumbsDown className="shrink-0 h-5 w-5 mr-2" />
                     Reject Claim
@@ -41,7 +40,7 @@ export function ActionButtons({ allowedActions, loading, onAction }: ActionButto
                     onClick={() => onAction("complete")}
                     disabled={loading}
                     size="lg"
-                    className="w-full sm:flex-1 p-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 dark:from-teal-500 dark:to-cyan-500 dark:hover:from-teal-600 dark:hover:to-cyan-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                    className="w-full sm:flex-1 p-2 cursor-pointer bg-teal-600 dark:bg-teal-600 hover:bg-teal-500 hover:dark:bg-teal-500 text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
                 >
                     <CheckCheck className="shrink-0 h-5 w-5 mr-2" />
                     Mark as Completed
@@ -52,8 +51,7 @@ export function ActionButtons({ allowedActions, loading, onAction }: ActionButto
                     onClick={() => onAction("fail")}
                     disabled={loading}
                     size="lg"
-                    variant="outline"
-                    className="w-full sm:flex-1 p-2 border-2 border-amber-500 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:border-amber-600 dark:hover:border-amber-400 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                    className="w-full sm:flex-1 p-2 cursor-pointer bg-red-700 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500 text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
                 >
                     <X className="shrink-0 h-5 w-5 mr-2" />
                     Item Doesn't Match

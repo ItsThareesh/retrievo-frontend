@@ -14,19 +14,18 @@
 - `authFetch` (adds Bearer token), `publicFetch`, `internalFetchWithTimeout` (X-Internal-Secret header), `safeJson`
 - **Env:** `INTERNAL_BACKEND_URL`, `INTERNAL_SECRET_KEY`
 
-## Server Actions
-- `lib/api/items.ts`: `getPaginatedItems` (120s, `items-{segment}` tag; bypass with `no-store` on filters), `fetchItem` (120s), `getUserProfile` (120s), `getUserItems` (no-store)
-- `lib/api/authenticated-api.ts`: CRUD, resolutions, reports, notifications, onboarding
-- `lib/api/admin.ts`: stats, activity, moderation (403 enforced)
+## Server Actions (`"use server"` files in `lib/api/`)
+- `items.ts`: `getPaginatedItems`, `fetchItem` (conditional `no-store` when authed), `postLostFoundItem`, `updateItem`, `deleteItem`, `flagItem`
+- `resolutions.ts`: `createResolution`, `getLinkableItems`, `getResolutionStatus`, `approveResolution`, `rejectResolution`, `completeResolution`, `failResolution`
+- `admin.ts`: `getStats`, `getActivity`, `getResolutions`, `getUsers`, `getReportedItems`, `moderateUser`, `moderateItem`
+- `notifications.ts`: `getNotifications`, `getNotificationsCount`, `readNotification`, `readAllNotifications`
+- `profile.ts`: `updateOnboarding`, `getUserItems`, `getUserProfile`
 
-## Cache Tags & TTL
-| Tag | TTL | Invalidated by |
-|---|---|---|
-| `items-{public/boys/girls}` | 120s | `revalidateFeedByVisibility` |
-| `item-{id}` | 60s | update, delete, claim |
-| `profile-{id}-{segment}` | 120s | `revalidateProfileByVisibility` |
-
-Public visibility invalidates all segments; `boys`/`girls` only their tag.
+## Cache Rules
+- `authFetch` always uses `cache: "no-store"` — user-specific responses must not leak across users via Next.js Data Cache.
+- `publicFetch` callers that pass auth headers (`Authorization`) must also pass `cache: "no-store"` — enforced at each call site.
+- Public (unauthenticated) `publicFetch` calls use Next.js defaults (`force-cache`). Cache is per-URL and not actively invalidated — acceptable since dataset is <1K items.
+- No custom cache tags, no `cacheController.ts`, no `revalidateTag`/`updateTag` calls. Backend rate limiter (120 req/60s per identity) is the sole abuse protection.
 
 ## SWR (Notifications)
 - `notifications/all`: 300s dedup, no focus revalidate

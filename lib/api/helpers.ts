@@ -62,6 +62,7 @@ export async function authFetch(input: RequestInfo, options: RequestInit = {}, t
         `${process.env.INTERNAL_BACKEND_URL}${input}`,
         {
             ...options,
+            cache: "no-store",
             headers: {
                 ...(options.headers || {}),
                 Authorization: `Bearer ${session.backendToken}`,

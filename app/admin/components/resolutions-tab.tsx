@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useSWR from "swr";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import {
     Clock,
@@ -10,13 +11,13 @@ import {
     XCircle,
     RotateCcw,
     AlertTriangle,
+    Archive,
     Search,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { getResolutions } from "@/lib/api/admin";
@@ -106,6 +107,7 @@ function StatusBadge({ status }: { status: ResolutionStatus }) {
 }
 
 export function ResolutionsTab() {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearch = useDebouncedValue(searchQuery, 500);
     
@@ -151,11 +153,10 @@ export function ResolutionsTab() {
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Claimant</TableHead>
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Finder</TableHead>
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Status</TableHead>
-                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Submitted</TableHead>
-                            <TableHead className="px-6 py-4 text-right text-sm font-semibold text-foreground">Action</TableHead>
+                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Archived</TableHead>
+                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground whitespace-nowrap">Created</TableHead>
                         </TableRow>
                     </TableHeader>
-
                     <TableBody>
                         {resolutions.length === 0 ? (
                             <TableRow>
@@ -168,7 +169,11 @@ export function ResolutionsTab() {
                             </TableRow>
                         ) : (
                             resolutions.map((res) => (
-                                <TableRow key={res.id} className="hover:bg-muted/50 transition-colors">
+                                <TableRow
+                                    key={res.id}
+                                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                    onClick={() => router.push(`/resolution/${res.id}`)}
+                                >
                                     <TableCell className="px-6 py-5 align-middle">
                                         <span className="text-sm font-medium text-foreground block max-w-xs">
                                             {`${res.id.slice(0, 8)}...${res.id.slice(-7)}`}
@@ -181,6 +186,7 @@ export function ResolutionsTab() {
                                                 <Link
                                                     href={`/items/${res.lost_item_id}`}
                                                     className="text-sm font-medium text-foreground hover:underline"
+                                                    onClick={(e) => e.stopPropagation()}
                                                 >
                                                     {res.lost_item_title || "N/A"}
                                                 </Link>
@@ -196,6 +202,7 @@ export function ResolutionsTab() {
                                                 <Link
                                                     href={`/items/${res.found_item_id}`}
                                                     className="text-sm font-medium text-foreground hover:underline"
+                                                    onClick={(e) => e.stopPropagation()}
                                                 >
                                                     {res.found_item_title || "N/A"}
                                                 </Link>
@@ -207,7 +214,11 @@ export function ResolutionsTab() {
 
                                     <TableCell className="px-6 py-5 align-middle">
                                         <div className="space-y-1">
-                                            <Link href={`/profile/${res.owner_id}`} className="text-sm font-medium text-foreground hover:underline">
+                                            <Link
+                                                href={`/profile/${res.owner_id}`}
+                                                className="text-sm font-medium text-foreground hover:underline"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
                                                 {res.owner_name}
                                             </Link>
                                             <div className="text-xs text-muted-foreground leading-relaxed">
@@ -218,7 +229,11 @@ export function ResolutionsTab() {
 
                                     <TableCell className="px-6 py-5 align-middle">
                                         <div className="space-y-1">
-                                            <Link href={`/profile/${res.finder_id}`} className="text-sm font-medium text-foreground hover:underline">
+                                            <Link
+                                                href={`/profile/${res.finder_id}`}
+                                                className="text-sm font-medium text-foreground hover:underline"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
                                                 {res.finder_name}
                                             </Link>
                                             <div className="text-xs text-muted-foreground leading-relaxed">
@@ -232,15 +247,20 @@ export function ResolutionsTab() {
                                     </TableCell>
 
                                     <TableCell className="px-6 py-5 align-middle">
+                                        {res.archived ? (
+                                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                                <Archive className="h-3.5 w-3.5" />
+                                                <span>Archived</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm text-muted-foreground/50">—</span>
+                                        )}
+                                    </TableCell>
+
+                                    <TableCell className="px-6 py-5 align-middle whitespace-nowrap">
                                         <span className="text-sm text-muted-foreground">
                                             {formatDistanceToNow(new Date(res.created_at), { addSuffix: true })}
                                         </span>
-                                    </TableCell>
-
-                                    <TableCell className="px-6 py-5 align-middle text-right">
-                                        <Button size="sm" variant="outline" className="font-medium" asChild>
-                                            <Link href={`/resolution/${res.id}`}>View</Link>
-                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))

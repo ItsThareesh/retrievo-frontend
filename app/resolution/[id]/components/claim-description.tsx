@@ -7,9 +7,9 @@ interface ClaimDescriptionProps {
     borderClass?: string;
 }
 
-export function ClaimDescription({ resolution, borderClass = "border-l-teal-500" }: ClaimDescriptionProps) {
+export function ClaimDescription({ resolution }: ClaimDescriptionProps) {
     return (
-        <Card className={`p-4 sm:p-6 border-l-4 ${borderClass} shadow-sm`}>
+        <Card className={`p-4 sm:p-6 border-3 border-t border-r bg-muted/20 shadow-sm`}>
             <h2 className="text-lg font-semibold mb-3">Description</h2>
             <p className="text-base leading-relaxed text-foreground whitespace-pre-wrap">
                 {resolution.description}

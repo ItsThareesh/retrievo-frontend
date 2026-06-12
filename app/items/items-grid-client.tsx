@@ -18,14 +18,15 @@ import { standardizeItemDate } from "@/lib/date-formatting";
 import { ItemsGridSkeleton, ItemsLoadMoreSkeleton } from "./items-loading-skeleton";
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 
-/** Build a query string for the given page and current filter values. */
+/** Build a query string for the given cursor and current filter values. */
 function buildQueryString(
-    page: number,
+    cursor: string | null,
     search: string,
     category: string,
     type: string,
 ): string {
-    const params = new URLSearchParams({ page: page.toString(), limit: "12" });
+    const params = new URLSearchParams({ limit: "12" });
+    if (cursor) params.set("cursor", cursor);
     if (search) params.set("search", search);
     if (category !== "all") params.set("category", category);
     if (type !== "all") params.set("item_type", type);
@@ -52,7 +53,7 @@ export function ItemsGridClient({ initialData }: ItemsGridClientProps) {
     const [hasMore, setHasMore] = useState(initialData?.has_more ?? false);
 
     // Refs prevent stale closures inside the IntersectionObserver callback.
-    const nextPageRef = useRef(2);
+    const nextCursorRef = useRef<string | null>(initialData?.cursor ?? null);
     const loadingMoreRef = useRef(false);
     const hasMoreRef = useRef(initialData?.has_more ?? false);
 
@@ -87,10 +88,10 @@ export function ItemsGridClient({ initialData }: ItemsGridClientProps) {
         setAllItems([]);
         setHasMore(false);
         hasMoreRef.current = false;
-        nextPageRef.current = 2;
+        nextCursorRef.current = null;
 
         getPaginatedItems(
-            buildQueryString(1, searchQuery, categoryFilter, typeFilter),
+            buildQueryString(null, searchQuery, categoryFilter, typeFilter),
         ).then((result) => {
             // Discard if a newer filter change superseded this one.
             if (gen !== generationRef.current) return;
@@ -113,10 +114,10 @@ export function ItemsGridClient({ initialData }: ItemsGridClientProps) {
         setIsLoadingMore(true);
 
         const gen = generationRef.current;
-        const page = nextPageRef.current;
+        const cursor = nextCursorRef.current;
 
         const result = await getPaginatedItems(
-            buildQueryString(page, searchQuery, categoryFilter, typeFilter),
+            buildQueryString(cursor, searchQuery, categoryFilter, typeFilter),
         );
 
         // Discard if filters changed while this page was loading.
@@ -130,7 +131,7 @@ export function ItemsGridClient({ initialData }: ItemsGridClientProps) {
             setAllItems((prev) => [...prev, ...result.data!.items.map(standardizeItemDate)]);
             setHasMore(result.data.has_more);
             hasMoreRef.current = result.data.has_more;
-            nextPageRef.current = page + 1;
+            nextCursorRef.current = result.data.cursor;
         }
 
         loadingMoreRef.current = false;
