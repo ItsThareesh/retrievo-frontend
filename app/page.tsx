@@ -49,25 +49,35 @@ export default function Home() {
 
             {/* Lost and Found Buttons */}
             <div className="flex flex-col md:flex-row gap-4 justify-center pt-8 w-4/5 md:w-full">
-              <Button asChild size="lg" className="h-14 px-8 text-lg gap-2 hover:shadow-xl transition-all hover:-translate-y-1 bg-red-600 dark:bg-red-600 hover:bg-red-500 text-white border-0">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-14 px-8 text-lg gap-2 bg-popover/60 backdrop-blur-sm border-border/50 text-foreground shadow-sm hover:bg-red-600/10 hover:border-red-600/30 hover:text-red-600 hover:shadow-md transition-all hover:-translate-y-1 rounded-xl animate-[fadeIn_0.6s_ease-out_1.8s_forwards] opacity-0"
+              >
                 <Link href="/report?type=lost">
-                  <AlertCircle className="w-5 h-5" />
+                  <AlertCircle className="w-5 h-5 text-red-500" />
                   I Lost Something
                 </Link>
               </Button>
 
-              <Button asChild size="lg" className="h-14 px-8 text-lg gap-2 hover:shadow-xl transition-all hover:-translate-y-1 bg-green-600 hover:bg-green-500 dark:bg-green-700 text-white border-0">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-14 px-8 text-lg gap-2 bg-popover/60 backdrop-blur-sm border-border/50 text-foreground shadow-sm hover:bg-green-600/10 hover:border-green-600/30 hover:text-green-600 hover:shadow-md transition-all hover:-translate-y-1 rounded-xl animate-[fadeIn_0.6s_ease-out_2.0s_forwards] opacity-0"
+              >
                 <Link href="/report?type=found">
-                  <CheckCircle2 className="w-5 h-5" />
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
                   I Found Something
                 </Link>
               </Button>
             </div>
 
             <div className="pt-4">
-              <Button asChild variant="link" className="text-muted-foreground hover:text-primary gap-1">
+              <Button asChild variant="link" className="text-muted-foreground hover:text-primary gap-1 group animate-[fadeIn_0.6s_ease-out_2.2s_forwards] opacity-0">
                 <Link href="/items">
-                  Browse all items <ArrowRight className="w-4 h-4" />
+                  Browse all items <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
             </div>

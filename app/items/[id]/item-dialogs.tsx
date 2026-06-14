@@ -329,7 +329,7 @@ export function DeleteConfirmationDialog({
                 </AlertDialogCancel>
 
                 <AlertDialogAction
-                    className="text-white bg-red-500 hover:bg-red-600"
+                    className="text-white bg-red-500/85 hover:bg-red-600/85"
                     onClick={handleDelete}
                 >
                     <Trash2 className="mr-2 h-4 w-4" />

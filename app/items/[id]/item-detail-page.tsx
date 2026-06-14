@@ -235,7 +235,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                                 Edit item
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                className="text-red-600 focus:text-red-600"
+                                                className="text-red-500/80 focus:text-red-500/80"
                                                 onClick={() => setIsDeleting(true)}
                                             >
                                                 <Trash2 className="mr-2 h-4 w-4" />

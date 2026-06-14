@@ -29,8 +29,8 @@ function ReportedItemCard({
     const router = useRouter();
 
     return (
-        <div className="rounded-lg border bg-card">
-            <div className="p-5">
+        <div className="rounded-lg border bg-card overflow-x-auto">
+            <div className="min-w-[36rem] p-5">
                 <div className="flex items-start gap-4">
                     <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/30 mt-1">
                         <Flag className="h-5 w-5 text-orange-600 dark:text-orange-400" />
@@ -265,25 +265,23 @@ export function ReportsTab() {
                     <CardDescription>Review and moderate reported content</CardDescription>
                 </CardHeader>
                 <CardContent className="px-6 pb-6">
-                    <div className="md:space-y-4 overflow-x-auto md:overflow-x-visible">
-                        <div className="flex md:block gap-4 md:gap-0 min-w-max md:min-w-0 pb-2 md:pb-0">
-                            {(!reportedItems || reportedItems.length === 0) ? (
-                                <div className="text-center py-12 text-muted-foreground">
-                                    <Flag className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                    <p>No reported items</p>
-                                </div>
-                            ) : (
-                                reportedItems.map((item) => (
-                                    <ReportedItemCard
-                                        key={item.id}
-                                        item={item}
-                                        isExpanded={expandedItems.has(item.id)}
-                                        onToggleExpand={toggleExpanded}
-                                        onModerate={handleActionClick}
-                                    />
-                                ))
-                            )}
-                        </div>
+                    <div className="space-y-4">
+                        {(!reportedItems || reportedItems.length === 0) ? (
+                            <div className="text-center py-12 text-muted-foreground">
+                                <Flag className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                <p>No reported items</p>
+                            </div>
+                        ) : (
+                            reportedItems.map((item) => (
+                                <ReportedItemCard
+                                    key={item.id}
+                                    item={item}
+                                    isExpanded={expandedItems.has(item.id)}
+                                    onToggleExpand={toggleExpanded}
+                                    onModerate={handleActionClick}
+                                />
+                            ))
+                        )}
                     </div>
                 </CardContent>
             </Card >
