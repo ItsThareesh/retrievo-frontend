@@ -131,3 +131,19 @@
     @apply bg-primary/20 text-primary;
   }
 }
+
+/*Background wave Pattern */
+
+.bg-pattern-waves {
+  --pattern-color: #a9a9a9;
+  --pattern-opacity: 0.1;
+  background-image: repeating-linear-gradient(
+    -2deg,
+    transparent,
+    transparent 40px,
+    color-mix(in oklch, var(--pattern-color) calc(var(--pattern-opacity) * 100%), transparent) 40px,
+    color-mix(in oklch, var(--pattern-color) calc(var(--pattern-opacity) * 100%), transparent) 41px
+  );
+}
+
+.dark .bg-pattern-waves { --pattern-opacity: 0.04; }
