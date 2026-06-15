@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SWRProvider } from "./swr-provider";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
+import { SessionProvider } from 'next-auth/react';
 
 
 const geistSans = Geist({
@@ -32,15 +33,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
-        <ThemeProvider>
-          <SWRProvider>
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Toaster />
-          </SWRProvider>
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider>
+            <SWRProvider>
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Toaster />
+            </SWRProvider>
+          </ThemeProvider>
+        </SessionProvider>
 
         <Analytics />
         <SpeedInsights />

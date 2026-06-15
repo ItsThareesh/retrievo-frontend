@@ -1,101 +1,10 @@
 "use server";
 
 import {
-    OverviewStats,
-    ActivityItem,
-    ResolutionDetail,
-    UserDetail,
-    ReportedItemDetail,
     ModerateUserRequest,
     ModerateItemRequest,
 } from "@/types/admin";
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
-
-export async function getStats() {
-    try {
-        const res = await authFetch("/admin/stats");
-
-        if (!res.ok) {
-            console.error("getStats failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true, data: await safeJson(res) as OverviewStats }
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("updateItem error:", err);
-        return { ok: false, error: String(err) };
-    }
-};
-
-export async function getActivity(limit = 20) {
-    try {
-        const res = await authFetch(`/admin/activity?limit=${limit}`);
-
-        if (!res.ok) {
-            console.error("getActivity failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true, data: await safeJson(res) as ActivityItem[] }
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("getActivity error:", err);
-        return { ok: false, error: String(err) };
-    }
-}
-
-export async function getResolutions(status?: string, limit = 50, skip = 0, search?: string) {
-    const params = new URLSearchParams();
-    if (status) params.append("status", status);
-    params.append("limit", limit.toString());
-    params.append("skip", skip.toString());
-    
-    if (search) params.append("search", search);
-
-    try {
-        const res = await authFetch(`/admin/resolutions?${params}`);
-
-        if (!res.ok) {
-            console.error("getResolutions failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true, data: await safeJson(res) as ResolutionDetail[] }
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("getClaims error:", err);
-        return { ok: false, error: String(err) };
-    }
-}
-
-export async function getUsers(limit = 50, skip = 0, search?: string) {
-    const params = new URLSearchParams();
-    params.append("limit", limit.toString());
-    params.append("skip", skip.toString());
-    if (search) {
-        params.append("search", search);
-    }
-
-    try {
-        const res = await authFetch(`/admin/users?${params}`);
-
-        if (!res.ok) {
-            console.error("getUsers failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true, data: await safeJson(res) as UserDetail[] }
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("getUsers error:", err);
-        return { ok: false, error: String(err) };
-    }
-}
 
 export async function moderateUser(userId: number, request: ModerateUserRequest) {
     try {
@@ -115,28 +24,6 @@ export async function moderateUser(userId: number, request: ModerateUserRequest)
         if (err instanceof UnauthorizedError) throw err;
 
         console.error("moderateUser error:", err);
-        return { ok: false, error: String(err) };
-    }
-}
-
-export async function getReportedItems(limit = 50, skip = 0) {
-    const params = new URLSearchParams();
-    params.append("limit", limit.toString());
-    params.append("skip", skip.toString());
-
-    try {
-        const res = await authFetch(`/admin/reported-items?${params}`);
-
-        if (!res.ok) {
-            console.error("getReportedItems failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true, data: await safeJson(res) as ReportedItemDetail[] };
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("getReportedItems error:", err);
         return { ok: false, error: String(err) };
     }
 }

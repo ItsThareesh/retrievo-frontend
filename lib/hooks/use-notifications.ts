@@ -2,13 +2,13 @@
 
 import useSWR, { mutate } from "swr";
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Notification } from "@/types/notification";
 import {
-    getNotifications,
-    getNotificationsCount,
     readNotification,
     readAllNotifications,
 } from "@/lib/api/notifications";
+import { clientFetch } from "@/lib/client-fetch";
 
 interface NotificationsResponse {
     notifications: Notification[];
@@ -24,20 +24,6 @@ const NOTIFICATIONS_KEY = "notifications/all";
 const COUNT_KEY = "notifications/count";
 const STORAGE_KEY = "notifications_cache";
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-async function notificationsFetcher(): Promise<NotificationsResponse> {
-    const res = await getNotifications();
-    // Throw on failure so SWR sets error state, enables retry-on-failure,
-    // and prevents stale empty-array data masking a real backend error.
-    if (!res.ok) throw new Error("Failed to fetch notifications");
-    return res.data;
-}
-
-async function countFetcher(): Promise<CountResponse> {
-    const res = await getNotificationsCount();
-    if (!res.ok) throw new Error("Failed to fetch notifications count");
-    return res.data;
-}
 
 interface StoredData {
     data: NotificationsResponse;
@@ -92,7 +78,12 @@ function applyUpdate(
 }
 
 export function useNotifications() {
+    const { data: session } = useSession();
+    const token = session?.backendToken;
+
     const [storedData, setStoredData] = useState<StoredData | null>(null);
+
+    const swrKey = token ? [NOTIFICATIONS_KEY, token] : null;
 
     const {
         data: notificationsData,
@@ -100,8 +91,8 @@ export function useNotifications() {
         error: notificationsError,
         mutate: mutateNotifications,
     } = useSWR<NotificationsResponse>(
-        NOTIFICATIONS_KEY,
-        notificationsFetcher,
+        swrKey,
+        ([, t]) => clientFetch<NotificationsResponse>("/notifications/all", t),
         {
             fallbackData: undefined,
             revalidateOnMount: false,
@@ -114,12 +105,11 @@ export function useNotifications() {
         }
     );
 
-    // Count endpoint serves as change detector - always fetch to detect
-    // new notifications. Redis makes this fast. Compare last_updated_at
-    // to determine if background refresh is needed.
+    const countKey = token ? [COUNT_KEY, token] : null;
+
     const { data: countData } = useSWR<CountResponse>(
-        COUNT_KEY,
-        countFetcher,
+        countKey,
+        ([, t]) => clientFetch<CountResponse>("/notifications/count", t),
         {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,

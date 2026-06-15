@@ -6,7 +6,8 @@ import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import { User as UserType } from "@/types/user";
 import { updateItem, deleteItem, flagItem } from "@/lib/api/items";
-import { createResolution, getLinkableItems } from "@/lib/api/resolutions";
+import { createResolution } from "@/lib/api/resolutions";
+import { clientFetch } from "@/lib/client-fetch";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
 import { ResolutionStatus, LinkableItem } from "@/types/resolutions";
@@ -56,8 +57,10 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const canReturn = isLoggedIn && isLostItem && !isReporter && !hasResolution;
 
     const { data: linkableItemsData, isLoading: isLoadingLinkableItems } = useSWR(
-        canClaim || canReturn ? `/api/v1/items/${item.id}/linkable` : null,
-        () => getLinkableItems(item.id)
+        canClaim || canReturn && session?.backendToken
+            ? [`/items/${item.id}/linkable`, session.backendToken]
+            : null,
+        ([url, t]) => clientFetch<LinkableItem[]>(url, t)
     );
     const linkableItems = linkableItemsData || [];
 

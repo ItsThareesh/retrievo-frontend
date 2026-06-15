@@ -9,7 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, Trash2, Calendar, MapPin, Share2, User, Pencil, X, Flag, ChevronDown } from "lucide-react";
+import { MoreHorizontal, Trash2, Calendar, MapPin, Share2, User, Pencil, Flag } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ImageViewer } from "@/components/image-viewer";
 import { Textarea } from "@/components/ui/textarea";
 import { Item } from "@/types/item";
-import { Session } from "next-auth";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { User as UserType } from "@/types/user";
 import {
@@ -27,7 +27,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams, notFound } from "next/navigation";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
@@ -35,15 +35,90 @@ import { ResolutionStatus } from "@/types/resolutions";
 import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 import { formatDateString } from "@/lib/date-formatting";
+import { clientFetch, APIError } from "@/lib/client-fetch";
+import { ItemsGridSkeleton } from "../items-loading-skeleton";
+import { useEffect, useState } from "react";
+import { Session } from "next-auth";
 
-interface ItemDetailProps {
+interface ItemData {
+    item: Item;
+    reporter: UserType;
+    claim_status: ResolutionStatus | "none";
+}
+
+export default function ItemDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
+    const { data: session, status: sessionStatus } = useSession();
+    const token = session?.backendToken;
+
+    const [itemData, setItemData] = useState<ItemData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [notFoundError, setNotFoundError] = useState(false);
+
+    useEffect(() => {
+        if (!id || sessionStatus === "loading") return;
+
+        setLoading(true);
+        
+        clientFetch<ItemData>(`/items/${id}`, token)
+            .then((data) => {
+                setItemData(data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof APIError && err.status === 404) {
+                    setNotFoundError(true);
+                }
+                setLoading(false);
+            });
+    }, [id, token, sessionStatus]);
+
+    if (notFoundError) {
+        notFound();
+    }
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+                <ItemsGridSkeleton />
+            </div>
+        );
+    }
+
+    if (!itemData) {
+        return (
+            <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+                <div className="text-center py-16">
+                    <p className="text-muted-foreground">Failed to load item. Please try again later.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const { item, reporter, claim_status: resolution_status } = itemData;
+
+    return (
+        <ItemDetailContent
+            item={item}
+            reporter={reporter}
+            resolution_status={resolution_status}
+            session={session}
+        />
+    );
+}
+
+function ItemDetailContent({
+    item,
+    reporter,
+    resolution_status,
+    session,
+}: {
     item: Item;
     reporter: UserType;
     resolution_status: ResolutionStatus | "none";
     session: Session | null;
-}
-
-export default function ItemDetailPage({ item, reporter, resolution_status, session }: ItemDetailProps) {
+}) {
     const router = useRouter();
 
     const {
@@ -147,6 +222,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                     src={item.image}
                                     alt={item.title}
                                     fill
+                                    sizes="(max-width: 1024px) 100vw, 66vw"
                                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute top-1 md:top-3 right-1 md:right-4 flex flex-row gap-2 p-2 rounded-lg">

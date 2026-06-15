@@ -26,11 +26,12 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertCircle, Ban, Search } from "lucide-react";
-import { getUsers, moderateUser } from "@/lib/api/admin";
+import { moderateUser } from "@/lib/api/admin";
 import { UserDetail } from "@/types/admin";
 import useSWR from "swr";
+import { useSession } from "next-auth/react";
 import { UsersSkeleton } from "./skeletons";
-import { fetchData } from "@/lib/utils/swrHelper";
+import { clientFetch } from "@/lib/client-fetch";
 
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 
@@ -232,12 +233,20 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
 }
 
 export function UsersTab() {
+    const { data: session } = useSession();
+    const token = session?.backendToken;
     const [search, setSearch] = useState("");
     const debouncedSearch = useDebouncedValue(search, 500);
 
+    const buildUsersUrl = (search: string) => {
+        const params = new URLSearchParams({ limit: "50", skip: "0" });
+        if (search) params.set("search", search);
+        return `/admin/users?${params}`;
+    };
+
     const { data: users, isLoading, mutate } = useSWR(
-        ['users', 50, 0, debouncedSearch], 
-        () => fetchData(() => getUsers(50, 0, debouncedSearch))
+        token ? ['users', debouncedSearch, token] : null,
+        ([, search, t]) => clientFetch<UserDetail[]>(buildUsersUrl(search), t),
     );
 
     return (

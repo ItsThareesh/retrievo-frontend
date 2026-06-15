@@ -3,15 +3,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Package, Flag, Users, TrendingUp, TrendingDown,
-    CheckCircle, XCircle, AlertTriangle, Clock, ArrowRight,
-    RotateCcw, Ban,
+    CheckCircle, XCircle, AlertTriangle, Clock, ArrowRight, Ban,
 } from "lucide-react";
-import { getStats, getActivity } from "@/lib/api/admin";
+
 import { formatDistanceToNow } from "date-fns";
 import useSWR from "swr";
+import { useSession } from "next-auth/react";
 import { OverviewSkeleton } from "./skeletons";
-import { fetchData } from "@/lib/utils/swrHelper";
-import type { OverviewStats } from "@/types/admin";
+import type { OverviewStats, ActivityItem } from "@/types/admin";
+import { clientFetch } from "@/lib/client-fetch";
 
 function TrendIndicator({ current, previous, suffix }: { current: number; previous: number; suffix?: string }) {
     if (previous === 0 && current === 0) {
@@ -215,9 +215,16 @@ const activityIconColors: Record<string, string> = {
 };
 
 export function OverviewTab() {
-    const { data: stats, isLoading: statsLoading } = useSWR("stats", () => fetchData(() => getStats()));
-    const { data: activity, isLoading: activityLoading } = useSWR(["activity", 10], () =>
-        fetchData(() => getActivity(10))
+    const { data: session } = useSession();
+    const token = session?.backendToken;
+
+    const { data: stats, isLoading: statsLoading } = useSWR(
+        token ? ["stats", token] : null,
+        ([, t]) => clientFetch<OverviewStats>("/admin/stats", t),
+    );
+    const { data: activity, isLoading: activityLoading } = useSWR(
+        token ? ["activity", 10, token] : null,
+        ([, , t]) => clientFetch<ActivityItem[]>(`/admin/activity?limit=10`, t),
     );
 
     if (statsLoading || activityLoading) {

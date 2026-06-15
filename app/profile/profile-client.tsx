@@ -3,33 +3,52 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Instagram, Phone, House, Search } from 'lucide-react';
+import { Instagram, Phone, House, Search, LogOut } from 'lucide-react';
 import { ItemCard } from '@/components/item-card';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Item } from '@/types/item';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { clientFetch } from '@/lib/client-fetch';
+import { standardizeItemDate } from '@/lib/date-formatting';
 
-interface ProfileClientProps {
-    user: {
-        name: string;
-        email: string;
-        image: string;
-        phone?: string;
-        hostel?: string;
-        instagramId?: string;
-    };
-    lostItems: Item[];
-    foundItems: Item[];
-}
+export function ProfileClient() {
+    const { data: session, status } = useSession();
+    const token = session?.backendToken;
 
-export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProps) {
-    const toastShownRef = useRef(false); // To prevent multiple toasts
+    const [user, setUser] = useState<{ name: string; email: string; image: string; phone?: string; hostel?: string; instagramId?: string } | null>(null);
+    const [lostItems, setLostItems] = useState<Item[]>([]);
+    const [foundItems, setFoundItems] = useState<Item[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
+    useEffect(() => {
+        if (status !== "authenticated" || !token) return;
+
+        clientFetch<{ lost_items: Item[]; found_items: Item[] }>('/profile/items', token)
+            .then((data) => {
+                setLostItems(data.lost_items.map(standardizeItemDate));
+                setFoundItems(data.found_items.map(standardizeItemDate));
+                setUser({
+                    name: session?.user?.name ?? '',
+                    email: session?.user?.email ?? '',
+                    image: session?.user?.image ?? '',
+                    phone: session?.user?.phone ?? '',
+                    hostel: session?.user?.hostel ?? '',
+                    instagramId: session?.user?.instagramId ?? '',
+                });
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                console.error('Failed to load profile items:', err);
+                setIsLoading(false);
+            });
+    }, [status, token]);
+
+    const toastShownRef = useRef(false);
     const params = useSearchParams();
     const reason = params.get("reason");
 
@@ -55,6 +74,10 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
         );
     }, [lostItems, foundItems]);
 
+    if (isLoading || !user) {
+        return <ProfileSkeleton />;
+    }
+
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col md:flex-row gap-8">
@@ -68,6 +91,7 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                                     alt=""
                                     aria-hidden="true"
                                     fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
                                     className="object-cover blur-3xl scale-125 opacity-50 saturate-300"
                                 />
                             </div>
@@ -187,6 +211,59 @@ export function ProfileClient({ user, lostItems, foundItems }: ProfileClientProp
                             )}
                         </TabsContent>
                     </Tabs>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function ProfileSkeleton() {
+    return (
+        <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+            <div className="flex flex-col md:flex-row gap-8">
+                <div className="w-full md:w-1/3 lg:w-1/4">
+                    <div className="sticky top-24">
+                        <Card className="overflow-hidden border-muted shadow-sm">
+                            <div className="h-24 bg-muted/50" />
+                            <CardHeader className="text-center -mt-12 relative z-10">
+                                <div className="mx-auto mb-4 p-1 bg-background rounded-full w-fit">
+                                    <Skeleton className="w-24 h-24 rounded-full" />
+                                </div>
+                                <Skeleton className="h-6 w-32 mx-auto mb-2" />
+                                <Skeleton className="h-4 w-48 mx-auto" />
+                            </CardHeader>
+                            <CardContent className="space-y-4 p-4">
+                                <div className="space-y-3 w-full max-w-[260px] mx-auto">
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-2/3" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+                <div className="flex-1">
+                    <Skeleton className="h-9 w-32 mb-6" />
+                    <div className="flex w-full max-w-md mx-auto mb-8 gap-2">
+                        <Skeleton className="h-10 flex-1" />
+                        <Skeleton className="h-10 flex-1" />
+                        <Skeleton className="h-10 flex-1" />
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <Card key={i} className="overflow-hidden">
+                                <Skeleton className="w-full h-48" />
+                                <div className="p-4 space-y-3">
+                                    <Skeleton className="h-5 w-20" />
+                                    <Skeleton className="h-6 w-3/4" />
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-5/6" />
+                                    <Skeleton className="h-4 w-2/3" />
+                                    <Skeleton className="h-4 w-1/2" />
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

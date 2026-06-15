@@ -6,17 +6,65 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDateString } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
-import { User } from '@/types/user';
+import { User as UserType } from '@/types/user';
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams, notFound } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { clientFetch, APIError } from '@/lib/client-fetch';
+import { standardizeItemDate } from '@/lib/date-formatting';
+import { UserProfileLoading } from '../user-profile-loading';
 
-interface UserProfileClientProps {
-    user: User;
-    lostItems: Item[];
-    foundItems: Item[];
-}
+export function UserProfileClient() {
+    const { data: session } = useSession();
+    const token = session?.backendToken;
+    const params = useParams();
+    const id = params.id as string;
 
-export function UserProfileClient({ user, lostItems, foundItems }: UserProfileClientProps) {
+    const [user, setUser] = useState<UserType | null>(null);
+    const [lostItems, setLostItems] = useState<Item[]>([]);
+    const [foundItems, setFoundItems] = useState<Item[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [notFoundError, setNotFoundError] = useState(false);
+
+    useEffect(() => {
+        if (!id) return;
+
+        setIsLoading(true);
+        clientFetch<{ user: UserType; lost_items: Item[]; found_items: Item[] }>(
+            `/profile/${id}`,
+            token,
+        )
+            .then((data) => {
+                setUser(data.user);
+                setLostItems(data.lost_items.map(standardizeItemDate));
+                setFoundItems(data.found_items.map(standardizeItemDate));
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof APIError && err.status === 404) {
+                    setNotFoundError(true);
+                }
+                setIsLoading(false);
+            });
+    }, [id, token]);
+
+    if (notFoundError) {
+        notFound();
+    }
+
+    if (isLoading) {
+        return <UserProfileLoading />;
+    }
+
+    if (!user) {
+        return (
+            <div className="container mx-auto px-4 py-8 text-center">
+                <p className="text-muted-foreground">Failed to load profile.</p>
+            </div>
+        );
+    }
+
     const userItems: Item[] = useMemo(() => {
         const items = [...lostItems, ...foundItems];
         items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -36,6 +84,7 @@ export function UserProfileClient({ user, lostItems, foundItems }: UserProfileCl
                                     alt=""
                                     aria-hidden="true"
                                     fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
                                     className="object-cover blur-3xl scale-125 opacity-50 saturate-300"
                                 />
                             </div>

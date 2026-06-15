@@ -4,13 +4,14 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Flag, ExternalLink, ChevronDown, ChevronUp, Eye, EyeOff, AlertTriangle, Trash2 } from "lucide-react";
-import { getReportedItems, moderateItem } from "@/lib/api/admin";
+import { moderateItem } from "@/lib/api/admin";
 import { formatDistanceToNow } from "date-fns";
 import useSWR from "swr";
+import { useSession } from "next-auth/react";
 import { ActivitySkeleton } from "./skeletons";
-import { fetchData } from "@/lib/utils/swrHelper";
+import { clientFetch } from "@/lib/client-fetch";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ReportedItemDetail } from "@/types/admin";
@@ -175,7 +176,8 @@ function ReportedItemCard({
 }
 
 export function ReportsTab() {
-    const router = useRouter();
+    const { data: session } = useSession();
+    const token = session?.backendToken;
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [modalConfig, setModalConfig] = useState<{
         isOpen: boolean;
@@ -192,7 +194,10 @@ export function ReportsTab() {
         warningMessage: "",
         isLoading: false,
     });
-    const { data: reportedItems, isLoading, mutate } = useSWR(['reported-items', 50], () => fetchData(() => getReportedItems(50)));
+    const { data: reportedItems, isLoading, mutate } = useSWR(
+        token ? ['reported-items', 50, token] : null,
+        ([, , t]) => clientFetch<ReportedItemDetail[]>('/admin/reported-items?limit=50', t),
+    );
 
     const toggleExpanded = (itemId: string) => {
         const newExpanded = new Set(expandedItems);

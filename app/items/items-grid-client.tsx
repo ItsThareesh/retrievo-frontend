@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,10 +14,17 @@ import {
 import { ItemCard } from "@/components/item-card";
 import { Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getPaginatedItems, PaginatedItemsData } from "@/lib/api/items";
+import { clientFetch } from "@/lib/client-fetch";
 import { standardizeItemDate } from "@/lib/date-formatting";
 import { ItemsGridSkeleton, ItemsLoadMoreSkeleton } from "./items-loading-skeleton";
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
+import type { Item } from "@/types/item";
+
+interface PaginatedResponse {
+    items: Item[];
+    cursor: string | null;
+    has_more: boolean;
+}
 
 /** Build a query string for the given cursor and current filter values. */
 function buildQueryString(
@@ -25,7 +33,7 @@ function buildQueryString(
     category: string,
     type: string,
 ): string {
-    const params = new URLSearchParams({ limit: "12" });
+    const params = new URLSearchParams({ limit: "16" });
     if (cursor) params.set("cursor", cursor);
     if (search) params.set("search", search);
     if (category !== "all") params.set("category", category);
@@ -33,54 +41,49 @@ function buildQueryString(
     return params.toString();
 }
 
-interface ItemsGridClientProps {
-    initialData: PaginatedItemsData | null;
-}
+export function ItemsGridClient() {
+    const { data: session, status } = useSession();
+    const token = session?.backendToken;
 
-export function ItemsGridClient({ initialData }: ItemsGridClientProps) {
     const [searchInput, setSearchInput] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [activeTab, setActiveTab] = useState<"all" | "found" | "lost">("all");
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    // Core feed state — initialized from RSC data for instant first paint.
-    // Initial data is already formatted on the server, so no need to format again.
-    const [allItems, setAllItems] = useState(() =>
-        initialData ? initialData.items : [],
-    );
-    const [isLoading, setIsLoading] = useState(!initialData);
+    const [allItems, setAllItems] = useState<Item[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [hasMore, setHasMore] = useState(initialData?.has_more ?? false);
+    const [hasMore, setHasMore] = useState(false);
 
-    // Refs prevent stale closures inside the IntersectionObserver callback.
-    const nextCursorRef = useRef<string | null>(initialData?.cursor ?? null);
+    const nextCursorRef = useRef<string | null>(null);
     const loadingMoreRef = useRef(false);
-    const hasMoreRef = useRef(initialData?.has_more ?? false);
-
-    // Generation counter: incremented on every filter change.
-    // In-flight loadMore calls compare their captured generation against the
-    // current value — if they differ, the result is discarded to prevent
-    // stale pages from a previous filter set leaking into the new one.
+    const hasMoreRef = useRef(false);
     const generationRef = useRef(0);
-
-    // Track whether the RSC-provided initialData has been consumed so we
-    // skip the redundant first fetch when filters are still at defaults.
-    const initialDataConsumed = useRef(false);
 
     const searchQuery = useDebouncedValue(searchInput, 400);
     const typeFilter = activeTab === "all" ? "all" : activeTab;
 
+    async function fetchPage(
+        cursor: string | null,
+        search: string,
+        category: string,
+        type: string,
+    ): Promise<PaginatedResponse | null> {
+        try {
+            const data = await clientFetch<PaginatedResponse>(
+                `/items/all?${buildQueryString(cursor, search, category, type)}`,
+                token,
+            );
+            return data;
+        } catch {
+            return null;
+        }
+    }
+
     // Reload from page 1 whenever any filter changes.
     useEffect(() => {
-        const isDefaultFilters =
-            searchQuery === "" && categoryFilter === "all" && typeFilter === "all";
-
-        // Skip the very first fetch when the RSC already provided page-1 data.
-        if (!initialDataConsumed.current && initialData && isDefaultFilters) {
-            initialDataConsumed.current = true;
-            return;
-        }
-
+        if (status === "loading") return;
+        
         // Bump generation to invalidate any in-flight loadMore calls.
         const gen = ++generationRef.current;
 
@@ -90,23 +93,21 @@ export function ItemsGridClient({ initialData }: ItemsGridClientProps) {
         hasMoreRef.current = false;
         nextCursorRef.current = null;
 
-        getPaginatedItems(
-            buildQueryString(null, searchQuery, categoryFilter, typeFilter),
-        ).then((result) => {
-            // Discard if a newer filter change superseded this one.
-            if (gen !== generationRef.current) return;
-
-            if (result.ok && result.data) {
-                setAllItems(result.data.items.map(standardizeItemDate));
-                setHasMore(result.data.has_more);
-                hasMoreRef.current = result.data.has_more;
+        fetchPage(null, searchQuery, categoryFilter, typeFilter).then((data) => {
+            if (gen !== generationRef.current || !data) {
+                if (gen === generationRef.current) setIsLoading(false);
+                return;
             }
+            setAllItems(data.items.map(standardizeItemDate));
+            setHasMore(data.has_more);
+            hasMoreRef.current = data.has_more;
+            nextCursorRef.current = data.cursor;
             setIsLoading(false);
         });
-    }, [searchQuery, categoryFilter, typeFilter, initialData]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery, categoryFilter, typeFilter, status]);
 
-    // Load the next page and append items. Guarded by refs so only one
-    // concurrent load runs at a time, and stale results are discarded.
+    // Load the next page and append items.
     const loadMore = useCallback(async () => {
         if (loadingMoreRef.current || !hasMoreRef.current) return;
 
@@ -116,30 +117,26 @@ export function ItemsGridClient({ initialData }: ItemsGridClientProps) {
         const gen = generationRef.current;
         const cursor = nextCursorRef.current;
 
-        const result = await getPaginatedItems(
-            buildQueryString(cursor, searchQuery, categoryFilter, typeFilter),
-        );
+        const data = await fetchPage(cursor, searchQuery, categoryFilter, typeFilter);
 
-        // Discard if filters changed while this page was loading.
         if (gen !== generationRef.current) {
             loadingMoreRef.current = false;
             setIsLoadingMore(false);
             return;
         }
 
-        if (result.ok && result.data) {
-            setAllItems((prev) => [...prev, ...result.data!.items.map(standardizeItemDate)]);
-            setHasMore(result.data.has_more);
-            hasMoreRef.current = result.data.has_more;
-            nextCursorRef.current = result.data.cursor;
+        if (data) {
+            setAllItems((prev) => [...prev, ...data.items.map(standardizeItemDate)]);
+            setHasMore(data.has_more);
+            hasMoreRef.current = data.has_more;
+            nextCursorRef.current = data.cursor;
         }
 
         loadingMoreRef.current = false;
         setIsLoadingMore(false);
-    }, [searchQuery, categoryFilter, typeFilter]);
+    }, [searchQuery, categoryFilter, typeFilter, token]);
 
-    // Infinite scroll — IntersectionObserver triggers loadMore when the
-    // sentinel enters the viewport. Reconnects when dependencies change.
+    // Infinite scroll
     useEffect(() => {
         if (!loadMoreRef.current || !hasMore || isLoadingMore) return;
 

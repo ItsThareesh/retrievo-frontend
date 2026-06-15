@@ -20,8 +20,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
-import { getResolutions } from "@/lib/api/admin";
-import { fetchData } from "@/lib/utils/swrHelper";
+import { useSession } from "next-auth/react";
+import { clientFetch } from "@/lib/client-fetch";
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 import { ClaimsSkeleton } from "./skeletons";
 import { ResolutionStatus } from "@/types/resolutions";
@@ -108,12 +108,20 @@ function StatusBadge({ status }: { status: ResolutionStatus }) {
 
 export function ResolutionsTab() {
     const router = useRouter();
+    const { data: session } = useSession();
+    const token = session?.backendToken;
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearch = useDebouncedValue(searchQuery, 500);
-    
+
+    const buildResolutionsUrl = (search: string) => {
+        const params = new URLSearchParams({ limit: "50", skip: "0" });
+        if (search) params.set("search", search);
+        return `/admin/resolutions?${params}`;
+    };
+
     const { data, isLoading } = useSWR(
-        ["resolutions", undefined, 50, 0, debouncedSearch],
-        () => fetchData(() => getResolutions(undefined, 50, 0, debouncedSearch))
+        token ? ["resolutions", debouncedSearch, token] : null,
+        ([, search, t]) => clientFetch<ResolutionDetail[]>(buildResolutionsUrl(search), t),
     );
 
     if (isLoading) {

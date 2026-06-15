@@ -204,7 +204,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                             <FormItem className="col-span-1 md:col-span-2">
                                 <FormLabel>Title</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g. Blue Jansport Backpack" {...field} className="h-11" disabled={isSubmitting} />
+                                    <Input placeholder="e.g. Blue Jansport Backpack" {...field} className="h-11 text-sm" disabled={isSubmitting} />
                                 </FormControl>
                                 <FormDescription>
                                     A short, descriptive title for the item.
@@ -352,7 +352,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                             <FormControl>
                                 <Textarea
                                     placeholder="Mention where it was found or its general appearance. Avoid sharing unique identifying details."
-                                    className="resize-none min-h-[120px]"
+                                    className="resize-none min-h-[120px] text-sm"
                                     disabled={isSubmitting}
                                     {...field} 
                                 />
@@ -440,6 +440,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                                 src={preview}
                                                 alt="Preview"
                                                 fill
+                                                sizes="(max-width: 768px) 100vw, 448px"
                                                 className="object-cover" />
                                         </ImageViewer>
                                         <Button

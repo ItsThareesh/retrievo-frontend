@@ -1,7 +1,6 @@
 "use server";
 
 import { authFetch, safeJson, UnauthorizedError } from "./helpers";
-import { LinkableItem } from "@/types/resolutions";
 
 /** POST: Create a resolution (claim/return) */
 export async function createResolution(
@@ -33,43 +32,6 @@ export async function createResolution(
 
         console.error("createResolution error:", err);
         return { ok: false, error: String(err) };
-    }
-}
-
-/** GET: Fetch linkable items for the counterpart radio buttons */
-export async function getLinkableItems(itemId: string): Promise<LinkableItem[]> {
-    try {
-        const res = await authFetch(`/resolutions/linkable-items?item_id=${encodeURIComponent(itemId)}`);
-
-        if (!res.ok) {
-            console.error("getLinkableItems failed:", res.status);
-            return [];
-        }
-
-        return await safeJson(res);
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("getLinkableItems error:", err);
-        return [];
-    }
-}
-
-/** GET: Fetch current resolution status by ID (both for owner and finder) */
-export async function getResolutionStatus(resolutionId: string) {
-    try {
-        const res = await authFetch(`/resolutions/${resolutionId}`);
-
-        if (!res.ok) {
-            return { ok: false, data: null, status: res.status };
-        }
-
-        return { ok: true, data: await safeJson(res) };
-    } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
-
-        console.error("getResolutionStatus error:", err);
-        return { ok: false, data: null, error: String(err) };
     }
 }
 

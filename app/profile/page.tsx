@@ -1,9 +1,9 @@
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { ProfileClient } from '@/app/profile/profile-client';
 import { redirect } from 'next/navigation';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';
-import { getUserItems } from '@/lib/api/profile';
-import { standardizeItemDate } from '@/lib/date-formatting';
 
 export default async function ProfilePage() {
     const session = await auth();
@@ -11,32 +11,23 @@ export default async function ProfilePage() {
     const isAuthenticated =
         !!session?.user && Date.now() < (session?.expires_at ?? 0);
 
-    // Check authentication
     if (!isAuthenticated) {
         redirect('/auth/signin?callbackUrl=/profile');
     }
 
-    // Check if user needs onboarding
     if (needsOnboarding(session)) {
         redirect('/onboarding');
     }
 
-    // Fetch user items server-side — no caching (user-specific authenticated data)
-    const result = await getUserItems();
-    const items = result.ok && result.data ? result.data : { lost_items: [], found_items: [] };
-
     return (
-        <ProfileClient
-            user={{
-                name: session.user.name,
-                email: session.user.email,
-                image: session.user.image,
-                phone: session.user.phone || '',
-                hostel: session.user.hostel || '',
-                instagramId: session.user.instagramId || '',
-            }}
-            lostItems={items.lost_items.map(standardizeItemDate)}
-            foundItems={items.found_items.map(standardizeItemDate)}
-        />
+        <>
+            <ProfileClient />
+            <Link
+                href="/report"
+                className="md:hidden fixed bottom-6 right-6 z-50 size-14 rounded-full bg-primary text-primary-foreground shadow-xl hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
+            >
+                <Plus className="size-6" />
+            </Link>
+        </>
     );
 }

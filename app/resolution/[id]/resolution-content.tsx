@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import {
     Clock,
@@ -22,6 +23,7 @@ import {
     completeResolution,
     failResolution,
 } from "@/lib/api/resolutions";
+import { clientFetch, APIError } from "@/lib/client-fetch";
 
 import { ActionButtons } from "./components/action-buttons";
 import { RejectionDialog } from "./components/rejection-dialog";
@@ -32,6 +34,7 @@ import { FinderContactCard } from "./components/finder-contact";
 import { ThemeKey, THEMES } from "./theme";
 import { formatDateString } from "@/lib/date-formatting";
 import { LOCATION_MAP } from "@/lib/constants/locations";
+import { ItemsGridSkeleton } from "@/app/items/items-loading-skeleton";
 
 
 /* STATUS UI MAP */
@@ -300,34 +303,109 @@ function resolveStatusUI(
 }
 
 
-interface Props {
+interface ResolutionData {
     resolution: Resolution;
     item: Item;
-    finderContact: FinderContact | null;
+    finder_contact: FinderContact | null;
     viewer: Viewer;
-    allowedActions: AllowedAction[];
-    linkedItem: LinkedItem | null;
+    allowed_actions: AllowedAction[];
+    linked_item: LinkedItem | null;
 }
 
-export function ResolutionStatusContent({
-    resolution,
-    item,
-    finderContact,
-    viewer,
-    allowedActions,
-    linkedItem,
-}: Props) {
+export function ResolutionStatusContent() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const params = useParams();
+    const resolutionId = params.id as string;
+    const { data: session } = useSession();
+    const token = session?.backendToken;
+
+    const [resolution, setResolution] = useState<Resolution | null>(null);
+    const [item, setItem] = useState<Item | null>(null);
+    const [finderContact, setFinderContact] = useState<FinderContact | null>(null);
+    const [viewer, setViewer] = useState<Viewer | null>(null);
+    const [allowedActions, setAllowedActions] = useState<AllowedAction[]>([]);
+    const [linkedItem, setLinkedItem] = useState<LinkedItem | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!resolutionId) return;
+
+        setIsLoading(true);
+        clientFetch<ResolutionData>(`/resolutions/${resolutionId}`, token)
+            .then((data) => {
+                setResolution(data.resolution);
+                setItem(data.item);
+                setFinderContact(data.finder_contact);
+                setViewer(data.viewer);
+                setAllowedActions(data.allowed_actions);
+                setLinkedItem(data.linked_item);
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                if (err instanceof APIError && err.status === 404) {
+                    setFetchError("not_found");
+                } else if (err instanceof APIError && err.status === 403) {
+                    setFetchError("forbidden");
+                } else {
+                    setFetchError("unknown");
+                }
+                setIsLoading(false);
+            });
+    }, [resolutionId, token]);
+
+    const [actionLoading, setActionLoading] = useState(false);
     const [showRejectDialog, setShowRejectDialog] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
 
     const config = useMemo(
-        () => resolveStatusUI(resolution, viewer),
-        [resolution.status, viewer.role]
+        () => resolution && viewer ? resolveStatusUI(resolution, viewer) : null,
+        [resolution?.status, viewer?.role]
     );
 
-    const theme = THEMES[config.theme as ThemeKey];
+    const theme = config ? THEMES[config.theme as ThemeKey] : null;
+
+    if (isLoading) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
+                <div className="max-w-3xl mx-auto">
+                    <ItemsGridSkeleton />
+                </div>
+            </div>
+        );
+    }
+
+    if (fetchError === "not_found") {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-background">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-2">Claim Not Found</h1>
+                    <p className="text-muted-foreground mb-6">
+                        This claim does not exist or you don't have permission to view it.
+                    </p>
+                    <a href="/items" className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                        Back to Items
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
+    if (fetchError) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-background">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-2">Error</h1>
+                    <p className="text-muted-foreground mb-6">Failed to load resolution details.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!resolution || !item || !viewer || !config || !theme) return null;
+
+    const resId = resolution.id;
+    const itemId = item.id;
 
     async function handleAction(action: AllowedAction) {
         if (action === "reject") {
@@ -335,20 +413,20 @@ export function ResolutionStatusContent({
             return;
         }
 
-        setLoading(true);
+        setActionLoading(true);
         try {
-            const res = action === "approve"
-                ? await approveResolution(resolution.id, item.id)
+            const result = action === "approve"
+                ? await approveResolution(resId, itemId)
                 : action === "complete"
-                    ? await completeResolution(resolution.id)
-                    : await failResolution(resolution.id, item.id);
+                    ? await completeResolution(resId)
+                    : await failResolution(resId, itemId);
 
-            if (!res?.ok) throw new Error();
+            if (!result?.ok) throw new Error();
             router.refresh();
         } catch (err) {
             toast.error("Action failed. Please try again.");
         } finally {
-            setLoading(false);
+            setActionLoading(false);
         }
     }
 
@@ -359,17 +437,17 @@ export function ResolutionStatusContent({
             return;
         }
 
-        setLoading(true);
+        setActionLoading(true);
         try {
-            const res = await rejectResolution(resolution.id, reason, item.id);
-            if (!res.ok) throw new Error();
+            const result = await rejectResolution(resId, reason, itemId);
+            if (!result.ok) throw new Error();
             router.refresh();
             setShowRejectDialog(false);
             setRejectionReason("");
         } catch (err) {
             toast.error("Failed to reject claim.");
         } finally {
-            setLoading(false);
+            setActionLoading(false);
         }
     }
 
@@ -413,13 +491,13 @@ export function ResolutionStatusContent({
 
                 <ActionButtons
                     allowedActions={allowedActions}
-                    loading={loading}
+                    loading={actionLoading}
                     onAction={handleAction}
                 />
 
                 <RejectionDialog
                     open={showRejectDialog}
-                    loading={loading}
+                    loading={actionLoading}
                     reason={rejectionReason}
                     onReasonChange={setRejectionReason}
                     onConfirm={handleReject}
