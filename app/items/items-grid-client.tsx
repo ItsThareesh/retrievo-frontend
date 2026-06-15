@@ -234,7 +234,7 @@ export function ItemsGridClient() {
                             )}
                         </>
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-16 px-6 text-center border rounded-lg bg-muted/10 border-dashed animate-in fade-in-0 zoom-in-95 duration-500">
+                        <div className="flex flex-col items-center justify-center py-16 px-6 text-center border rounded-lg bg-muted/10 border-dashed border-muted-foreground/20 animate-in fade-in-0 zoom-in-95 duration-500">
                             <div className="bg-muted/30 p-4 rounded-full mb-4">
                                 <Search className="w-8 h-8 text-muted-foreground" />
                             </div>

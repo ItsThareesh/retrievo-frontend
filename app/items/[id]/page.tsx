@@ -67,9 +67,7 @@ export default function ItemDetailPage() {
                 setLoading(false);
             })
             .catch((err) => {
-                if (err instanceof APIError && err.status === 404) {
-                    setNotFoundError(true);
-                }
+                if (err instanceof APIError) setNotFoundError(true);
                 setLoading(false);
             });
     }, [id, token, sessionStatus]);
@@ -545,7 +543,7 @@ function ItemDetailContent({
                                 I Found This!
                             </Button>
                         ) : null}
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className={`grid gap-3 ${!!session?.backendToken && session.user.public_id != reporter.public_id ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <Button
                                 onClick={handleShare}
                                 variant="ghost"
@@ -555,7 +553,7 @@ function ItemDetailContent({
                                 <Share2 className="w-4 h-4 mr-2" />
                                 Share
                             </Button>
-                            {!!session?.backendToken && (
+                            {!!session?.backendToken && session.user.public_id != reporter.public_id && (
                                 <Button
                                     variant="ghost"
                                     size="sm"

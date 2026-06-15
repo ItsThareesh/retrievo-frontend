@@ -128,7 +128,7 @@ function ClaimsFlowCard({ stats }: { stats: OverviewStats }) {
             </CardHeader>
             <CardContent className="px-5 pb-5">
                 <div className="overflow-x-auto">
-                    <div className="min-w-[360px] grid grid-cols-[1fr_60px_60px_72px]">
+                    <div className="min-w-[360px] grid grid-cols-[auto_60px_60px_120px]">
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-3">Status</span>
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center px-3 py-3">This</span>
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center px-3 py-3">Last</span>

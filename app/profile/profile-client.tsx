@@ -20,7 +20,9 @@ export function ProfileClient() {
     const { data: session, status } = useSession();
     const token = session?.backendToken;
 
-    const [user, setUser] = useState<{ name: string; email: string; image: string; phone?: string; hostel?: string; instagramId?: string } | null>(null);
+    const [user, setUser] = useState<{ 
+        name: string; email: string; image: string; phone?: string; hostel?: string; instagramId?: string 
+    } | null>(null);
     const [lostItems, setLostItems] = useState<Item[]>([]);
     const [foundItems, setFoundItems] = useState<Item[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -85,14 +87,15 @@ export function ProfileClient() {
                 <div className="w-full md:w-1/3 lg:w-1/4">
                     <div className="sticky top-24">
                         <Card className="overflow-hidden border-muted shadow-sm">
-                            <div className="relative h-24 w-full overflow-hidden bg-muted/20">
+                            <div className="relative h-24 w-full overflow-hidden bg-muted/40 dark:bg-muted/40">
                                 <Image
                                     src={user.image || ""}
                                     alt=""
                                     aria-hidden="true"
                                     fill
+                                    draggable={false} 
                                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
-                                    className="object-cover blur-3xl scale-125 opacity-50 saturate-300"
+                                    className="object-cover blur-3xl scale-125 saturate-300 pointer-events-none select-none"
                                 />
                             </div>
                             <CardHeader className="text-center -mt-12 relative z-10">
@@ -174,7 +177,7 @@ export function ProfileClient() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed border-muted-foreground/20">
                                     <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No items reported yet.</p>
                                 </div>
@@ -189,7 +192,7 @@ export function ProfileClient() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed border-muted-foreground/20">
                                     <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No lost items reported.</p>
                                 </div>
@@ -204,7 +207,7 @@ export function ProfileClient() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed border-muted-foreground/20">
                                     <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No found items reported.</p>
                                 </div>
