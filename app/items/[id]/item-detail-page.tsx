@@ -430,7 +430,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                         {canClaim ? (
                             <Button
                                 size="lg"
-                                className="w-full h-12 text-lg shadow-sm mb-6"
+                                className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
                                 onClick={() => {
                                     const isAuthenticated =
                                         !!session?.user && Date.now() < (session?.expires_at ?? 0);
@@ -454,7 +454,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                         {canReturn ? (
                             <Button
                                 size="lg"
-                                className="w-full h-12 text-lg shadow-sm mb-6"
+                                className="w-full h-12 text-lg shadow-sm mb-6 cursor pointer"
                                 onClick={async () => {
                                     const isAuthenticated =
                                         !!session?.user && Date.now() < (session?.expires_at ?? 0);
