@@ -146,6 +146,6 @@ When editing items, only changed fields are sent to the backend (diff-based PATC
 
 This frontend communicates with a FastAPI backend at `INTERNAL_BACKEND_URL`:
 
-- All requests include `X-Internal-Secret` header for server-to-server authentication
+- Server-side requests include `X-Internal-Secret` header (the backend no longer enforces this in middleware — kept for forward compatibility)
 - Authenticated requests include `Authorization: Bearer <jwt_token>` header
 - Session JWT is refreshed automatically when nearing expiry

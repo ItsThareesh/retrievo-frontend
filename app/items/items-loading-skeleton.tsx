@@ -36,6 +36,28 @@ export function ItemsLoadMoreSkeleton() {
     );
 }
 
+export function ItemDetailSkeleton() {
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Skeleton className="w-full aspect-video rounded-lg" />
+            <div className="space-y-4">
+                <Skeleton className="h-10 w-3/4" />
+                <div className="flex gap-2">
+                    <Skeleton className="h-6 w-20" />
+                    <Skeleton className="h-6 w-20" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <div className="pt-6 flex gap-4">
+                    <Skeleton className="h-12 w-32" />
+                    <Skeleton className="h-12 w-32" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export function ItemsGridSkeleton() {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in-0 duration-500">
