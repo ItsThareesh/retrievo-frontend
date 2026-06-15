@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Search, PlusCircle } from 'lucide-react';
 import { auth } from "@/lib/auth";
-import { LoginButton } from './login-button';
-import { NotificationsDropdown } from './notifications-dropdown';
+import { NavbarAuth } from './navbar-auth';
 
 export async function Navbar() {
     const session = await auth();
@@ -35,10 +34,7 @@ export async function Navbar() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    {isAuthenticated && <NotificationsDropdown />}
-                    <LoginButton session={session} isAuthenticated={isAuthenticated} />
-                </div>
+                <NavbarAuth initialSession={session} initialAuthenticated={isAuthenticated} />
             </div>
         </nav>
     );

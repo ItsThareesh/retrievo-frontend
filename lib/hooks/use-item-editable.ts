@@ -36,7 +36,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
 
     const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
 
-    const isLoggedIn = !!session;
+    const isLoggedIn = !!session?.user && Date.now() < (session?.expires_at ?? 0);
     const isReporter = reporter.public_id === session?.user?.public_id;
     const isFoundItem = item.type === "found";
     const isLostItem = item.type === "lost";

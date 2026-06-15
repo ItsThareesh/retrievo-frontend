@@ -49,6 +49,12 @@ export default function UserPage() {
             });
     }, [id, token]);
 
+    const userItems: Item[] = useMemo(() => {
+        const items = [...lostItems, ...foundItems];
+        items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        return items;
+    }, [lostItems, foundItems]);
+
     if (notFoundError) {
         notFound();
     }
@@ -64,12 +70,6 @@ export default function UserPage() {
             </div>
         );
     }
-
-    const userItems: Item[] = useMemo(() => {
-        const items = [...lostItems, ...foundItems];
-        items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        return items;
-    }, [lostItems, foundItems]);
 
     return (
         <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
