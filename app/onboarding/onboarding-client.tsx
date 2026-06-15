@@ -54,7 +54,7 @@ export default function OnboardingClient() {
     ];
 
     useEffect(() => {
-        if (status !== "authenticated") return;
+        if (status !== "authenticated" || !session?.backendToken) return;
 
         if (!needsOnboarding(session)) {
             router.replace("/items");

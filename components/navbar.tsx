@@ -7,8 +7,7 @@ import { NavbarAuth } from './navbar-auth';
 export async function Navbar() {
     const session = await auth();
 
-    const isAuthenticated =
-        !!session?.user && Date.now() < (session?.expires_at ?? 0);
+    const isAuthenticated = !!session?.backendToken;
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b dark:border-black/50 shadow-md shadow-grey-400/10 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">

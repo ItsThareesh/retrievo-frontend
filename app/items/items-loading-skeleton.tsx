@@ -3,10 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 function ItemCardSkeleton({ index = 0 }: { index?: number }) {
     return (
-        <Card
-            className="overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4"
-            style={{ animationDelay: `${index * 50}ms`, animationDuration: "400ms" }}
-        >
+        <Card className="overflow-hidden">
             <CardContent className="p-0">
                 <Skeleton className="w-full h-48" />
                 <div className="p-4 space-y-3">
@@ -28,7 +25,7 @@ function ItemCardSkeleton({ index = 0 }: { index?: number }) {
 
 export function ItemsLoadMoreSkeleton() {
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in-0 duration-500">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.from({ length: 4 }).map((_, index) => (
                 <ItemCardSkeleton key={index} index={index} />
             ))}
@@ -153,7 +150,7 @@ export function ResolutionDetailSkeleton() {
 
 export function ItemsGridSkeleton() {
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in-0 duration-500">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.from({ length: 12 }).map((_, index) => (
                 <ItemCardSkeleton key={index} index={index} />
             ))}

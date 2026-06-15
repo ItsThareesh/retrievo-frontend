@@ -113,7 +113,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
         if (groups["Hostels"]) {
             groups["Hostels"] = groups["Hostels"].filter(item => {
                 if (item.value === "lh" || item.value === "mlh") {
-                    return session.user.hostel !== "boys";
+                    return session?.user?.hostel !== "boys";
                 }
                 return true;
             });
@@ -272,7 +272,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="public">Public</SelectItem>
-                                        {session.user.hostel === "boys" ? (
+                                        {session?.user?.hostel === "boys" ? (
                                             <SelectItem value="boys">Boys Only</SelectItem>
                                         ) : (
                                             <SelectItem value="girls">Girls Only</SelectItem>

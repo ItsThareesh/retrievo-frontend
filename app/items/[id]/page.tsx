@@ -481,7 +481,7 @@ function ItemDetailContent({
                                                 {reporter.name?.[0] ?? "U"}
                                             </AvatarFallback>
                                         </Avatar>
-                                        {session && reporter.public_id === session.user.public_id ? (
+                                        {!!session?.backendToken && reporter.public_id === session.user.public_id ? (
                                             <div className="flex items-center gap-2">
                                                 <p className="text-muted-foreground text-sm">
                                                     {reporter.name}
@@ -508,10 +508,7 @@ function ItemDetailContent({
                                 size="lg"
                                 className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
                                 onClick={() => {
-                                    const isAuthenticated =
-                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
-
-                                    if (!isAuthenticated) {
+                                    if (!session?.backendToken) {
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
                                         return
                                     }
@@ -532,10 +529,7 @@ function ItemDetailContent({
                                 size="lg"
                                 className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
                                 onClick={async () => {
-                                    const isAuthenticated =
-                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
-
-                                    if (!isAuthenticated) {
+                                    if (!session?.backendToken) {
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
                                         return
                                     }
@@ -561,25 +555,17 @@ function ItemDetailContent({
                                 <Share2 className="w-4 h-4 mr-2" />
                                 Share
                             </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full text-muted-foreground hover:text-destructive py-3 cursor-pointer"
-                                onClick={() => {
-                                    const isAuthenticated =
-                                        !!session?.user && Date.now() < (session?.expires_at ?? 0);
-
-                                    if (!isAuthenticated) {
-                                        router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
-                                        return
-                                    }
-
-                                    setIsReporting(true);
-                                }}
-                            >
-                                <Flag className="w-4 h-4 mr-2" />
-                                Report
-                            </Button>
+                            {!!session?.backendToken && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="w-full text-muted-foreground hover:text-destructive py-3 cursor-pointer"
+                                    onClick={() => setIsReporting(true)}
+                                >
+                                    <Flag className="w-4 h-4 mr-2" />
+                                    Report
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -24,7 +24,7 @@ export function NavbarAuth({ initialSession, initialAuthenticated }: NavbarAuthP
     const effectiveSession = mounted ? session : initialSession;
 
     const isAuthenticated = mounted
-        ? status === "authenticated" && !!effectiveSession?.user && Date.now() < (effectiveSession?.expires_at ?? 0)
+        ? status === "authenticated" && !!effectiveSession?.backendToken
         : initialAuthenticated;
 
     if (isAuthenticated) {

@@ -7,8 +7,7 @@ import { needsOnboarding } from '@/lib/utils/needsOnboarding';
 export default async function OnboardingPage() {
     const session = await auth();
 
-    const isAuthenticated =
-        !!session?.user && Date.now() < (session?.expires_at ?? 0);
+    const isAuthenticated = !!session?.backendToken;
 
     // Check authentication
     if (!isAuthenticated) {

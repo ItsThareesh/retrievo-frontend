@@ -5,10 +5,7 @@ import { auth } from "@/lib/auth";
 export default async function AdminDashboard() {
     const session = await auth();
 
-    const isAdmin =
-        !!session?.user &&
-        Date.now() < (session?.expires_at ?? 0) &&
-        session.user.role === "admin";
+    const isAdmin = !!session?.backendToken && session.user.role === "admin";
 
     if (!isAdmin) {
         redirect("/auth/signin?callbackUrl=/admin");

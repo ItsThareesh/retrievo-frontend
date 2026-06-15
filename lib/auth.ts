@@ -170,9 +170,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
 
         async session({ session, token }) {
-            // backendToken being absent means the token expired or refresh failed.
-            // Return a blank session so the client treats the user as logged out.
-            if (!token.backendToken) {
+            // Token expired or missing → invalidate session
+            if (!token.backendToken || (token.expires_at && Date.now() >= (token.expires_at as number))) {
                 return {
                     ...session,
                     backendToken: undefined,
@@ -188,7 +187,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 };
             }
 
-session.backendToken = token.backendToken as string;
+            session.backendToken = token.backendToken as string;
             session.expires_at = token.expires_at as number;
 
             if (token.user) {
