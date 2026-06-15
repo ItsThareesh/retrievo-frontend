@@ -50,6 +50,7 @@ export function Glow() {
         absolute bottom-0 left-1/2
         w-[200%] h-[350px]
         origin-bottom
+        bg-[radial-gradient(ellipse_at_bottom,rgba(0,82,204,0.45)_0%,rgba(0,130,216,0.25)_35%,transparent_60%)]
         dark:bg-[radial-gradient(ellipse_at_bottom,rgba(0,31,91,0.5)_0%,rgba(0,82,204,0.3)_30%,rgba(0,180,216,0.15)_55%,transparent_70%)]
         blur-[120px]
         will-change-transform

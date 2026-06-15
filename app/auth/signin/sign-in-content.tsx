@@ -18,7 +18,7 @@ export default function SignInContent() {
             <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
             <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-background/90 to-muted/30" />
 
-            <Card className="w-5/6 max-w-md shadow-2xl border-muted/60 animate-in fade-in zoom-in-95 duration-500">
+            <Card className="w-5/6 max-w-md shadow-xl ring-1 ring-black/5 dark:ring-white/10 border-muted/60 animate-in fade-in zoom-in-95 duration-500">
                 <CardHeader className="text-center space-y-4 pb-2 pt-8">
                     <div className="mx-auto bg-primary/10 p-4 rounded-2xl w-fit mb-2 ring-1 ring-primary/20 shadow-sm">
                         <Search className="w-8 h-8 text-primary" strokeWidth={2.5} />

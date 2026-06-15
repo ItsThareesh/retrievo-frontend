@@ -127,29 +127,26 @@ function ClaimsFlowCard({ stats }: { stats: OverviewStats }) {
                 <CardDescription>Terminal resolutions by month</CardDescription>
             </CardHeader>
             <CardContent className="px-5 pb-5">
-                <div className="space-y-2">
-                    <div className="grid grid-cols-[1fr_60px_60px_72px] gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-3">
-                        <span>Status</span>
-                        <span className="text-right">This</span>
-                        <span className="text-right">Last</span>
-                        <span className="text-right">Trend</span>
+                <div className="overflow-x-auto">
+                    <div className="min-w-[360px] grid grid-cols-[1fr_60px_60px_72px]">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-3">Status</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center px-3 py-3">This</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center px-3 py-3">Last</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center px-3 py-3">Trend</span>
+                        {rows.map((r) => (
+                            <div key={r.label + "-wrapper"} className="contents group">
+                                <div className="flex items-center gap-3 text-sm font-medium px-3 py-3.5 group-hover:bg-muted/50 transition-colors rounded-l-lg">
+                                    <r.icon className={`h-4 w-4 ${r.iconClass}`} />
+                                    {r.label}
+                                </div>
+                                <span className="text-center text-sm font-bold tabular-nums px-3 py-3.5 group-hover:bg-muted/50 transition-colors">{r.thisMonth}</span>
+                                <span className="text-center text-sm tabular-nums text-muted-foreground px-3 py-3.5 group-hover:bg-muted/50 transition-colors">{r.lastMonth}</span>
+                                <div className="flex justify-center px-3 py-3.5 group-hover:bg-muted/50 transition-colors rounded-r-lg">
+                                    <TrendIndicator current={r.thisMonth} previous={r.lastMonth} />
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    {rows.map((r) => (
-                        <div
-                            key={r.label}
-                            className="grid grid-cols-[1fr_60px_60px_72px] gap-4 items-center rounded-lg px-3 py-3.5 hover:bg-muted/50 transition-colors"
-                        >
-                            <div className="flex items-center gap-3 text-sm font-medium">
-                                <r.icon className={`h-4 w-4 ${r.iconClass}`} />
-                                {r.label}
-                            </div>
-                            <span className="text-right text-sm font-bold tabular-nums">{r.thisMonth}</span>
-                            <span className="text-right text-sm tabular-nums text-muted-foreground">{r.lastMonth}</span>
-                            <div className="flex justify-end">
-                                <TrendIndicator current={r.thisMonth} previous={r.lastMonth} />
-                            </div>
-                        </div>
-                    ))}
                 </div>
             </CardContent>
         </Card>
@@ -172,19 +169,21 @@ function ActiveClaimsCard({ stats }: { stats: OverviewStats }) {
                 <CardDescription>Claims currently in flight</CardDescription>
             </CardHeader>
             <CardContent className="px-5 pb-5">
-                <div className="space-y-2">
-                    {items.map((item) => (
-                        <div key={item.label} className="flex items-center justify-between rounded-lg px-3 py-3 hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className={`h-2.5 w-2.5 rounded-full ${item.color.replace("text-", "bg-")}`} />
-                                <span className="text-sm font-medium">{item.label}</span>
+                <div className="overflow-x-auto -mx-2 px-2">
+                    <div className="min-w-[260px] space-y-2">
+                        {items.map((item) => (
+                            <div key={item.label} className="flex items-center justify-between rounded-lg px-3 py-3 hover:bg-muted/50 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className={`h-2.5 w-2.5 rounded-full ${item.color.replace("text-", "bg-")}`} />
+                                    <span className="text-sm font-medium">{item.label}</span>
+                                </div>
+                                <span className="text-sm font-bold tabular-nums">{item.value.toLocaleString()}</span>
                             </div>
-                            <span className="text-sm font-bold tabular-nums">{item.value.toLocaleString()}</span>
+                        ))}
+                        <div className="border-t pt-4 mt-4 px-3 flex items-center justify-between">
+                            <span className="text-sm font-semibold">Total Active</span>
+                            <span className="text-base font-bold tabular-nums">{total.toLocaleString()}</span>
                         </div>
-                    ))}
-                    <div className="border-t pt-4 mt-4 px-3 flex items-center justify-between">
-                        <span className="text-sm font-semibold">Total Active</span>
-                        <span className="text-base font-bold tabular-nums">{total.toLocaleString()}</span>
                     </div>
                 </div>
             </CardContent>

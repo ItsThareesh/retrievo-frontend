@@ -34,7 +34,7 @@ import { FinderContactCard } from "./components/finder-contact";
 import { ThemeKey, THEMES } from "./theme";
 import { formatDateString } from "@/lib/date-formatting";
 import { LOCATION_MAP } from "@/lib/constants/locations";
-import { ItemsGridSkeleton } from "@/app/items/items-loading-skeleton";
+import { ResolutionDetailSkeleton } from "@/app/items/items-loading-skeleton";
 
 
 /* STATUS UI MAP */
@@ -316,7 +316,7 @@ export default function ClaimStatusPage() {
     const router = useRouter();
     const params = useParams();
     const resolutionId = params.id as string;
-    const { data: session } = useSession();
+    const { data: session, status: sessionStatus } = useSession();
     const token = session?.backendToken;
 
     const [resolution, setResolution] = useState<Resolution | null>(null);
@@ -330,6 +330,7 @@ export default function ClaimStatusPage() {
 
     useEffect(() => {
         if (!resolutionId) return;
+        if (sessionStatus === "loading") return;
 
         setIsLoading(true);
         clientFetch<ResolutionData>(`/resolutions/${resolutionId}`, token)
@@ -345,14 +346,12 @@ export default function ClaimStatusPage() {
             .catch((err) => {
                 if (err instanceof APIError && err.status === 404) {
                     setFetchError("not_found");
-                } else if (err instanceof APIError && err.status === 403) {
-                    setFetchError("forbidden");
                 } else {
                     setFetchError("unknown");
                 }
                 setIsLoading(false);
             });
-    }, [resolutionId, token]);
+    }, [resolutionId, token, sessionStatus]);
 
     const [actionLoading, setActionLoading] = useState(false);
     const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -365,11 +364,15 @@ export default function ClaimStatusPage() {
 
     const theme = config ? THEMES[config.theme as ThemeKey] : null;
 
+    if (sessionStatus === "unauthenticated") {
+        return <SignInRedirect resolutionId={resolutionId} />;
+    }
+
     if (isLoading) {
         return (
             <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
                 <div className="max-w-3xl mx-auto">
-                    <ItemsGridSkeleton />
+                    <ResolutionDetailSkeleton />
                 </div>
             </div>
         );
@@ -397,6 +400,9 @@ export default function ClaimStatusPage() {
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">Error</h1>
                     <p className="text-muted-foreground mb-6">Failed to load resolution details.</p>
+                    <a href="/items" className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                        Back to Items
+                    </a>
                 </div>
             </div>
         );
@@ -576,6 +582,20 @@ export default function ClaimStatusPage() {
                     </div>
                 )}
             </div>
+        </div>
+    );
+}
+
+function SignInRedirect({ resolutionId }: { resolutionId: string }) {
+    const router = useRouter();
+
+    useEffect(() => {
+        router.push(`/auth/signin?callbackUrl=/resolution/${resolutionId}`);
+    }, [router, resolutionId]);
+
+    return (
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+            <ResolutionDetailSkeleton />
         </div>
     );
 }

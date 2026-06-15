@@ -190,7 +190,7 @@ export function NotificationsDropdown() {
                     <span className="sr-only">Notifications</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-[380px] p-0 overflow-hidden shadow-lg border-border/60">
+            <DropdownMenuContent align="end" className="w-[80vw] sm:w-[380px] p-0 overflow-hidden shadow-lg border-border/60">
                 <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/10">
                     <h2 className="font-semibold text-sm">Notifications</h2>
                     {unreadCount > 0 && (
