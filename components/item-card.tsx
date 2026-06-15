@@ -37,7 +37,7 @@ export function ItemCard({ item, type }: ItemCardProps) {
           </Badge>
         </div>
 
-        <CardHeader className="p-5 pb-0 space-y-0">
+        <CardHeader className="p-3 pb-0 space-y-0">
           <h3 className="font-bold text-lg line-clamp-3 group-hover:text-primary transition-colors">
             {item.title}
           </h3>

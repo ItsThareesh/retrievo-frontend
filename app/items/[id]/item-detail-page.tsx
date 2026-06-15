@@ -149,10 +149,10 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                                     fill
                                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
-                                <div className="absolute top-4 left-4 flex flex-row gap-2 p-2 rounded-lg">
+                                <div className="absolute top-1 md:top-3 right-1 md:right-4 flex flex-row gap-2 p-2 rounded-lg">
                                     <Badge
                                         className={
-                                            `text-lg px-4 py-1.5 shadow-md text-white 
+                                            `text-sm md:text-lg px-4 py-1 md:px-5 md:py-2 shadow-md text-white 
                                         ${item.type === "lost" ? "bg-red-500" : "bg-amber-500"}`
                                         }
                                     >
@@ -161,7 +161,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
 
                                     {resolutionStatus !== "none" && (
                                         <Badge
-                                            className={`text-lg px-4 py-1.5 shadow-md text-white ${mapClaimStatusBg(resolutionStatus)}`}
+                                            className={`text-sm md:text-lg px-4 py-1 md:px-5 md:py-2 shadow-md text-white  ${mapClaimStatusBg(resolutionStatus)}`}
                                         >
                                             {mapClaimStatusToText(resolutionStatus)}
                                         </Badge>
@@ -430,7 +430,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                         {canClaim ? (
                             <Button
                                 size="lg"
-                                className="w-full h-12 text-lg shadow-sm mb-6"
+                                className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
                                 onClick={() => {
                                     const isAuthenticated =
                                         !!session?.user && Date.now() < (session?.expires_at ?? 0);
@@ -454,7 +454,7 @@ export default function ItemDetailPage({ item, reporter, resolution_status, sess
                         {canReturn ? (
                             <Button
                                 size="lg"
-                                className="w-full h-12 text-lg shadow-sm mb-6"
+                                className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
                                 onClick={async () => {
                                     const isAuthenticated =
                                         !!session?.user && Date.now() < (session?.expires_at ?? 0);
