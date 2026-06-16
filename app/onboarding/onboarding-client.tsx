@@ -107,13 +107,15 @@ export default function OnboardingClient() {
             await update(payload);
 
             toast.success("Welcome! Your profile has been set up.");
-            router.replace("/items");
         } catch (err) {
             console.error("Onboarding error:", err);
             toast.error("An unexpected error occurred. Please try again.");
+            return;
         } finally {
             setIsSubmitting(false);
         }
+
+        router.replace("/items");
     };
 
     return (

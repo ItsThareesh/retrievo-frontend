@@ -123,6 +123,8 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
     })();
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        let res: Awaited<ReturnType<typeof postLostFoundItem>>;
+
         try {
             setIsSubmitting(true);
 
@@ -140,7 +142,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                 }
             });
 
-            const res = await postLostFoundItem(formData);
+            res = await postLostFoundItem(formData);
 
             if (res.status === 401) {
                 router.push(`/auth/signin?callbackUrl=/report?type=${type}`);
@@ -163,15 +165,17 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             }
 
             toast.success("Item reported successfully!");
-
-            router.push(`/items/${res.data.item_id}`);
         } catch (error) {
             console.error(error);
             toast.error("Something went wrong. Please try again.");
+            return;
         }
         finally {
             setIsSubmitting(false);
         }
+
+        // Redirects to the newly created item page only after successful submission
+        router.push(`/items/${res.data.item_id}`);
     }
 
     return (

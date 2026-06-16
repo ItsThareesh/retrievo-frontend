@@ -16,7 +16,7 @@ import { standardizeItemDate } from '@/lib/date-formatting';
 import { UserProfileLoading } from '../user-profile-loading';
 
 export default function UserPage() {
-    const { data: session } = useSession();
+    const { data: session, status: sessionStatus } = useSession();
     const token = session?.backendToken;
     const params = useParams();
     const id = params.id as string;
@@ -28,9 +28,10 @@ export default function UserPage() {
     const [notFoundError, setNotFoundError] = useState(false);
 
     useEffect(() => {
-        if (!id) return;
+        if (!id || sessionStatus === "loading") return;
 
         setIsLoading(true);
+        setNotFoundError(false);
         clientFetch<{ user: UserType; lost_items: Item[]; found_items: Item[] }>(
             `/profile/${id}`,
             token,
@@ -47,7 +48,7 @@ export default function UserPage() {
                 }
                 setIsLoading(false);
             });
-    }, [id, token]);
+    }, [id, token, sessionStatus]);
 
     const userItems: Item[] = useMemo(() => {
         const items = [...lostItems, ...foundItems];

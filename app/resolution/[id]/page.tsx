@@ -313,7 +313,6 @@ interface ResolutionData {
 }
 
 export default function ClaimStatusPage() {
-    const router = useRouter();
     const params = useParams();
     const resolutionId = params.id as string;
     const { data: session, status: sessionStatus } = useSession();
@@ -327,12 +326,14 @@ export default function ClaimStatusPage() {
     const [linkedItem, setLinkedItem] = useState<LinkedItem | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
         if (!resolutionId) return;
         if (sessionStatus === "loading") return;
 
         setIsLoading(true);
+        setFetchError(null);
         clientFetch<ResolutionData>(`/resolutions/${resolutionId}`, token)
             .then((data) => {
                 setResolution(data.resolution);
@@ -351,7 +352,7 @@ export default function ClaimStatusPage() {
                 }
                 setIsLoading(false);
             });
-    }, [resolutionId, token, sessionStatus]);
+    }, [resolutionId, token, sessionStatus, refreshKey]);
 
     const [actionLoading, setActionLoading] = useState(false);
     const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -428,12 +429,14 @@ export default function ClaimStatusPage() {
                     : await failResolution(resId, itemId);
 
             if (!result?.ok) throw new Error();
-            router.refresh();
         } catch (err) {
             toast.error("Action failed. Please try again.");
-        } finally {
             setActionLoading(false);
+            return;
         }
+
+        setRefreshKey(k => k + 1);
+        setActionLoading(false);
     }
 
     async function handleReject() {
@@ -447,14 +450,16 @@ export default function ClaimStatusPage() {
         try {
             const result = await rejectResolution(resId, reason, itemId);
             if (!result.ok) throw new Error();
-            router.refresh();
             setShowRejectDialog(false);
             setRejectionReason("");
         } catch (err) {
             toast.error("Failed to reject claim.");
-        } finally {
             setActionLoading(false);
+            return;
         }
+
+        setRefreshKey(k => k + 1);
+        setActionLoading(false);
     }
 
     return (

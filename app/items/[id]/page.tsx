@@ -60,7 +60,8 @@ export default function ItemDetailPage() {
         if (!id || sessionStatus === "loading") return;
 
         setLoading(true);
-        
+        setNotFoundError(false);
+
         clientFetch<ItemData>(`/items/${id}`, token)
             .then((data) => {
                 setItemData(data);
