@@ -333,6 +333,7 @@ export default function ClaimStatusPage() {
         if (sessionStatus === "loading") return;
 
         setIsLoading(true);
+        setFetchError(null);
         clientFetch<ResolutionData>(`/resolutions/${resolutionId}`, token)
             .then((data) => {
                 setResolution(data.resolution);
@@ -428,12 +429,14 @@ export default function ClaimStatusPage() {
                     : await failResolution(resId, itemId);
 
             if (!result?.ok) throw new Error();
-            router.refresh();
         } catch (err) {
             toast.error("Action failed. Please try again.");
-        } finally {
             setActionLoading(false);
+            return;
         }
+
+        router.refresh();
+        setActionLoading(false);
     }
 
     async function handleReject() {
@@ -447,14 +450,16 @@ export default function ClaimStatusPage() {
         try {
             const result = await rejectResolution(resId, reason, itemId);
             if (!result.ok) throw new Error();
-            router.refresh();
             setShowRejectDialog(false);
             setRejectionReason("");
         } catch (err) {
             toast.error("Failed to reject claim.");
-        } finally {
             setActionLoading(false);
+            return;
         }
+
+        router.refresh();
+        setActionLoading(false);
     }
 
     return (
