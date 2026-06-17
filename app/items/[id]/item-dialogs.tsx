@@ -77,11 +77,10 @@ export function SubmitClaimDialog({
     const canSubmit = hasLinkedItem || hasValidDescription;
 
     const hasLinkableItems = linkableItems.length > 0;
-    const showTabs = hasLinkableItems || isLoadingLinkableItems;
 
     // Skip nudge: on Describe tab, linkable items exist, but none selected
     const showSkipNudge =
-        showTabs && activeTab === "describe" && hasLinkableItems && !hasLinkedItem;
+        activeTab === "describe" && hasLinkableItems && !hasLinkedItem;
 
     const describeContent = (
         <div className="space-y-2">
@@ -89,12 +88,70 @@ export function SubmitClaimDialog({
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={ui.placeholder}
-                className="min-h-[120px] resize-none"
+                className="min-h-[120px] text-sm resize-none"
                 disabled={isSubmitting}
             />
             {showSkipNudge && (
                 <p className="text-xs text-muted-foreground">
-                    Your posted item will stay in the feed until it expires. Please consider linking it to increase chances of a successful match!
+                    If your posted item matches this one, it will stay in the feed until expiry. 
+                    Please consider linking items to increase chances of a successful match!
+                </p>
+            )}
+        </div>
+    );
+
+    const linkContent = (
+        <div className="min-h-[120px]">
+            {isLoadingLinkableItems ? (
+                <div className="flex items-center justify-center py-8">
+                    <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                </div>
+            ) : hasLinkableItems ? (
+                <div className="space-y-2 max-h-60 overflow-y-auto py-1">
+                    {linkableItems.map((li) => (
+                        <Label
+                            key={li.id}
+                            className={cn(
+                                "flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
+                                linkedItemId === li.id
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border hover:bg-muted/50"
+                            )}
+                        >
+                            <input
+                                type="radio"
+                                name="linkable-item"
+                                value={li.id}
+                                checked={linkedItemId === li.id}
+                                onChange={() => setLinkedItemId(li.id)}
+                                className="mt-0.5 accent-primary"
+                                disabled={isSubmitting}
+                            />
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">
+                                    {li.title}
+                                </p>
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                                    {li.location && (
+                                        <span className="flex items-center gap-1">
+                                            <MapPin className="size-3" />
+                                            {LOCATION_MAP[li.location]?.label || "Unknown Location"}
+                                        </span>
+                                    )}
+                                    {li.date && (
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="size-3" />
+                                            {formatDateString(li.date)}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </Label>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground py-8 text-center">
+                    No items available to link.
                 </p>
             )}
         </div>
@@ -110,83 +167,30 @@ export function SubmitClaimDialog({
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
-                {showTabs ? (
-                    <Tabs
-                        value={activeTab}
-                        onValueChange={setActiveTab}
-                        className="mt-4"
-                    >
-                        <TabsList className="w-full">
-                            <TabsTrigger value="link" className="flex-1 gap-1.5">
-                                <Link2 className="size-3.5" />
-                                Link Item
-                            </TabsTrigger>
-                            <TabsTrigger value="describe" className="flex-1 gap-1.5">
-                                <FileText className="size-3.5" />
-                                Describe
-                            </TabsTrigger>
-                        </TabsList>
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="mt-4"
+                >
+                    <TabsList className="w-full">
+                        <TabsTrigger value="link" className="flex-1 gap-1.5">
+                            <Link2 className="size-3.5" />
+                            Link Item
+                        </TabsTrigger>
+                        <TabsTrigger value="describe" className="flex-1 gap-1.5">
+                            <FileText className="size-3.5" />
+                            Describe
+                        </TabsTrigger>
+                    </TabsList>
 
-                        <TabsContent value="link">
-                            {isLoadingLinkableItems ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="size-5 animate-spin text-muted-foreground" />
-                                </div>
-                            ) : (
-                                <div className="space-y-2 max-h-60 overflow-y-auto">
-                                    {linkableItems.map((li) => (
-                                        <Label
-                                            key={li.id}
-                                            className={cn(
-                                                "flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
-                                                linkedItemId === li.id
-                                                    ? "border-primary bg-primary/5"
-                                                    : "border-border hover:bg-muted/50"
-                                            )}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="linkable-item"
-                                                value={li.id}
-                                                checked={linkedItemId === li.id}
-                                                onChange={() => setLinkedItemId(li.id)}
-                                                className="mt-0.5 accent-primary"
-                                                disabled={isSubmitting}
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm truncate">
-                                                    {li.title}
-                                                </p>
-                                                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                                                    {li.location && (
-                                                        <span className="flex items-center gap-1">
-                                                            <MapPin className="size-3" />
-                                                            {LOCATION_MAP[li.location]?.label || "Unknown Location"}
-                                                        </span>
-                                                    )}
-                                                    {li.date && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="size-3" />
-                                                            {formatDateString(li.date)}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Label>
-                                    ))}
-                                </div>
-                            )}
-                        </TabsContent>
+                    <TabsContent value="link">
+                        {linkContent}
+                    </TabsContent>
 
-                        <TabsContent value="describe">
-                            {describeContent}
-                        </TabsContent>
-                    </Tabs>
-                ) : (
-                    <div className="mt-4">
+                    <TabsContent value="describe">
                         {describeContent}
-                    </div>
-                )}
+                    </TabsContent>
+                </Tabs>
 
                 <AlertDialogFooter className="mt-6">
                     <AlertDialogCancel asChild>

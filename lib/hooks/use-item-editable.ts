@@ -57,8 +57,8 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const canReturn = isLoggedIn && isLostItem && !isReporter && !hasResolution;
 
     const { data: linkableItemsData, isLoading: isLoadingLinkableItems } = useSWR(
-        canClaim || canReturn && session?.backendToken
-            ? [`/items/${item.id}/linkable`, session.backendToken]
+        (canClaim || canReturn) && session?.backendToken && isClaiming
+            ? [`/resolutions/linkable-items/${item.id}`, session.backendToken]
             : null,
         ([url, t]) => clientFetch<LinkableItem[]>(url, t)
     );
