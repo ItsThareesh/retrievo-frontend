@@ -16,6 +16,7 @@ type NavbarAuthProps = {
 export function NavbarAuth({ initialSession, initialAuthenticated }: NavbarAuthProps) {
     const { data: session, status } = useSession();
     const [mounted, setMounted] = useState(false);
+    const [isSigningIn, setIsSigningIn] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -49,9 +50,14 @@ export function NavbarAuth({ initialSession, initialAuthenticated }: NavbarAuthP
                 className="cursor-pointer"
                 variant="outline"
                 size="sm"
-                onClick={() => signIn("google", { callbackUrl: "/onboarding" })}
+                disabled={isSigningIn}
+                onClick={() => {
+                    if (isSigningIn) return;
+                    setIsSigningIn(true);
+                    signIn("google", { callbackUrl: "/onboarding" });
+                }}
             >
-                Login
+                {isSigningIn ? "Signing in..." : "Login"}
             </Button>
         </div>
     );
