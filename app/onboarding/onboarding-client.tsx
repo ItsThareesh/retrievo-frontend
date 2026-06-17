@@ -57,7 +57,7 @@ export default function OnboardingClient() {
         if (status !== "authenticated" || !session?.backendToken) return;
 
         if (!needsOnboarding(session)) {
-            router.replace("/items");
+            window.location.href = "/items";
         }
     }, [status, session, router]);
 
@@ -103,8 +103,12 @@ export default function OnboardingClient() {
                 return;
             }
 
-            // Update NextAuth session in one shot
-            await update(payload);
+            // Update NextAuth session - include the fresh JWT so the hostel claim is accurate immediately
+            await update({
+                ...payload,
+                backendToken: res.access_token,
+                expires_at: res.expires_at,
+            });
 
             toast.success("Welcome! Your profile has been set up.");
         } catch (err) {
@@ -115,7 +119,7 @@ export default function OnboardingClient() {
             setIsSubmitting(false);
         }
 
-        router.replace("/items");
+        window.location.href = "/items";
     };
 
     return (
