@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -178,6 +178,7 @@ function ReportedItemCard({
 export function ReportsTab() {
     const { data: session } = useSession();
     const token = session?.backendToken;
+    const isModerating = useRef(false);
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [modalConfig, setModalConfig] = useState<{
         isOpen: boolean;
@@ -210,36 +211,43 @@ export function ReportsTab() {
     };
 
     const handleModerateItem = async (itemId: string, action: "hide" | "restore" | "delete", force: boolean = false) => {
-        if (modalConfig.isOpen) {
-            setModalConfig(prev => ({ ...prev, isLoading: true }));
-        }
+        if (isModerating.current) return;
+        isModerating.current = true;
 
-        const result = await moderateItem(itemId, { action, force }) as any;
-
-        console.log(result);
-
-        if (result.ok) {
-            const actionText = action === "hide" ? "hidden" : action === "restore" ? "restored" : "deleted";
-            toast.success(`Item ${actionText} successfully`);
-            mutate();
-            setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
-        } else {
-            if (
-                result.status === 409 &&
-                result.errorData?.detail?.code === "ACTIVE_RESOLUTIONS_EXIST"
-            ) {
-                setModalConfig({
-                    isOpen: true,
-                    view: "force_warning",
-                    itemId,
-                    action,
-                    warningMessage: result.errorData.detail.message,
-                    isLoading: false,
-                });
-            } else {
-                toast.error(result.errorData?.detail || `Failed to ${action} item`);
-                setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
+        try {
+            if (modalConfig.isOpen) {
+                setModalConfig(prev => ({ ...prev, isLoading: true }));
             }
+
+            const result = await moderateItem(itemId, { action, force }) as any;
+
+            console.log(result);
+
+            if (result.ok) {
+                const actionText = action === "hide" ? "hidden" : action === "restore" ? "restored" : "deleted";
+                toast.success(`Item ${actionText} successfully`);
+                mutate();
+                setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
+            } else {
+                if (
+                    result.status === 409 &&
+                    result.errorData?.detail?.code === "ACTIVE_RESOLUTIONS_EXIST"
+                ) {
+                    setModalConfig({
+                        isOpen: true,
+                        view: "force_warning",
+                        itemId,
+                        action,
+                        warningMessage: result.errorData.detail.message,
+                        isLoading: false,
+                    });
+                } else {
+                    toast.error(result.errorData?.detail || `Failed to ${action} item`);
+                    setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
+                }
+            }
+        } finally {
+            isModerating.current = false;
         }
     };
 

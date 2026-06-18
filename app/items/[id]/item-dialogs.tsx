@@ -297,12 +297,14 @@ interface DeleteConfirmationDialogProps {
     isDeleting: boolean;
     setIsDeleting: Dispatch<SetStateAction<boolean>>;
     handleDelete: () => Promise<void>;
+    isProcessingDelete: boolean;
 }
 
 export function DeleteConfirmationDialog({
     isDeleting,
     setIsDeleting,
-    handleDelete
+    handleDelete,
+    isProcessingDelete
 }: DeleteConfirmationDialogProps) {
     return <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
         <AlertDialogContent>
@@ -335,10 +337,9 @@ export function DeleteConfirmationDialog({
                 <AlertDialogAction
                     className="text-white bg-red-500/85 hover:bg-red-600/85"
                     onClick={handleDelete}
+                    disabled={isProcessingDelete}
                 >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete permanently
-                    {/* </Button> */}
+                    {isProcessingDelete ? "Deleting..." : <><Trash2 className="mr-2 h-4 w-4" /> Delete permanently</>}
                 </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
