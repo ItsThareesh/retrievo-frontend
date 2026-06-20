@@ -15,7 +15,7 @@ import {
     Search,
 } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -71,9 +71,9 @@ function StatusBadge({ status }: { status: ResolutionStatus }) {
 
         case "failed":
             return (
-                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    Invalidated
+                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                    <XCircle className="h-3 w-3 mr-1" />
+                    Failed
                 </Badge>
             );
 

@@ -2,15 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 export default function SignInContent() {
     const searchParams = useSearchParams();
     const error = searchParams.get("error");
     const callbackUrl = searchParams.get("callbackUrl") || "/";
+    const [isSigningIn, setIsSigningIn] = useState(false);
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden">
@@ -41,12 +43,21 @@ export default function SignInContent() {
                     <Button
                         variant="outline"
                         className="w-full h-14 text-base font-medium relative cursor-pointer hover:bg-muted/50 transition-all hover:border-primary/50 hover:shadow-sm"
-                        onClick={() => signIn("google", { callbackUrl })}
+                        disabled={isSigningIn}
+                        onClick={() => {
+                            if (isSigningIn) return;
+                            setIsSigningIn(true);
+                            signIn("google", { callbackUrl });
+                        }}
                     >
-                        <svg className="mr-3 h-5 w-5 absolute left-6" aria-hidden="true" focusable="false" role="img" viewBox="0 0 488 512">
-                            <path fill="currentColor" d="M..."></path>
-                        </svg>
-                        Continue with Google
+                        {isSigningIn ? (
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        ) : (
+                            <svg className="mr-3 h-5 w-5 absolute left-6" aria-hidden="true" focusable="false" role="img" viewBox="0 0 488 512">
+                                <path fill="currentColor" d="M..."></path>
+                            </svg>
+                        )}
+                        {isSigningIn ? "Signing in..." : "Continue with Google"}
                     </Button>
                 </CardContent>
 

@@ -16,11 +16,11 @@ export default function Home() {
   return (
     <>
       <style>{heroAnimations}</style>
-      <div className="flex flex-col min-h-[calc(100vh-4rem)]">
+      <div className="flex flex-col">
 
         {/* Hero Section */}
-        <section className="relative flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4 text-center overflow-hidden">
-          <div className="max-w-4xl space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 flex justify-center flex-col items-center">
+        <section className="relative flex flex-col items-center justify-center min-h-[calc(100dvh-4rem)] px-4 text-center overflow-hidden">
+          <div className="max-w-4xl space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 flex justify-center flex-col items-center pb-8 md:pb-0">
 
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-tight">
 

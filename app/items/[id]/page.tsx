@@ -129,6 +129,7 @@ function ItemDetailContent({
         setIsEditing,
         isDeleting,
         setIsDeleting,
+        isProcessingDelete,
         isSaving,
         isReporting,
         setIsReporting,
@@ -574,6 +575,7 @@ function ItemDetailContent({
                 isDeleting={isDeleting}
                 setIsDeleting={setIsDeleting}
                 handleDelete={handleDelete}
+                isProcessingDelete={isProcessingDelete}
             />
 
             <SubmitClaimDialog

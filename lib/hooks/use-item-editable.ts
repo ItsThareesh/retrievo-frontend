@@ -26,6 +26,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
 
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isProcessingDelete, setIsProcessingDelete] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
 
@@ -57,8 +58,8 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const canReturn = isLoggedIn && isLostItem && !isReporter && !hasResolution;
 
     const { data: linkableItemsData, isLoading: isLoadingLinkableItems } = useSWR(
-        canClaim || canReturn && session?.backendToken
-            ? [`/items/${item.id}/linkable`, session.backendToken]
+        (canClaim || canReturn) && session?.backendToken && isClaiming
+            ? [`/resolutions/linkable-items/${item.id}`, session.backendToken]
             : null,
         ([url, t]) => clientFetch<LinkableItem[]>(url, t)
     );
@@ -147,6 +148,9 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     }
 
     async function handleDelete() {
+        if (isProcessingDelete) return;
+        setIsProcessingDelete(true);
+
         const res = await deleteItem(item.id);
 
         if (res.ok) {
@@ -157,6 +161,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             toast.error("Failed to delete item");
         }
         setIsDeleting(false);
+        setIsProcessingDelete(false);
     }
 
     function validateResolutionInput(text: string): string | null {
@@ -291,6 +296,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         setIsEditing,
         isDeleting,
         setIsDeleting,
+        isProcessingDelete,
         isSaving,
         isReporting,
         setIsReporting,

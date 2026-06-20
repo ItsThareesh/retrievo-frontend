@@ -313,7 +313,6 @@ interface ResolutionData {
 }
 
 export default function ClaimStatusPage() {
-    const router = useRouter();
     const params = useParams();
     const resolutionId = params.id as string;
     const { data: session, status: sessionStatus } = useSession();
@@ -327,6 +326,7 @@ export default function ClaimStatusPage() {
     const [linkedItem, setLinkedItem] = useState<LinkedItem | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
         if (!resolutionId) return;
@@ -352,7 +352,7 @@ export default function ClaimStatusPage() {
                 }
                 setIsLoading(false);
             });
-    }, [resolutionId, token, sessionStatus]);
+    }, [resolutionId, token, sessionStatus, refreshKey]);
 
     const [actionLoading, setActionLoading] = useState(false);
     const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -435,7 +435,7 @@ export default function ClaimStatusPage() {
             return;
         }
 
-        router.refresh();
+        setRefreshKey(k => k + 1);
         setActionLoading(false);
     }
 
@@ -458,7 +458,7 @@ export default function ClaimStatusPage() {
             return;
         }
 
-        router.refresh();
+        setRefreshKey(k => k + 1);
         setActionLoading(false);
     }
 

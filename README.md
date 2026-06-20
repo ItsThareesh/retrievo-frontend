@@ -1,151 +1,217 @@
-# Retrievo - Lost & Found Platform
+# Retrievo — Lost & Found Platform
 
-A modern Lost & Found web application built with Next.js 16, TailwindCSS, shadcn/ui, and NextAuth v5.
+A modern Lost & Found web application for campus communities built with Next.js 16, Tailwind CSS v4, shadcn/ui, and NextAuth v5.
 
-## Features
-
-- **Report Lost Items**: Submit details about lost items including photos, location, and category
-- **Report Found Items**: Help others by reporting items you've found
-- **Browse Items**: Search and filter through lost and found items with infinite scroll
-- **Smart Feed Segments**: Feed visibility based on user hostel choice (boys, girls, or public)
-- **Item Management**: View, edit, and delete your reported items
-- **Item Claims**: Claim found items or advertise returns for lost items
-- **User Profile**: Manage your profile, hostel selection, and contact preferences
-- **Notifications**: Real-time notifications for claims and resolutions
-- **Admin Dashboard**: Moderation tools for admins to manage items and users
+<p align="center">
+  <img src="./public/landing.png" alt="Retrievo Landing Page" width="700" />
+</p>
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router + React Server Components)
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Authentication**: NextAuth v5 (Google OAuth, JWT backend)
-- **Data Fetching**: Next.js Server Actions + native fetch cache
-- **Client State**: SWR for notifications
-- **Language**: TypeScript
-- **Analytics**: Vercel Analytics + SpeedInsights
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, React 19, Server Components)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) (New York Style)
+- **Authentication**: [NextAuth v5](https://authjs.dev/) (Google OAuth + JWT backend)
+- **Data Fetching**: Browser->Backend via `clientFetch()` (reads); Server Actions (mutations)
+- **Client State**: [SWR](https://swr.vercel.app/) for notifications
+- **Forms**: React Hook Form + Zod v4
+- **Icons**: Lucide React
+- **Theming**: next-themes (light/dark/class)
+- **Image Processing**: heic2any (HEIC→JPEG) + canvas-based WebP compression
+- **Deployment**: Docker (standalone output), Vercel-ready
+- **Analytics**: @vercel/analytics + @vercel/speed-insights
 
-## Architecture Overview
+## Routes
+
+| Route | Description |
+|---|---|
+| `/` | Landing page with hero, CTAs, features, FAQ |
+| `/items` | Browse items feed (public/boys/girls segments) |
+| `/items/[id]` | Item detail — view, edit, claim/return, report, share |
+| `/report?type=lost\|found` | Report a lost or found item |
+| `/profile` | Authenticated user's own profile |
+| `/profile/[id]` | Public user profile with their items |
+| `/resolution/[id]` | Resolution/claim detail with action flow |
+| `/onboarding` | First-time onboarding (hostel + contacts) |
+| `/auth/signin` | Google OAuth sign-in page |
+| `/auth/error` | Auth error page (access denied, banned, etc.) |
+| `/admin` | Admin dashboard (users, items, reports, resolutions) |
+
+## Architecture
 
 ### Authentication Flow
 
-- **Provider**: Google OAuth (`@nitc.ac.in` email addresses only)
-- **Session**: JWT issued by FastAPI backend, stored in NextAuth cookies
-- **Sign-In**: Google OAuth → Backend token exchange → JWT stored in session
-- **Token Refresh**: Automatic refresh when token nears expiry (10 min buffer)
+1. User clicks **Login** → Google OAuth consent screen
+2. Google redirects to NextAuth callback → `signIn` callback POSTs `id_token` to backend `/auth/google`
+3. Backend returns `{ access_token, expires_at }` → stored in JWT session
+4. `jwt` callback fetches `/auth/me` for user profile
+5. `session` callback attaches `backendToken` + user data to the client session
+6. **Production**: only `@nitc.ac.in` emails allowed; all domains allowed in development
+7. **Token refresh**: 1-hour expiry, no auto-refresh — expired tokens require re-auth
 
-### Caching Strategy
+### Data Flow
 
-- **Default Feed Pages**: Native Next.js fetch cache (120s TTL, tagged per segment)
-  - All paginated item feed pages are cached
-  - Cache invalidated via tag revalidation when items are created/updated/deleted
-- **Individual Items**: 60s TTL with tag-based invalidation
-- **Search/Filtered Queries**: No cache (always fresh)
-- **Notifications**: SWR client-side cache with 5-minute dedup interval
+**Reads (auth-gated data):**
+```
+Browser → clientFetch() → NEXT_PUBLIC_BACKEND_URL (direct, no Vercel proxy)
+```
+- Uses Bearer token from `useSession().backendToken`
+- Used in: ItemsGrid, ItemDetail, Profile, Resolution, Admin tabs, Notifications
 
-### Server Actions & API
+**Mutations (writes):**
+```
+Browser → Server Action → authFetch() → INTERNAL_BACKEND_URL
+```
+- Server Actions in `lib/api/`: items, resolutions, admin, notifications, profile
+- Include `X-Internal-Secret` header for backend authentication
 
-- **Server Actions** (`lib/api/`): All backend communication flows through server actions
-- **No Direct Browser→Backend**: Client components call server actions only; they use publicFetch/authFetch
-- **Two Fetch Helpers**:
-  - `publicFetch`: Unauthenticated requests (public items, etc.)
-  - `authFetch`: Authenticated requests (requires valid JWT session token)
+**Public reads (no auth):**
+```
+Browser → clientFetch() (no token) → NEXT_PUBLIC_BACKEND_URL
+```
+- Landing page items, public feed segments
 
-### Infinite Scroll Implementation
+### Feed Segments
 
-- **Generation Counter**: Prevents stale pages from old filter sets leaking into new ones
-- **Race Condition Protection**: In-flight requests discarded if filters change mid-request
-- **Efficient Page Accumulation**: Pages 1+ are cached, so secondary loads hit the cache immediately
+Items have a `visibility` field: `"public"`, `"boys"`, or `"girls"`. The feed segment shown is derived from the user's hostel selection during onboarding. Backend-enforced via token.
+
+### Onboarding
+
+New users must complete onboarding before accessing protected routes:
+1. Select hostel (`"boys"` or `"girls"` — immutable after first set)
+2. Provide at least one contact method (phone or Instagram)
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+ (required by Next.js 16)
-- npm or pnpm
+- npm
+- A running instance of the [Retrievo backend](https://github.com/ItsThareesh/retrievo-backend)
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/ItsThareesh/retrievo-frontend.git
-   cd retrievo-frontend
-   ```
+```bash
+git clone https://github.com/ItsThareesh/retrievo-frontend.git
+cd retrievo-frontend
+npm install
+```
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Environment Variables
 
-3. Set up environment variables (`.env.local`):
-   ```
-   GOOGLE_CLIENT_ID=your_google_client_id
-   GOOGLE_CLIENT_SECRET=your_google_client_secret
-   NEXTAUTH_SECRET=your_nextauth_secret
-   INTERNAL_BACKEND_URL=http://localhost:8000  # or your backend URL
-   INTERNAL_SECRET_KEY=your_internal_secret
-   ```
+Copy `.env.example` to `.env.local`:
 
-4. Run the development server:
-   ```bash
-   npm run dev
-   ```
+```bash
+cp .env.example .env.local
+```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Key Concepts
-
-### Visibility Segments
-
-Items have a `visibility` field determining who can see them:
-- **`"public"`**: Visible to all users and unauthenticated visitors
-- **`"boys"`**: Visible only to users whose hostel is "boys" + public viewers
-- **`"girls"`**: Visible only to users whose hostel is "girls" + public viewers
-
-Feed segment shown is derived from user's hostel selection during onboarding.
-
-### Onboarding Requirement
-
-New users must complete onboarding before accessing protected routes:
-1. Select hostel (`"boys"` or `"girls"` — immutable after first set)
-2. Provide at least one contact method (Phone or Instagram handle)
-
-### Item Types & Claims
-
-- **Lost Items** (`type: "lost"`): Others can offer to **return** them
-- **Found Items** (`type: "found"`): Others can **claim** them
-- **Resolutions**: Track claim lifecycle from initiation to completion/rejection
-
-### Diff-Only Updates
-
-When editing items, only changed fields are sent to the backend (diff-based PATCH), minimizing bandwidth.
-
-## Environment Variables
-
-| Variable | Required | Purpose |
-|----------|----------|---------|
+| Variable | Required | Description |
+|---|---|---|
+| `APP_ENV` | Yes | `development` or `production` — controls email domain restriction |
 | `GOOGLE_CLIENT_ID` | Yes | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret |
 | `NEXTAUTH_SECRET` | Yes | NextAuth session encryption key |
-| `INTERNAL_BACKEND_URL` | Yes | Internal backend API URL (never exposed to browser) |
-| `INTERNAL_SECRET_KEY` | Yes | Shared secret for internal server-to-server requests |
+| `AUTH_TRUST_HOST` | Yes | Required by Auth.js — set to `true` |
+| `NEXT_PUBLIC_BACKEND_URL` | Yes | Backend URL used by the browser (e.g. `http://localhost:8000/api/v1`) |
+| `INTERNAL_BACKEND_URL` | Yes | Backend URL used server-side (e.g. `http://localhost:8000/api/v1`) |
+| `INTERNAL_SECRET_KEY` | Yes | Shared secret for server→backend auth |
 
-> `INTERNAL_BACKEND_URL` is used **only in server actions and NextAuth callbacks** — it is never sent to the browser.
+### Development
 
-## Best Practices
+```bash
+npm run dev
+```
 
-1. **Server-First Approach**: Prefer server components; use `"use client"` only when needed (interactivity, hooks)
-2. **Server Actions**: All backend communication flows through `lib/api/` server actions
-3. **Error Handling**: Always re-throw `UnauthorizedError` from `authFetch` to allow proper redirects
-4. **Image Compression**: Compress images to WebP before uploading (≤0.9 MB)
-5. **Tag-Based Revalidation**: Update feed tags after
- mutations to keep cache fresh
-6. **Debounced Search**: Search input is debounced (400ms) to reduce server load
+Open [http://localhost:3000](http://localhost:3000).
+
+### Docker
+
+**Production build:**
+```bash
+docker build -t retrievo-frontend .
+docker run -p 3000:3000 retrievo-frontend
+```
+
+**Development:**
+```bash
+docker compose up
+```
+
+The `Dockerfile` uses a multi-stage build with `next output: "standalone"` for a minimal production image. `Dockerfile.dev` mounts source code as a volume for hot reloading.
+
+## Project Structure
+
+```
+app/                     # Next.js App Router pages
+├── admin/               # Admin dashboard
+├── auth/                # Sign-in & error pages
+├── items/               # Item feed & detail
+├── onboarding/          # First-time onboarding
+├── profile/             # User profiles
+├── report/              # Report lost/found item
+├── resolution/          # Resolution/claim flow
+├── layout.tsx           # Root layout (SessionProvider, ThemeProvider, etc.)
+├── page.tsx             # Landing page
+└── not-found.tsx        # Custom 404
+
+components/              # React components
+├── ui/                  # shadcn/ui primitives
+├── navbar.tsx           # Server navbar
+├── navbar-auth.tsx      # Client auth section (login button, notifications, user menu)
+├── item-card.tsx        # Item card for grids
+├── items-grid-client.tsx# Infinite scroll feed
+├── user-menu.tsx        # Avatar dropdown with sign-out
+└── ...
+
+lib/                     # Core logic
+├── auth.ts              # NextAuth configuration
+├── client-fetch.ts      # Browser→backend fetch utility
+├── api/                 # Server Actions (mutations only)
+│   ├── helpers.ts       # authFetch, publicFetch, internalFetchWithTimeout
+│   ├── items.ts         # postLostFoundItem, updateItem, deleteItem, flagItem
+│   ├── resolutions.ts   # create/approve/reject/complete/fail resolution
+│   ├── admin.ts         # moderateUser, moderateItem
+│   ├── notifications.ts # readNotification, readAllNotifications
+│   └── profile.ts       # updateOnboarding
+├── constants/           # Locations, report reasons
+├── hooks/               # useNotifications, useItemEditable, useDebounce
+└── utils/               # cn(), image compression, validation, date formatting
+
+types/                   # TypeScript type definitions
+├── user.ts
+├── item.ts
+├── resolutions.ts
+├── notification.ts
+├── admin.ts
+└── next-auth.d.ts       # Session type augmentation
+
+public/                  # Static assets
+```
+
+## Key Conventions
+
+- **Server-First**: Prefer Server Components; use `"use client"` only when interactivity is needed
+- **Image Compression**: Uploaded images are compressed to WebP ≤ 0.9 MB (HEIC/HEIF supported)
+- **Diff-Only PATCHES**: Item edits send only changed fields to the backend
+- **Debounced Search**: 400ms debounce on search input to reduce server load
+- **Error Handling**: `UnauthorizedError` from `authFetch` triggers redirect to sign-in
+- **Auth Guards**: In `page.tsx` files (redirect to `/auth/signin` or `/onboarding`), never in middleware
+- **Token in Session**: `backendToken` attached to session — never stored in `localStorage`
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
 
 ## Backend Integration
 
-This frontend communicates with a FastAPI backend at `INTERNAL_BACKEND_URL`:
+This frontend communicates with a [FastAPI backend](https://github.com/ItsThareesh/retrievo-backend):
 
-- Server-side requests include `X-Internal-Secret` header (the backend no longer enforces this in middleware — kept for forward compatibility)
-- Authenticated requests include `Authorization: Bearer <jwt_token>` header
-- Session JWT is refreshed automatically when nearing expiry
+- **Browser→Backend**: `clientFetch()` in `lib/client-fetch.ts` — direct API calls with Bearer token
+- **Server→Backend**: `authFetch()` / `publicFetch()` in `lib/api/helpers.ts` — includes `X-Internal-Secret` header
+- **Endpoints**: Items CRUD, resolutions, admin moderation, notifications, profile, auth
+- **Image CDN**: `cdn.retrievo.dev` for uploaded item images

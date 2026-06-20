@@ -85,7 +85,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
         },
 
-        async jwt({ token, account, profile, trigger }) {
+        async jwt({ token, account, profile, trigger, session }) {
             // Initial sign-in 
             // account + profile are only present on the very first call.
             // Populate the token and return early; no refresh logic needed yet.
@@ -101,13 +101,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return token;
             }
 
-            // Explicit session update (e.g. hostel/phone change) 
+            // Explicit session update (e.g. hostel/phone change)
             if (trigger === "update" && token.backendToken) {
+                console.log("Session update triggered, refreshing user profile...");
+                    
+                // If the update carries a fresh backend token (e.g. from onboarding), swap it in
+                if (session?.backendToken) {
+                    token.backendToken = session.backendToken as string;
+                    token.expires_at = (session.expires_at as number) * 1000;
+                }
+
                 try {
                     token.user = await getProfile(token.backendToken as string);
                 } catch (err) {
                     console.error("Failed to refresh user profile on update:", err);
                 }
+                
                 return token;
             }
 

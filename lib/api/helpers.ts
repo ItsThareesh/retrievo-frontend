@@ -51,7 +51,7 @@ export async function internalFetchWithTimeout(
 }
 
 // Authenticated fetch utility
-export async function authFetch(input: RequestInfo, options: RequestInit = {}, timeout = 5000): Promise<Response> {
+export async function authFetch(input: RequestInfo, options: RequestInit = {}, timeout = 15000): Promise<Response> {
     const session = await auth();
 
     if (!session?.backendToken) {
