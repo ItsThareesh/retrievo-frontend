@@ -206,7 +206,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             if (!res.ok) {
                 const errorCode = res.detail?.code;
                 if (errorCode === "RESOLUTION_COOLDOWN_ACTIVE") {
-                    toast.error("Cooldown Active: Please wait before creating a new one.");
+                    toast.error("Your claim has been rejected recently. Please wait before creating a new one.");
                 } else if (errorCode === "PAIR_TEMPORARILY_SUPPRESSED") {
                     toast.error("Cooldown Active: A resolution between these items was recently created.");
                 } else if (errorCode === "ITEMS_NOT_MUTUALLY_VISIBLE") {
