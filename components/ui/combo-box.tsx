@@ -38,9 +38,9 @@ export function Combobox({ groups = [], value, onChange }: any) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between py-0 cursor-pointer"
+          className="w-full justify-between py-0 cursor-pointer overflow-hidden"
         >
-          {selectedLabel}
+          <span className="truncate">{selectedLabel}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
