@@ -32,12 +32,15 @@ export function TechArchitectureSection() {
       <div className="container mx-auto px-6 md:px-8">
         <SectionWrapper>
           <div className="max-w-2xl mx-auto text-center mb-16">
-            <span className="text-xs font-semibold tracking-widest uppercase text-foreground/40 mb-4 block">
+            <span className="text-xs font-semibold tracking-widest uppercase bg-gradient-to-r from-foreground/60 to-foreground/40 bg-clip-text text-transparent mb-4 block">
               Technology
             </span>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance">
-              Built with Modern Technologies
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent text-balance pb-0.5">
+              What Powers Retrievo
             </h2>
+            <p className="text-base sm:text-lg text-muted-foreground mt-4 max-w-xl mx-auto leading-relaxed">
+              Built to deliver a fast, reliable, and privacy-conscious experience for the campus community.
+            </p>
           </div>
         </SectionWrapper>
 

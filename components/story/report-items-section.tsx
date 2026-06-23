@@ -376,7 +376,7 @@ export function ReportItemsSection() {
           <SectionWrapper delay={0.2}>
             <div className="space-y-8">
               <div>
-                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance mb-4">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent text-balance pb-0.5 mb-4">
                   Report an Item in Seconds
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">

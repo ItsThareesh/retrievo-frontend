@@ -25,13 +25,13 @@ export function FinalSection() {
           className="max-w-3xl mx-auto text-center space-y-10"
         >
           <div className="space-y-4">
-            <h2 className="text-7xl sm:text-8xl md:text-9xl font-bold tracking-tight text-foreground">
+            <h2 className="text-7xl sm:text-8xl md:text-9xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent pb-0.5">
               Retrievo
             </h2>
           </div>
 
           <div className="space-y-3">
-            <p className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-balance text-foreground/90">
+            <p className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-balance bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent pb-0.5">
               Ready to Help Someone Find What Matters?
             </p>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto text-balance">

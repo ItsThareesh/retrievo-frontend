@@ -35,7 +35,7 @@ export function HeroSection() {
           >
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mt-16 text-balance">
               <span className="block">Lost Less.</span>
-              <span className="block text-primary/80">Found Faster.</span>
+              <span className="block bg-gradient-to-r from-primary via-primary to-blue-600 bg-clip-text text-transparent">Found Faster.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance">

@@ -32,10 +32,10 @@ export function ImpactSection() {
       <div className="container mx-auto px-6 md:px-8 relative z-10">
         <SectionWrapper>
           <div className="max-w-2xl mx-auto text-center mb-16">
-            <span className="text-xs font-semibold tracking-widest uppercase text-foreground/40 mb-4 block">
+            <span className="text-xs font-semibold tracking-widest uppercase bg-gradient-to-r from-foreground/60 to-foreground/40 bg-clip-text text-transparent mb-4 block">
               Impact
             </span>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent text-balance pb-0.5">
               Why It Matters
             </h2>
           </div>
@@ -52,7 +52,7 @@ export function ImpactSection() {
                     <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
                   </div>
                   <div className="pt-3 mt-auto border-t border-border">
-                    <span className="text-xs font-semibold tracking-widest uppercase text-foreground/40">
+                    <span className="text-xs font-semibold tracking-widest uppercase bg-gradient-to-r from-primary/80 to-primary/40 bg-clip-text text-transparent">
                       {item.stat}
                     </span>
                   </div>

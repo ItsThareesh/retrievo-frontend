@@ -112,10 +112,10 @@ export function EmailNotificationsSection() {
           <SectionWrapper delay={0.2}>
             <div className="space-y-8">
               <div>
-                <span className="text-xs font-semibold tracking-widest uppercase text-foreground/40 mb-4 block">
+                <span className="text-xs font-semibold tracking-widest uppercase bg-gradient-to-r from-foreground/60 to-foreground/40 bg-clip-text text-transparent mb-4 block">
                   Email Notifications
                 </span>
-                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance mb-4">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent text-balance pb-0.5 mb-4">
                   Never Miss an Update
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">

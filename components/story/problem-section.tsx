@@ -12,17 +12,17 @@ const problems = [
   "Privacy concerns when sharing personal contact details",
 ];
 
-const chatMessages = [
-  "Anyone seen my wallet?",
-  "Found a keychain near the library",
-  "I lost my calculator 🥲",
-  "Check the mess group",
-  "No, I didn't see it",
-  "Who lost an ID card?",
-  "Can you send the photo again?",
-  "I think it's in the admin office",
-  "Found! Check the lost and found",
-  "I posted in the hostel group too",
+const chatMessages: { text: string; initials: string; color: string }[] = [
+  { text: "Anyone seen my wallet?", initials: "TS", color: "#3b82f6" },
+  { text: "Found a keychain near the library", initials: "AK", color: "#10b981" },
+  { text: "I lost my calculator 🥲", initials: "RM", color: "#f59e0b" },
+  { text: "Check the mess group", initials: "SP", color: "#8b5cf6" },
+  { text: "No, I didn't see it", initials: "VK", color: "#f43f5e" },
+  { text: "Who lost an ID card?", initials: "TS", color: "#3b82f6" },
+  { text: "Can you send the photo again?", initials: "NJ", color: "#06b6d4" },
+  { text: "I think it's in the admin office", initials: "AK", color: "#10b981" },
+  { text: "Found! Check the lost and found", initials: "RM", color: "#f59e0b" },
+  { text: "I posted in the hostel group too", initials: "SP", color: "#8b5cf6" },
 ];
 
 export function ProblemSection() {
@@ -34,7 +34,7 @@ export function ProblemSection() {
             <span className="text-xs font-semibold tracking-widest uppercase text-destructive/70 mb-4 block">
               The Problem
             </span>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent text-balance pb-0.5">
               Lost &amp; Found Shouldn&apos;t Be This Hard
             </h2>
           </div>
@@ -64,7 +64,7 @@ export function ProblemSection() {
               <div className="relative bg-card border border-border rounded-2xl p-6 shadow-lg overflow-hidden">
                 <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border">
                   <div className="w-3 h-3 rounded-full bg-red-400/70" />
-                  <span className="text-xs font-medium text-muted-foreground">
+                  <span className="text-xs font-medium bg-gradient-to-r from-foreground/80 to-foreground/50 bg-clip-text text-transparent">
                     Campus Chats &mdash; 47 unread
                   </span>
                   <div className="ml-auto bg-destructive/10 text-destructive text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -82,20 +82,25 @@ export function ProblemSection() {
                       viewport={{ once: true }}
                       transition={{ duration: 0.3, delay: i * 0.05 }}
                       className={`flex items-start gap-2 ${
-                        i % 3 === 0 ? "opacity-60" : i % 3 === 1 ? "opacity-40" : ""
-                      } ${i < chatMessages.length - 2 ? "" : "opacity-30"}`}
+                        i % 3 === 0 ? "opacity-80" : i % 3 === 1 ? "opacity-60" : ""
+                      } ${i < chatMessages.length - 2 ? "" : "opacity-50"}`}
                     >
-                      <div className="w-7 h-7 rounded-full bg-muted flex-shrink-0" />
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
+                        style={{ backgroundColor: msg.color }}
+                      >
+                        {msg.initials}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-foreground/60">
-                            User {i + 1}
+                          <span className="text-xs font-medium text-foreground/80">
+                            {msg.initials}
                           </span>
                           <span className="text-[10px] text-muted-foreground/40">
                             {10 + i * 3}m ago
                           </span>
                         </div>
-                        <p className="text-sm text-foreground/70">{msg}</p>
+                        <p className="text-sm text-foreground/85">{msg.text}</p>
                       </div>
                     </motion.div>
                   ))}

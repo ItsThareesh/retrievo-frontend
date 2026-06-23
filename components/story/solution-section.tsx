@@ -36,7 +36,7 @@ export function SolutionSection() {
                 <span className="text-xs font-semibold tracking-widest uppercase text-emerald-600/70 dark:text-emerald-400/70 mb-4 block">
                   The Solution
                 </span>
-                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent text-balance pb-0.5">
                   A Dedicated Place For Lost &amp; Found
                 </h2>
               </div>

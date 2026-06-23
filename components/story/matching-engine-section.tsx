@@ -11,10 +11,10 @@ export function MatchingEngineSection() {
       <div className="container mx-auto px-6 md:px-8">
         <SectionWrapper>
           <div className="max-w-2xl mx-auto text-center mb-16">
-            <span className="text-xs font-semibold tracking-widest uppercase text-foreground/40 mb-4 block">
+            <span className="text-xs font-semibold tracking-widest uppercase bg-gradient-to-r from-foreground/60 to-foreground/40 bg-clip-text text-transparent mb-4 block">
               Matching Engine
             </span>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent text-balance pb-0.5">
               Helping Lost Items Find Their Owners
             </h2>
           </div>
@@ -27,17 +27,17 @@ export function MatchingEngineSection() {
 
               <div className="relative z-10 flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-0">
                 {/* Input */}
-                <div className="w-full lg:w-[280px] rounded-xl border border-border/60 bg-muted/20 p-6 lg:p-7 flex flex-col lg:shrink-0">
-                  <div className="text-[11px] lg:text-xs font-semibold tracking-widest uppercase text-muted-foreground/40 mb-3 lg:mb-4">
+                <div className="w-full lg:w-[280px] rounded-xl border border-border/70 bg-muted/40 p-6 lg:p-7 flex flex-col lg:shrink-0">
+                  <div className="text-[11px] lg:text-xs font-semibold tracking-widest uppercase text-muted-foreground/60 mb-3 lg:mb-4">
                     Input
                   </div>
                   <div className="flex flex-col gap-3 lg:gap-3">
-                    <div className="text-sm font-semibold text-foreground/80">Lost Item Report</div>
+                    <div className="text-sm font-semibold text-foreground/90">Lost Item Report</div>
                     <div className="space-y-1.5">
                       {["Title & Description", "Category", "Location", "Date"].map((field) => (
                         <div
                           key={field}
-                          className="text-sm text-muted-foreground/60 border border-border/40 rounded-lg px-3 py-2 bg-muted/10"
+                          className="text-sm text-foreground/70 border border-border/60 rounded-lg px-3 py-2 bg-muted/20"
                         >
                           {field}
                         </div>
@@ -48,13 +48,13 @@ export function MatchingEngineSection() {
 
                 {/* Arrow connector */}
                 <div className="flex items-center justify-center shrink-0">
-                  <span className="text-muted-foreground/20 text-xl block lg:hidden">&#8595;</span>
-                  <span className="text-muted-foreground/20 text-xl hidden lg:block px-4">&#8594;</span>
+                  <span className="text-muted-foreground/40 text-xl block lg:hidden">&#8595;</span>
+                  <span className="text-muted-foreground/40 text-xl hidden lg:block px-4">&#8594;</span>
                 </div>
 
                 {/* Processing Pipeline */}
-                <div className="w-full lg:w-[380px] rounded-xl border border-border/60 bg-muted/20 p-6 lg:p-7 flex flex-col lg:shrink-0">
-                  <div className="text-[11px] lg:text-xs font-semibold tracking-widest uppercase text-muted-foreground/40 mb-3 lg:mb-4">
+                <div className="w-full lg:w-[380px] rounded-xl border border-border/70 bg-muted/40 p-6 lg:p-7 flex flex-col lg:shrink-0">
+                  <div className="text-[11px] lg:text-xs font-semibold tracking-widest uppercase text-muted-foreground/60 mb-3 lg:mb-4">
                     Processing Pipeline
                   </div>
                   <div className="grid grid-cols-2 gap-2 lg:gap-3">
@@ -66,10 +66,10 @@ export function MatchingEngineSection() {
                     ].map((mod) => (
                       <div
                         key={mod.label}
-                        className="rounded-lg border border-border/50 bg-muted/10 p-3 lg:p-4 text-center"
+                        className="rounded-lg border border-border/60 bg-muted/20 p-3 lg:p-4 text-center"
                       >
-                        <div className="text-sm font-bold text-foreground/80">{mod.label}</div>
-                        <div className="text-xs text-muted-foreground/50 mt-1 leading-relaxed whitespace-pre-line">
+                        <div className="text-sm font-bold text-foreground/90">{mod.label}</div>
+                        <div className="text-xs text-muted-foreground/70 mt-1 leading-relaxed whitespace-pre-line">
                           {mod.desc}
                         </div>
                       </div>
@@ -85,31 +85,31 @@ export function MatchingEngineSection() {
 
                 {/* Arrow connector */}
                 <div className="flex items-center justify-center shrink-0">
-                  <span className="text-muted-foreground/20 text-xl block lg:hidden">&#8595;</span>
-                  <span className="text-muted-foreground/20 text-xl hidden lg:block px-4">&#8594;</span>
+                  <span className="text-muted-foreground/40 text-xl block lg:hidden">&#8595;</span>
+                  <span className="text-muted-foreground/40 text-xl hidden lg:block px-4">&#8594;</span>
                 </div>
 
                 {/* Output */}
-                <div className="w-full lg:w-[280px] rounded-xl border border-border/60 bg-muted/20 p-6 lg:p-7 flex flex-col lg:shrink-0">
-                  <div className="text-[11px] lg:text-xs font-semibold tracking-widest uppercase text-muted-foreground/40 mb-3 lg:mb-4">
+                <div className="w-full lg:w-[280px] rounded-xl border border-border/70 bg-muted/40 p-6 lg:p-7 flex flex-col lg:shrink-0">
+                  <div className="text-[11px] lg:text-xs font-semibold tracking-widest uppercase text-muted-foreground/60 mb-3 lg:mb-4">
                     Output
                   </div>
                   <div className="space-y-2 lg:space-y-3">
                     {[
                       { label: "High", pct: "92%", color: "text-emerald-500" },
                       { label: "Medium", pct: "78%", color: "text-amber-500" },
-                      { label: "Low", pct: "45%", color: "text-muted-foreground/50" },
+                      { label: "Low", pct: "45%", color: "text-muted-foreground/70" },
                     ].map((match) => (
                       <div
                         key={match.label}
-                        className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/10 px-3 lg:px-4 py-2.5 lg:py-3"
+                        className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 lg:px-4 py-2.5 lg:py-3"
                       >
-                        <span className="text-sm text-muted-foreground/70">{match.label}</span>
+                        <span className="text-sm text-foreground/70">{match.label}</span>
                         <span className={`text-sm font-bold ${match.color}`}>{match.pct}</span>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-2 lg:mt-3 text-xs text-center text-muted-foreground/40">
+                  <div className="mt-2 lg:mt-3 text-xs text-center text-muted-foreground/60">
                     Ranked candidates
                   </div>
                 </div>
