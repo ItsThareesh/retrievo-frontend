@@ -233,9 +233,9 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="hover:text-primary transition-colors underline">
+                  <a href="mailto:developer.thareesh@gmail.com" className="hover:text-primary transition-colors underline">
                     Contact Us
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>

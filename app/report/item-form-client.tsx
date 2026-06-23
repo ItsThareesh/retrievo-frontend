@@ -109,15 +109,16 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             groups[category].push({ value: key, label });
         });
 
+        //* Comment restrictions for now
         // Apply constraint for hostels
-        if (groups["Hostels"]) {
-            groups["Hostels"] = groups["Hostels"].filter(item => {
-                if (item.value === "lh" || item.value === "mlh") {
-                    return session?.user?.hostel !== "boys";
-                }
-                return true;
-            });
-        }
+        // if (groups["Hostels"]) {
+        //     groups["Hostels"] = groups["Hostels"].filter(item => {
+        //         if (item.value === "lh" || item.value === "mlh") {
+        //             return session?.user?.hostel !== "boys";
+        //         } else if (item.value === '')
+        //         return true;
+        //     });
+        // }
 
         return Object.entries(groups).map(([category, items]) => ({ category, items }));
     })();
