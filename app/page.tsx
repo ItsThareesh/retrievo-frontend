@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play } from 'lucide-react';
 import { FeaturesSection, FAQSection, Glow, Footer } from "@/components/landing-page";
+import { useEffect } from "react";
 
 export default function Home() {
+  useEffect(() => { window.scrollTo(0, 0) }, []);
 
   const heroAnimations = `
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -47,7 +49,7 @@ export default function Home() {
               through smart matching and community-powered reports.
             </p>
 
-            <div className="flex flex-row gap-5 mt-10 animate-[fadeIn_0.6s_ease-out_2.2s_forwards] opacity-0">
+            <div className="flex flex-col md:flex-row gap-5 mt-10 animate-[fadeIn_0.6s_ease-out_2.2s_forwards] opacity-0">
               <Button asChild variant="outline" className="h-14 px-8 text-lg gap-2 bg-popover/40 backdrop-blur-sm border-border/50 shadow-sm hover:bg-accent hover:text-foreground transition-all rounded-xl">
                 <Link href="/items">
                   Browse Items <ArrowRight className="w-5 h-5" />
