@@ -21,13 +21,13 @@ export default function Home() {
       <div className="flex flex-col">
 
         {/* Hero Section */}
-        <section className="relative flex flex-col items-center justify-start min-h-[calc(100dvh-4rem)] px-4 text-center overflow-hidden">
-          <div className="max-w-4xl relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 flex flex-col items-center pt-28 md:pt-36">
+        <section className="relative flex flex-col items-center justify-start md:min-h-[calc(100dvh-4rem)] px-4 text-center overflow-hidden">
+          <div className="w-full max-w-4xl relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 flex flex-col items-center pt-[76px] md:pt-36 pb-16 md:pb-0">
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-tight">
+            <h1 className="text-4xl md:text-7xl font-bold tracking-tight text-foreground leading-tight">
 
               {/* First line */}
-              <div className="flex justify-center items-center gap-3 flex-wrap">
+              <div className="flex justify-center items-center gap-2 md:gap-3 flex-wrap">
                 <span className="animate-[fadeIn_0.6s_ease-out_forwards] opacity-0">
                   Lost something
                 </span>
@@ -36,7 +36,7 @@ export default function Home() {
               </div>
 
               {/* Second line */}
-              <div className="mt-4 opacity-0 animate-[fadeUp_1s_ease-out_1.0s_forwards]">
+              <div className="mt-3 md:mt-4 opacity-0 animate-[fadeUp_1s_ease-out_1.0s_forwards]">
                 <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
                   Let&apos;s find it together
                 </span>
@@ -44,20 +44,20 @@ export default function Home() {
 
             </h1>
 
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mt-10 mb-8">
+            <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mt-8 md:mt-10 mb-6 md:mb-8">
               Lost something on campus? Retrievo connects finders with owners
               through smart matching and community-powered reports.
             </p>
 
-            <div className="flex flex-col md:flex-row gap-5 mt-10 animate-[fadeIn_0.6s_ease-out_2.2s_forwards] opacity-0">
-              <Button asChild variant="outline" className="h-14 px-8 text-lg gap-2 bg-popover/40 backdrop-blur-sm border-border/50 shadow-sm hover:bg-accent hover:text-foreground transition-all rounded-xl">
-                <Link href="/items">
-                  Browse Items <ArrowRight className="w-5 h-5" />
+            <div className="flex flex-col md:flex-row gap-4 md:gap-5 mt-6 md:mt-10 animate-[fadeIn_0.6s_ease-out_2.2s_forwards] opacity-0">
+              <Button asChild variant="outline" className="h-12 px-6 md:h-14 md:px-8 text-base md:text-lg gap-2 bg-popover/40 backdrop-blur-sm border-border/50 shadow-sm hover:bg-accent hover:text-foreground transition-all rounded-xl w-full md:w-auto">
+                <Link href="/items" className="truncate">
+                  Browse Items <ArrowRight className="w-4 h-4 md:w-5 md:h-5 shrink-0" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="h-14 px-8 text-lg gap-2 bg-popover/40 backdrop-blur-sm border-border/50 shadow-sm hover:bg-accent hover:text-foreground transition-all rounded-xl">
-                <Link href="/story">
-                  <Play className="w-5 h-5" /> See How It Works
+              <Button asChild variant="outline" className="h-12 px-6 md:h-14 md:px-8 text-base md:text-lg gap-2 bg-popover/40 backdrop-blur-sm border-border/50 shadow-sm hover:bg-accent hover:text-foreground transition-all rounded-xl w-full md:w-auto">
+                <Link href="/story" className="truncate">
+                  <Play className="w-4 h-4 md:w-5 md:h-5 shrink-0" /> See How It Works
                 </Link>
               </Button>
             </div>

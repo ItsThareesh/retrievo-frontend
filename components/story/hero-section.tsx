@@ -33,7 +33,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
             className="space-y-4"
           >
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mt-16 text-balance">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mt-2 md:mt-16 text-balance">
               <span className="block">Lost Less.</span>
               <span className="block bg-gradient-to-r from-primary via-primary to-blue-600 bg-clip-text text-transparent">Found Faster.</span>
             </h1>

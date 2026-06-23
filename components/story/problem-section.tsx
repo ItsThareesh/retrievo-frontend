@@ -73,7 +73,7 @@ export function ProblemSection() {
                 </div>
 
                 <div className="space-y-3 max-h-[400px] overflow-hidden relative">
-                  <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-card to-transparent z-10" />
+                  <div className="absolute bottom-0 right-0 h-20 bg-gradient-to-t from-card to-transparent z-10 pointer-events-none" />
                   {chatMessages.map((msg, i) => (
                     <motion.div
                       key={i}

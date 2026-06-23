@@ -84,24 +84,24 @@ const featuresData = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-24 relative">
+    <section className="py-16 md:py-24 relative">
       {/* Subtle ambient tint — no middle band */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/5 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {featuresData.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <div
                 key={index}
-                className="group p-8 rounded-2xl bg-popover/60 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
+                className="group p-6 md:p-8 rounded-2xl bg-popover/60 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
               >
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${feature.colorClasses}`}>
-                  <Icon className="w-7 h-7" />
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform ${feature.colorClasses}`}>
+                  <Icon className="w-6 h-6 md:w-7 md:h-7" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">
+                <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3">{feature.title}</h3>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -140,33 +140,33 @@ const faqsData = [
 
 export function FAQSection() {
   return (
-    <section className="py-24 px-4 relative">
+    <section className="py-16 md:py-24 px-4 relative">
       {/* Gradient wash — blends with Features above and Footer below */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/5 to-transparent pointer-events-none" />
 
       <div className="max-w-3xl mx-auto relative z-10">
-        <div className="text-center mb-14">
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+        <div className="text-center mb-10 md:mb-14">
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p className="mt-4 text-muted-foreground text-lg">
+          <p className="mt-3 md:mt-4 text-muted-foreground text-base md:text-lg">
             Everything you need to know about Retrievo.
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {faqsData.map((faq, index) => (
             <details
               key={index}
-              className="group rounded-2xl border border-border/50 bg-background/40 backdrop-blur-xl p-6 transition-all duration-300 hover:border-blue-600/20 hover:shadow-sm hover:shadow-blue-900/30"
+              className="group rounded-2xl border border-border/50 bg-background/40 backdrop-blur-xl p-4 md:p-6 transition-all duration-300 hover:border-blue-600/20 hover:shadow-sm hover:shadow-blue-900/30"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-lg">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-base md:text-lg gap-2">
                 {faq.question}
-                <span className="transition-transform duration-300 group-open:rotate-45 text-primary group-open:hover:text-red-800 text-2xl">
+                <span className="shrink-0 transition-transform duration-300 group-open:rotate-45 text-primary group-open:hover:text-red-800 text-xl md:text-2xl">
                   +
                 </span>
               </summary>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
+              <p className="mt-3 md:mt-4 text-sm md:text-base text-muted-foreground leading-relaxed">
                 {faq.answer}
               </p>
             </details>
