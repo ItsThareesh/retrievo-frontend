@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight, Play, ChevronUp } from 'lucide-react';
 import { FeaturesSection, FAQSection, Glow, Footer } from "@/components/landing-page";
 import { useEffect } from "react";
 
@@ -21,8 +21,8 @@ export default function Home() {
       <div className="flex flex-col">
 
         {/* Hero Section */}
-        <section className="relative flex flex-col items-center justify-start min-h-[calc(100dvh-4rem)]  px-4 text-center overflow-hidden">
-          <div className="w-full max-w-4xl relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 flex flex-col items-center pt-[76px] md:pt-36 pb-16 md:pb-0">
+        <section className="relative flex flex-col items-center justify-start min-h-[calc(100svh-4rem)]  px-4 text-center overflow-hidden">
+          <div className="w-full max-w-4xl relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 flex flex-col items-center pt-[76px] md:pt-25 pb-50 md:pb-30">
 
             <h1 className="text-4xl md:text-7xl font-bold tracking-tight text-foreground leading-tight">
 
@@ -49,9 +49,9 @@ export default function Home() {
               through smart matching and community-powered reports.
             </p>
 
-            <div className="flex flex-col w-3/4 md:w-full justify-center md:flex-row gap-6 md:gap-5 mt-12 md:mt-10 animate-[fadeIn_0.6s_ease-out_2.2s_forwards] opacity-0">
+            <div className="flex flex-col w-4/5 md:w-full justify-center md:flex-row gap-6 md:gap-5 mt-20 md:mt-10 animate-[fadeIn_0.6s_ease-out_2.2s_forwards] opacity-0">
               <Button asChild variant="outline"
-              className="h-12 px-6 md:h-14 md:px-8 text-base md:text-lg gap-2 bg-popover/40 backdrop-blur-sm border-border/50 shadow-sm hover:bg-accent hover:text-foreground transition-all rounded-xl w-full md:w-auto"
+              className="h-12 px-8 md:h-14 md:px-8 text-base md:text-lg gap-2 bg-popover/40 backdrop-blur-sm border-border/50 shadow-sm hover:bg-accent hover:text-foreground transition-all rounded-xl w-full md:w-auto"
             >
               <Link href="/items">
                 <span className="md:hidden">Browse/Report Item</span>
@@ -64,6 +64,13 @@ export default function Home() {
                   <Play className="w-4 h-4 md:w-5 md:h-5 shrink-0" /> See How It Works
                 </Link>
               </Button>
+              
+            </div>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 md:hidden">
+              <div className='flex flex-col items-center gap-0'>
+              <ChevronUp className="h-8 w-8 text-muted-foreground opacity-50 animate-bounce" />
+              <span className="opacity-50"> Scroll up for FAQ</span>
+              </div>
             </div>
           </div>
 
