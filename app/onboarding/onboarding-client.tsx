@@ -25,10 +25,12 @@ import { updateOnboarding } from '@/lib/api/profile';
 import { toast } from 'sonner';
 import { OnboardingPayload } from '@/types/user';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';
+import { useBanHandler } from '@/lib/hooks/use-ban-handler';
 
 export default function OnboardingClient() {
     const { data: session, status, update } = useSession();
     const router = useRouter();
+    const { handleBanError } = useBanHandler();
 
     const [phoneNumber, setPhoneNumberState] = useState(session?.user?.phone || '');
     const [hostel, setHostelState] = useState<'boys' | 'girls' | ''>(session?.user?.hostel || '');
@@ -112,6 +114,7 @@ export default function OnboardingClient() {
 
             toast.success("Welcome! Your profile has been set up.");
         } catch (err) {
+            if (handleBanError(err)) return;
             console.error("Onboarding error:", err);
             toast.error("An unexpected error occurred. Please try again.");
             return;

@@ -11,7 +11,8 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { clientFetch, APIError } from '@/lib/client-fetch';
+import { APIError } from '@/lib/api-error';
+import { clientFetch } from '@/lib/client-fetch';
 import { standardizeItemDate } from '@/lib/date-formatting';
 import { UserProfileLoading } from '../user-profile-loading';
 

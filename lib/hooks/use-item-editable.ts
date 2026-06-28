@@ -11,6 +11,7 @@ import { clientFetch } from "@/lib/client-fetch";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
 import { ResolutionStatus, LinkableItem } from "@/types/resolutions";
+import { useBanHandler } from "./use-ban-handler";
 
 interface UseItemEditableProps {
     item: Item;
@@ -21,6 +22,7 @@ interface UseItemEditableProps {
 
 export function useItemEditable({ item, reporter, resolution_status, session }: UseItemEditableProps) {
     const router = useRouter();
+    const { handleBanError } = useBanHandler();
 
     const [reason, setReason] = useState("fake");
 
@@ -122,16 +124,21 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
 
         console.log(updates);
 
-        const res = await updateItem(item.id, updates);
+        try {
+            const res = await updateItem(item.id, updates);
 
-        if (res.ok) {
-            toast.success("Item updated successfully.");
-            setIsEditing(false);
-        } else {
+            if (res.ok) {
+                toast.success("Item updated successfully.");
+                setIsEditing(false);
+            } else {
+                toast.error("Unable to update the item. Please try again later.");
+            }
+        } catch (err) {
+            if (handleBanError(err)) return;
             toast.error("Unable to update the item. Please try again later.");
+        } finally {
+            setIsSaving(false);
         }
-
-        setIsSaving(false);
     }
 
 
@@ -151,17 +158,23 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         if (isProcessingDelete) return;
         setIsProcessingDelete(true);
 
-        const res = await deleteItem(item.id);
+        try {
+            const res = await deleteItem(item.id);
 
-        if (res.ok) {
-            toast.success("Item deleted successfully");
+            if (res.ok) {
+                toast.success("Item deleted successfully");
 
-            router.push("/items");
-        } else {
+                router.push("/items");
+            } else {
+                toast.error("Failed to delete item");
+            }
+        } catch (err) {
+            if (handleBanError(err)) return;
             toast.error("Failed to delete item");
+        } finally {
+            setIsDeleting(false);
+            setIsProcessingDelete(false);
         }
-        setIsDeleting(false);
-        setIsProcessingDelete(false);
     }
 
     function validateResolutionInput(text: string): string | null {
@@ -232,7 +245,8 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             setIsClaiming(false);
             setClaimText("");
             setLinkedItemId(null);
-        } catch {
+        } catch (err) {
+            if (handleBanError(err)) return;
             toast.error("Failed to submit request. Please try again.");
         } finally {
             setIsSubmittingResolution(false);
@@ -281,6 +295,8 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
                     toast.error("Failed to flag item");
                 }
             }
+        } catch (err) {
+            handleBanError(err);
         } finally {
             setIsReporting(false);
             setReason("");

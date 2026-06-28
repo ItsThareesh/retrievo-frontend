@@ -32,6 +32,7 @@ import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { UsersSkeleton } from "./skeletons";
 import { clientFetch } from "@/lib/client-fetch";
+import { useBanHandler } from "@/lib/hooks/use-ban-handler";
 
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 
@@ -45,6 +46,7 @@ function getInitials(name: string) {
 }
 
 function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => void }) {
+    const { handleBanError } = useBanHandler();
     const [actionDialog, setActionDialog] = useState<{
         open: boolean;
         action: () => Promise<void>;
@@ -61,6 +63,7 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
             await moderateUser(userId, { action, reason, ban_days: 7 });
             onUpdate();
         } catch (error) {
+            if (handleBanError(error)) return;
             console.error("Failed to moderate user:", error);
         }
     };

@@ -1,6 +1,6 @@
 "use server";
 
-import { authFetch, safeJson, UnauthorizedError } from "./helpers";
+import { authFetch, safeJson, APIError } from "./helpers";
 
 /** POST: Create a new Lost or Found Item */
 export async function postLostFoundItem(formData: FormData) {
@@ -19,7 +19,7 @@ export async function postLostFoundItem(formData: FormData) {
 
         return { ok: true, data: result };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("postLostFoundItem error:", err);
         return { ok: false, error: String(err) };
@@ -44,7 +44,7 @@ export async function updateItem(itemId: string, data: Record<string, any>) {
 
         return { ok: true, data: result };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("updateItem error:", err);
         return { ok: false, error: String(err) };
@@ -65,7 +65,7 @@ export async function deleteItem(itemId: string) {
 
         return { ok: true };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("deleteItem error:", err);
         return { ok: false, error: String(err) };
@@ -88,7 +88,7 @@ export async function flagItem(itemId: string, reason: string) {
 
         return { ok: true };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("flagItem error:", err);
         return { ok: false, error: String(err) };

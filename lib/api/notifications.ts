@@ -1,6 +1,6 @@
 "use server";
 
-import { authFetch, safeJson, UnauthorizedError } from "./helpers";
+import { authFetch, APIError } from "./helpers";
 
 export async function readNotification(notificationId: string) {
     try {
@@ -15,7 +15,7 @@ export async function readNotification(notificationId: string) {
 
         return { ok: true };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("readNotification error:", err);
         return { ok: false, error: String(err) };
@@ -35,7 +35,7 @@ export async function readAllNotifications() {
 
         return { ok: true };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("readAllNotifications error:", err);
         return { ok: false, error: String(err) };

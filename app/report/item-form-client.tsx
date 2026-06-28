@@ -39,6 +39,7 @@ import { ImageViewer } from '@/components/image-viewer';
 import { toast } from 'sonner';
 import { LOCATION_MAP } from '../../lib/constants/locations';
 import { compressImage } from '@/lib/utils/img-compressor';
+import { useBanHandler } from '@/lib/hooks/use-ban-handler';
 
 
 const formSchema = z.object({
@@ -100,6 +101,8 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             item_type: type,
         },
     });
+
+    const { handleBanError } = useBanHandler();
 
     const groupedLocations = (() => {
         const groups: Record<string, { value: string; label: string }[]> = {};
@@ -167,6 +170,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             toast.success("Item reported successfully!");
         } catch (error) {
+            if (handleBanError(error)) return;
             console.error(error);
             toast.error("Something went wrong. Please try again.");
             return;

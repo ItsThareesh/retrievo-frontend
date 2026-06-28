@@ -1,12 +1,6 @@
 import { auth } from "@/lib/auth";
-
-// Custom Error for Unauthorized Access
-export class UnauthorizedError extends Error {
-    constructor(message = "Unauthorized") {
-        super(message);
-        this.name = "UnauthorizedError";
-    }
-}
+import { APIError } from "@/lib/api-error";
+export { APIError };
 
 // Helper function to safely parse JSON
 export async function safeJson(res: Response) {
@@ -55,7 +49,7 @@ export async function authFetch(input: RequestInfo, options: RequestInit = {}, t
     const session = await auth();
 
     if (!session?.backendToken) {
-        throw new UnauthorizedError();
+        throw new APIError(401, "Unauthorized");
     }
 
     const res = await internalFetchWithTimeout(
@@ -72,7 +66,14 @@ export async function authFetch(input: RequestInfo, options: RequestInit = {}, t
     );
 
     if (res.status === 401) {
-        throw new UnauthorizedError();
+        throw new APIError(401, "Unauthorized");
+    }
+
+    if (res.status === 403) {
+        const body = await safeJson(res);
+        if (body?.code === "USER_BANNED") {
+            throw new APIError(403, undefined, "USER_BANNED");
+        }
     }
 
     return res;

@@ -123,7 +123,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // Guard: nothing to validate
             if (!token.backendToken || !token.expires_at) return token;
 
-            // TOKEN_REFRESH_DISABLED: Token refresh logic disabled
+            //! TOKEN_REFRESH_DISABLED: Token refresh logic disabled
             // Backend now issues 1-hour tokens without refresh support
             // When switching to proper refresh library, re-enable this block:
             //

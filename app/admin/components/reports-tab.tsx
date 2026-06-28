@@ -15,6 +15,7 @@ import { clientFetch } from "@/lib/client-fetch";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ReportedItemDetail } from "@/types/admin";
+import { useBanHandler } from "@/lib/hooks/use-ban-handler";
 
 function ReportedItemCard({
     item,
@@ -179,6 +180,7 @@ export function ReportsTab() {
     const { data: session } = useSession();
     const token = session?.backendToken;
     const isModerating = useRef(false);
+    const { handleBanError } = useBanHandler();
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [modalConfig, setModalConfig] = useState<{
         isOpen: boolean;
@@ -246,6 +248,10 @@ export function ReportsTab() {
                     setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
                 }
             }
+        } catch (err) {
+            if (handleBanError(err)) return;
+            toast.error(`Failed to ${action} item`);
+            setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
         } finally {
             isModerating.current = false;
         }

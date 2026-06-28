@@ -13,8 +13,10 @@ import { toast } from 'sonner';
 import { Item } from '@/types/item';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { APIError } from '@/lib/api-error';
 import { clientFetch } from '@/lib/client-fetch';
 import { standardizeItemDate } from '@/lib/date-formatting';
+import { useBanHandler } from '@/lib/hooks/use-ban-handler';
 
 export function ProfileClient() {
     const { data: session, status } = useSession();
@@ -26,6 +28,7 @@ export function ProfileClient() {
     const [lostItems, setLostItems] = useState<Item[]>([]);
     const [foundItems, setFoundItems] = useState<Item[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { handleBanError } = useBanHandler();
 
     useEffect(() => {
         if (status !== "authenticated" || !token) return;
@@ -45,6 +48,9 @@ export function ProfileClient() {
                 setIsLoading(false);
             })
             .catch((err) => {
+                if (err instanceof APIError) {
+                    handleBanError(err);
+                }
                 console.error('Failed to load profile items:', err);
                 setIsLoading(false);
             });

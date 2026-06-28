@@ -35,10 +35,12 @@ import { ResolutionStatus } from "@/types/resolutions";
 import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 import { formatDateString } from "@/lib/date-formatting";
-import { clientFetch, APIError } from "@/lib/client-fetch";
+import { APIError } from "@/lib/api-error";
+import { clientFetch } from "@/lib/client-fetch";
 import { ItemDetailSkeleton } from "../items-loading-skeleton";
 import { useEffect, useState } from "react";
 import { Session } from "next-auth";
+import { useBanHandler } from "@/lib/hooks/use-ban-handler";
 
 interface ItemData {
     item: Item;
@@ -55,6 +57,7 @@ export default function ItemDetailPage() {
     const [itemData, setItemData] = useState<ItemData | null>(null);
     const [loading, setLoading] = useState(true);
     const [notFoundError, setNotFoundError] = useState(false);
+    const { handleBanError } = useBanHandler();
 
     useEffect(() => {
         if (!id || sessionStatus === "loading") return;
@@ -68,7 +71,13 @@ export default function ItemDetailPage() {
                 setLoading(false);
             })
             .catch((err) => {
-                if (err instanceof APIError) setNotFoundError(true);
+                if (err instanceof APIError) {
+                    if (err.code === "USER_BANNED") {
+                        handleBanError(err);
+                        return;
+                    }
+                    setNotFoundError(true);
+                }
                 setLoading(false);
             });
     }, [id, token, sessionStatus]);

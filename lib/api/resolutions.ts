@@ -1,6 +1,6 @@
 "use server";
 
-import { authFetch, safeJson, UnauthorizedError } from "./helpers";
+import { authFetch, safeJson, APIError } from "./helpers";
 
 /** POST: Create a resolution (claim/return) */
 export async function createResolution(
@@ -28,7 +28,7 @@ export async function createResolution(
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("createResolution error:", err);
         return { ok: false, error: String(err) };
@@ -50,7 +50,7 @@ export async function approveResolution(claimId: string, itemId: string) {
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("approveResolution error:", err);
         return { ok: false, error: String(err) };
@@ -73,7 +73,7 @@ export async function rejectResolution(resolutionID: string, rejectionReason: st
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("rejectResolution error:", err);
         return { ok: false, error: String(err) };
@@ -95,7 +95,7 @@ export async function completeResolution(resolutionId: string) {
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("completeResolution error:", err);
         return { ok: false, error: String(err) };
@@ -117,7 +117,7 @@ export async function failResolution(resolutionId: string, itemId: string) {
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("failResolution error:", err);
         return { ok: false, error: String(err) };

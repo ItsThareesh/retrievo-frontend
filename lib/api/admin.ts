@@ -4,7 +4,7 @@ import {
     ModerateUserRequest,
     ModerateItemRequest,
 } from "@/types/admin";
-import { authFetch, safeJson, UnauthorizedError } from "./helpers";
+import { authFetch, safeJson, APIError } from "./helpers";
 
 export async function moderateUser(userId: number, request: ModerateUserRequest) {
     try {
@@ -21,7 +21,7 @@ export async function moderateUser(userId: number, request: ModerateUserRequest)
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("moderateUser error:", err);
         return { ok: false, error: String(err) };
@@ -48,7 +48,7 @@ export async function moderateItem(itemId: string, request: ModerateItemRequest)
 
         return { ok: true, data: await safeJson(res) };
     } catch (err) {
-        if (err instanceof UnauthorizedError) throw err;
+        if (err instanceof APIError) throw err;
 
         console.error("moderateItem error:", err);
         return { ok: false, error: String(err) };

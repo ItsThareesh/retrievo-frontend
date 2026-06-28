@@ -1,11 +1,6 @@
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api/v1";
+import { APIError } from "./api-error";
 
-export class APIError extends Error {
-  constructor(public status: number, message?: string) {
-    super(message || `API error: ${status}`);
-    this.name = "APIError";
-  }
-}
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api/v1";
 
 export async function clientFetch<T = any>(
   path: string,
@@ -37,7 +32,15 @@ export async function clientFetch<T = any>(
   });
 
   if (!res.ok) {
-    throw new APIError(res.status, await res.text());
+    let detail = res.statusText; // Default to status text if no detail is provided
+    let code: string | undefined;
+    try {
+      const body = await res.json();
+      detail = body.detail ?? detail;
+      code = body.code;
+    } catch {}
+    
+    throw new APIError(res.status, detail, code);
   }
 
   return res.json();

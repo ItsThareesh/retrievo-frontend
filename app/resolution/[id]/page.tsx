@@ -23,7 +23,8 @@ import {
     completeResolution,
     failResolution,
 } from "@/lib/api/resolutions";
-import { clientFetch, APIError } from "@/lib/client-fetch";
+import { APIError } from "@/lib/api-error";
+import { clientFetch } from "@/lib/client-fetch";
 
 import { ActionButtons } from "./components/action-buttons";
 import { RejectionDialog } from "./components/rejection-dialog";
@@ -35,6 +36,7 @@ import { ThemeKey, THEMES } from "./theme";
 import { formatDateString } from "@/lib/date-formatting";
 import { LOCATION_MAP } from "@/lib/constants/locations";
 import { ResolutionDetailSkeleton } from "@/app/items/items-loading-skeleton";
+import { useBanHandler } from "@/lib/hooks/use-ban-handler";
 
 
 /* STATUS UI MAP */
@@ -319,6 +321,7 @@ export default function ClaimStatusPage() {
     const token = session?.backendToken;
 
     const [resolution, setResolution] = useState<Resolution | null>(null);
+    const { handleBanError } = useBanHandler();
     const [item, setItem] = useState<Item | null>(null);
     const [finderContact, setFinderContact] = useState<FinderContact | null>(null);
     const [viewer, setViewer] = useState<Viewer | null>(null);
@@ -345,8 +348,16 @@ export default function ClaimStatusPage() {
                 setIsLoading(false);
             })
             .catch((err) => {
-                if (err instanceof APIError && err.status === 404) {
-                    setFetchError("not_found");
+                if (err instanceof APIError) {
+                    if (err.code === "USER_BANNED") {
+                        handleBanError(err);
+                        return;
+                    }
+                    if (err.status === 404) {
+                        setFetchError("not_found");
+                    } else {
+                        setFetchError("unknown");
+                    }
                 } else {
                     setFetchError("unknown");
                 }
@@ -430,6 +441,7 @@ export default function ClaimStatusPage() {
 
             if (!result?.ok) throw new Error();
         } catch (err) {
+            if (handleBanError(err)) return;
             toast.error("Action failed. Please try again.");
             setActionLoading(false);
             return;
@@ -453,6 +465,7 @@ export default function ClaimStatusPage() {
             setShowRejectDialog(false);
             setRejectionReason("");
         } catch (err) {
+            if (handleBanError(err)) return;
             toast.error("Failed to reject claim.");
             setActionLoading(false);
             return;

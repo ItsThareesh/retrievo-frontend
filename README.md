@@ -194,7 +194,7 @@ public/                  # Static assets
 - **Image Compression**: Uploaded images are compressed to WebP ≤ 0.9 MB (HEIC/HEIF supported)
 - **Diff-Only PATCHES**: Item edits send only changed fields to the backend
 - **Debounced Search**: 400ms debounce on search input to reduce server load
-- **Error Handling**: `UnauthorizedError` from `authFetch` triggers redirect to sign-in
+- **Error Handling**: `APIError` from `authFetch` re-thrown through server actions; `code === "USER_BANNED"` triggers sign-out
 - **Auth Guards**: In `page.tsx` files (redirect to `/auth/signin` or `/onboarding`), never in middleware
 - **Token in Session**: `backendToken` attached to session — never stored in `localStorage`
 
