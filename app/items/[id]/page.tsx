@@ -485,7 +485,7 @@ function ItemDetailContent({
                                     <p className="font-medium text-sm">Reported by</p>
                                     <div className="flex items-center gap-2 mt-1">
                                         <Avatar className="h-6 w-6">
-                                            <AvatarImage src={reporter.image} />
+                                            <AvatarImage src={reporter.image || ""} />
                                             <AvatarFallback>
                                                 {reporter.name?.[0] ?? "U"}
                                             </AvatarFallback>

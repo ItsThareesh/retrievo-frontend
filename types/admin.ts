@@ -62,7 +62,7 @@ export interface UserDetail {
     public_id: string;
     name: string;
     email: string;
-    image: string;
+    image: string | null;
     created_at: string;
     warning_count: number;
     is_banned: boolean;

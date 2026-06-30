@@ -8,7 +8,7 @@ declare module "next-auth" {
             public_id: string;
             name: string;
             email: string;
-            image: string;
+            image: string | null;
             hostel: "boys" | "girls" | null;
             phone: string | null;
             instagramId: string | null;
@@ -31,7 +31,7 @@ declare module "next-auth/jwt" {
             public_id: string;
             name: string;
             email: string;
-            image: string;
+            image: string | null;
             hostel: "boys" | "girls" | null;
             phone: string | null;
             instagramId: string | null;

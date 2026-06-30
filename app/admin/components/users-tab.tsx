@@ -158,7 +158,7 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                                 <TableCell className="px-6 py-5 align-middle">
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-8 w-8">
-                                            <AvatarImage src={user.image} alt={user.name} />
+                                            <AvatarImage src={user.image || ""} alt={user.name} />
                                             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                                         </Avatar>
                                         <Link href={`/profile/${user.public_id}`} className="text-sm font-medium text-foreground hover:underline">
