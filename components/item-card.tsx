@@ -59,7 +59,7 @@ export function ItemCard({ item, type }: ItemCardProps) {
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5 text-primary/70" />
-              <span className="line-clamp-1">{LOCATION_MAP[item.location].label}</span>
+              <span className="line-clamp-1">{LOCATION_MAP[item.location]?.label ?? item.location}</span>
             </div>
           </div>
         </CardContent>

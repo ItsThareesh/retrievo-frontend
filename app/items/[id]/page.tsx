@@ -61,16 +61,19 @@ export default function ItemDetailPage() {
 
     useEffect(() => {
         if (!id || sessionStatus === "loading") return;
+        let cancelled = false;
 
         setLoading(true);
         setNotFoundError(false);
 
         clientFetch<ItemData>(`/items/${id}`, token)
             .then((data) => {
+                if (cancelled) return;
                 setItemData(data);
                 setLoading(false);
             })
             .catch((err) => {
+                if (cancelled) return;
                 if (err instanceof APIError) {
                     if (err.code === "USER_BANNED") {
                         handleBanError(err);
@@ -80,6 +83,7 @@ export default function ItemDetailPage() {
                 }
                 setLoading(false);
             });
+        return () => { cancelled = true; };
     }, [id, token, sessionStatus]);
 
     if (notFoundError) {
@@ -522,7 +526,7 @@ function ItemDetailContent({
                                         return
                                     }
 
-                                    if (needsOnboarding(session)) {
+                                    if (needsOnboarding(session!)) {
                                         router.push('/onboarding');
                                         return;
                                     }
@@ -543,7 +547,7 @@ function ItemDetailContent({
                                         return
                                     }
 
-                                    if (needsOnboarding(session)) {
+                                    if (needsOnboarding(session!)) {
                                         router.push('/onboarding');
                                         return;
                                     }

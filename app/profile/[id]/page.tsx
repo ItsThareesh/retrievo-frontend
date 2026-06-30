@@ -30,6 +30,7 @@ export default function UserPage() {
 
     useEffect(() => {
         if (!id || sessionStatus === "loading") return;
+        let cancelled = false;
 
         setIsLoading(true);
         setNotFoundError(false);
@@ -38,17 +39,20 @@ export default function UserPage() {
             token,
         )
             .then((data) => {
+                if (cancelled) return;
                 setUser(data.user);
                 setLostItems(data.lost_items.map(standardizeItemDate));
                 setFoundItems(data.found_items.map(standardizeItemDate));
                 setIsLoading(false);
             })
             .catch((err) => {
+                if (cancelled) return;
                 if (err instanceof APIError && err.status === 404) {
                     setNotFoundError(true);
                 }
                 setIsLoading(false);
             });
+        return () => { cancelled = true; };
     }, [id, token, sessionStatus]);
 
     const userItems: Item[] = useMemo(() => {
@@ -81,8 +85,9 @@ export default function UserPage() {
                     <div className="sticky top-24">
                         <Card className="overflow-hidden border-muted shadow-sm">
                             <div className="relative h-24 w-full overflow-hidden bg-muted/40 dark:bg-muted/40">
+                                {user.image && (
                                 <Image
-                                    src={user.image || ""}
+                                    src={user.image}
                                     alt=""
                                     aria-hidden="true"
                                     fill
@@ -90,6 +95,7 @@ export default function UserPage() {
                                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
                                     className="object-cover blur-3xl scale-125 saturate-300 pointer-events-none select-none"
                                 />
+                                )}
                             </div>
                             <CardHeader className="text-center -mt-12 relative z-10">
                                 <div className="mx-auto mb-4 p-1 bg-background rounded-full w-fit">

@@ -20,7 +20,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
     }
 
     // Check if user needs onboarding
-    if (needsOnboarding(session)) {
+    if (needsOnboarding(session!)) {
         redirect('/onboarding');
     }
 

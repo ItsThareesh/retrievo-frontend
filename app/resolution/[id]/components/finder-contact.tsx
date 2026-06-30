@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { CheckCircle2, Mail, Phone } from "lucide-react";
+import { CheckCircle2, Instagram, Mail, Phone } from "lucide-react";
 import { FinderContact } from "@/types/resolutions";
 import Link from "next/link";
 
@@ -39,15 +39,31 @@ export function FinderContactCard({ contact, theme }: { contact: FinderContact, 
                                 </Link>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                                <Phone className={`h-4 w-4 ${theme.icon}`} />
-                                <Link
-                                    href={`tel:${contact.phone}`}
-                                    className={`text-sm ${theme.textMain} hover:underline`}
-                                >
-                                    {contact.phone}
-                                </Link>
-                            </div>
+                            {contact.phone && (
+                                <div className="flex items-center gap-2">
+                                    <Phone className={`h-4 w-4 ${theme.icon}`} />
+                                    <Link
+                                        href={`tel:${contact.phone}`}
+                                        className={`text-sm ${theme.textMain} hover:underline`}
+                                    >
+                                        {contact.phone}
+                                    </Link>
+                                </div>
+                            )}
+
+                            {contact.instagramId && (
+                                <div className="flex items-center gap-2">
+                                    <Instagram className={`h-4 w-4 ${theme.icon}`} />
+                                    <Link
+                                        href={`https://instagram.com/${contact.instagramId.replace(/^@/, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`text-sm ${theme.textMain} hover:underline`}
+                                    >
+                                        @{contact.instagramId.replace(/^@/, '')}
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </div>
 

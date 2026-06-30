@@ -19,9 +19,9 @@ export async function clientFetch<T = any>(
 
   if (
     !headers["Content-Type"] && 
-    !(options?.method && 
+    options?.method && 
     options.method !== "GET" && 
-    options.method !== "HEAD")
+    options.method !== "HEAD"
   ) {
     headers["Content-Type"] = "application/json";
   }

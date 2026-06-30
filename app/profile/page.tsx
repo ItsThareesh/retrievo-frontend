@@ -14,7 +14,7 @@ export default async function ProfilePage() {
         redirect('/auth/signin?callbackUrl=/profile');
     }
 
-    if (needsOnboarding(session)) {
+    if (needsOnboarding(session!)) {
         redirect('/onboarding');
     }
 

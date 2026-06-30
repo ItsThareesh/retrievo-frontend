@@ -334,11 +334,13 @@ export default function ClaimStatusPage() {
     useEffect(() => {
         if (!resolutionId) return;
         if (sessionStatus === "loading") return;
+        let cancelled = false;
 
         setIsLoading(true);
         setFetchError(null);
         clientFetch<ResolutionData>(`/resolutions/${resolutionId}`, token)
             .then((data) => {
+                if (cancelled) return;
                 setResolution(data.resolution);
                 setItem(data.item);
                 setFinderContact(data.finder_contact);
@@ -348,6 +350,7 @@ export default function ClaimStatusPage() {
                 setIsLoading(false);
             })
             .catch((err) => {
+                if (cancelled) return;
                 if (err instanceof APIError) {
                     if (err.code === "USER_BANNED") {
                         handleBanError(err);
@@ -363,6 +366,7 @@ export default function ClaimStatusPage() {
                 }
                 setIsLoading(false);
             });
+        return () => { cancelled = true; };
     }, [resolutionId, token, sessionStatus, refreshKey]);
 
     const [actionLoading, setActionLoading] = useState(false);

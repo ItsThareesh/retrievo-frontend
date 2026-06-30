@@ -223,14 +223,14 @@ export function Footer() {
               <h4 className="font-semibold">Legal</h4>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li>
-                  <Link href="/privacy" className="hover:text-primary transition-colors underline">
+                  <span className="text-muted-foreground/50 underline cursor-not-allowed">
                     Privacy Policy
-                  </Link>
+                  </span>
                 </li>
                 <li>
-                  <Link href="/terms" className="hover:text-primary transition-colors underline">
+                  <span className="text-muted-foreground/50 underline cursor-not-allowed">
                     Terms of Service
-                  </Link>
+                  </span>
                 </li>
                 <li>
                   <a href="mailto:developer.thareesh@gmail.com" className="hover:text-primary transition-colors underline">

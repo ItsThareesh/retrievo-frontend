@@ -21,6 +21,7 @@ export interface FinderContact {
     name: string;
     email: string;
     phone?: string | null;
+    instagramId?: string | null;
 }
 
 export type ViewerRole = 'admin' | 'finder' | 'owner';

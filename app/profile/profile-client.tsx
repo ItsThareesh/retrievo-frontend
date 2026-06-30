@@ -32,9 +32,11 @@ export function ProfileClient() {
 
     useEffect(() => {
         if (status !== "authenticated" || !token) return;
+        let cancelled = false;
 
         clientFetch<{ lost_items: Item[]; found_items: Item[] }>('/profile/items', token)
             .then((data) => {
+                if (cancelled) return;
                 setLostItems(data.lost_items.map(standardizeItemDate));
                 setFoundItems(data.found_items.map(standardizeItemDate));
                 setUser({
@@ -48,12 +50,14 @@ export function ProfileClient() {
                 setIsLoading(false);
             })
             .catch((err) => {
+                if (cancelled) return;
                 if (err instanceof APIError) {
                     handleBanError(err);
                 }
                 console.error('Failed to load profile items:', err);
                 setIsLoading(false);
             });
+        return () => { cancelled = true; };
     }, [status, token]);
 
     const toastShownRef = useRef(false);
@@ -94,8 +98,9 @@ export function ProfileClient() {
                     <div className="sticky top-24">
                         <Card className="overflow-hidden border-muted shadow-sm">
                             <div className="relative h-24 w-full overflow-hidden bg-muted/40 dark:bg-muted/40">
+                                {user.image && (
                                 <Image
-                                    src={user.image || ""}
+                                    src={user.image}
                                     alt=""
                                     aria-hidden="true"
                                     fill
@@ -103,6 +108,7 @@ export function ProfileClient() {
                                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
                                     className="object-cover blur-3xl scale-125 saturate-300 pointer-events-none select-none"
                                 />
+                            )}
                             </div>
                             <CardHeader className="text-center -mt-12 relative z-10">
                                 <div className="mx-auto mb-4 p-1 bg-background rounded-full w-fit">
