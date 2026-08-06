@@ -101,7 +101,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return token;
             }
 
-            // Explicit session update (e.g. hostel/phone change)
+            // Explicit session update (e.g. hostel/phone/instagram handle change)
             if (trigger === "update" && token.backendToken) {
                 console.log("Session update triggered, refreshing user profile...");
                     

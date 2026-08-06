@@ -13,3 +13,8 @@ export interface OnboardingPayload {
     phone: string | null;
     instagramId: string | null;
 }
+
+export interface ContactPayload {
+    phone?: string | null;
+    instagramId?: string | null;
+}

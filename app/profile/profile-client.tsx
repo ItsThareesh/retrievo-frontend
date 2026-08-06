@@ -3,23 +3,33 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Instagram, Phone, House, Search, LogOut } from 'lucide-react';
+import { Instagram, Phone, House, Search, LogOut, Pencil, ChevronDown, X } from 'lucide-react';
 import { ItemCard } from '@/components/item-card';
+import { Input } from '@/components/ui/input';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useEffect, useRef, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Item } from '@/types/item';
+import { ContactPayload } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { APIError } from '@/lib/api-error';
 import { clientFetch } from '@/lib/client-fetch';
 import { standardizeItemDate } from '@/lib/date-formatting';
 import { useBanHandler } from '@/lib/hooks/use-ban-handler';
+import { updateContact } from '@/lib/api/profile';
+import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@/lib/utils/contact';
 
 export function ProfileClient() {
-    const { data: session, status } = useSession();
+    const { data: session, status, update } = useSession();
     const token = session?.backendToken;
 
     const [user, setUser] = useState<{ 
@@ -28,7 +38,82 @@ export function ProfileClient() {
     const [lostItems, setLostItems] = useState<Item[]>([]);
     const [foundItems, setFoundItems] = useState<Item[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEditingContact, setIsEditingContact] = useState(false);
+    const [phoneInput, setPhoneInput] = useState("");
+    const [instagramInput, setInstagramInput] = useState("");
+    const [countryCode, setCountryCode] = useState("+91");
+    const [isSavingContact, setIsSavingContact] = useState(false);
     const { handleBanError } = useBanHandler();
+
+    function parsePhone(phone?: string) {
+        if (!phone) return { countryCode: "+91", number: "" };
+        for (const code of COUNTRY_CODES) {
+            if (phone.startsWith(code.value)) {
+                return { countryCode: code.value, number: phone.slice(code.value.length) };
+            }
+        }
+        return { countryCode: "+91", number: phone };
+    }
+
+    function openContactEditor() {
+        const parsed = parsePhone(user?.phone);
+        setCountryCode(parsed.countryCode);
+        setPhoneInput(parsed.number);
+        setInstagramInput(user?.instagramId ?? "");
+        setIsEditingContact(true);
+    }
+
+    const originalPhone = user?.phone ?? "";
+    const originalInstagram = user?.instagramId ?? "";
+    const newPhone = buildPhone(countryCode, phoneInput);
+    const contactChanged = newPhone !== originalPhone || instagramInput !== originalInstagram;
+
+    async function handleSaveContact() {
+        const contactError = validateContact(countryCode, phoneInput, instagramInput);
+        if (contactError) {
+            toast.error(contactError);
+            return;
+        }
+
+        const payload: ContactPayload = {};
+        if (newPhone !== originalPhone) payload.phone = newPhone || null;
+        if (instagramInput !== originalInstagram) payload.instagramId = instagramInput.trim() || null;
+
+        try {
+            setIsSavingContact(true);
+            const res = await updateContact(payload);
+
+            if (res.status === 422) {
+                toast.error("Invalid. Please check your details and try again.");
+                return;
+            }
+
+            if (!res.ok) {
+                toast.error("Failed to update contact details. Please try again.");
+                return;
+            }
+
+            setUser(prev => prev ? {
+                ...prev,
+                phone: res.phone ?? undefined,
+                instagramId: res.instagramId ?? undefined,
+            } : prev);
+
+            await update({
+                phone: res.phone ?? null,
+                instagramId: res.instagramId ?? null,
+            });
+
+            setIsEditingContact(false);
+            toast.success("Contact details updated.");
+        } catch (err) {
+            if (handleBanError(err)) return;
+            console.error("Failed to update contact:", err);
+            toast.error("Failed to update contact details. Please try again.");
+        } finally {
+            setIsSavingContact(false);
+        }
+    }
 
     useEffect(() => {
         if (status !== "authenticated" || !token) return;
@@ -122,33 +207,157 @@ export function ProfileClient() {
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <CardTitle className="text-xl">{user.name}</CardTitle>
+                                <CardTitle className="text-xl flex items-center justify-center gap-2">
+                                    {user.name}
+                                    <button
+                                        type="button"
+                                        onClick={() => (isEditingContact ? setIsEditingContact(false) : openContactEditor())}
+                                        aria-label="Edit phone and Instagram"
+                                        title="Edit phone / Instagram"
+                                        className="cursor-pointer text-muted-foreground hover:text-primary transition-colors"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </button>
+                                </CardTitle>
                                 <p className="text-sm text-muted-foreground">{user.email}</p>
                             </CardHeader>
                             <CardContent className="space-y-4 p-4">
                                 <div className="flex flex-col space-y-3 w-full max-w-[260px] mx-auto justify-center">
 
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                        <Phone className="mr-3 h-4 w-4 shrink-0" />
-                                        <p className='mr-10'>Phone: </p>
-                                        <span>{user.phone || "No phone linked"}</span>
-                                    </div>
+                                    {isEditingContact ? (
+                                        <>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <label htmlFor="contact-phone" className="text-xs text-muted-foreground">
+                                                        Phone Number
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setPhoneInput("")}
+                                                        disabled={isSavingContact}
+                                                        aria-label="Remove phone number"
+                                                        className="text-xs text-muted-foreground hover:text-destructive cursor-pointer flex items-center gap-1"
+                                                    >
+                                                        <X className="h-3.5 w-3.5" />
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                                <div className="flex rounded-md shadow-sm overflow-hidden ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                role="combobox"
+                                                                className="rounded-r-none w-[70px] border-r-0 px-0 [font-variant-numeric:tabular-nums]"
+                                                            >
+                                                                <span className="w-7 text-center">{countryCode}</span>
+                                                                <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="min-w-[200px]">
+                                                            {COUNTRY_CODES.map((item) => (
+                                                                <DropdownMenuItem
+                                                                    key={item.value}
+                                                                    onSelect={() => setCountryCode(item.value)}
+                                                                    className="justify-between"
+                                                                >
+                                                                    <span className="font-mono">{item.value}</span>
+                                                                    <span className="text-muted-foreground">{item.label}</span>
+                                                                </DropdownMenuItem>
+                                                            ))}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <Input
+                                                        id="contact-phone"
+                                                        type="tel"
+                                                        placeholder="Enter your number"
+                                                        value={phoneInput}
+                                                        onChange={(e) => setPhoneInput(e.target.value)}
+                                                        disabled={isSavingContact}
+                                                        className="flex-1 rounded-l-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                    />
+                                                </div>
+                                            </div>
 
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                        <House className="mr-3 h-4 w-4 shrink-0" />
-                                        <p className='mr-10'>Hostel: </p>
-                                        {user.hostel && (
-                                            <span>{user.hostel.charAt(0).toUpperCase() + user.hostel?.slice(1)}</span>
-                                        )}
-                                    </div>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <label htmlFor="contact-instagram" className="text-xs text-muted-foreground">
+                                                        Instagram ID
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setInstagramInput("")}
+                                                        disabled={isSavingContact}
+                                                        aria-label="Remove Instagram ID"
+                                                        className="text-xs text-muted-foreground hover:text-destructive cursor-pointer flex items-center gap-1"
+                                                    >
+                                                        <X className="h-3.5 w-3.5" />
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                                <Input
+                                                    id="contact-instagram"
+                                                    placeholder="your_instagram_id"
+                                                    value={instagramInput}
+                                                    onChange={(e) => setInstagramInput(sanitizeInstagram(e.target.value))}
+                                                    disabled={isSavingContact}
+                                                    className="h-9"
+                                                />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Don&apos;t include <span className="font-mono">@</span>, just the username.
+                                                </p>
+                                            </div>
 
-                                    {/*Only show if it exists */}
-                                    {user.instagramId && (
-                                        <div className="flex items-center text-sm text-muted-foreground">
-                                            <Instagram className="mr-3 h-4 w-4 shrink-0" />
-                                            <p className='mr-5'>Instagram: </p>
-                                            <span>{user.instagramId}</span>
-                                        </div>
+                                            <p className="text-xs text-muted-foreground">
+                                                Provide at least one contact method - one is enough.
+                                            </p>
+
+                                            <div className="flex gap-2 pt-1">
+                                                <Button
+                                                    type="button"
+                                                    onClick={handleSaveContact}
+                                                    disabled={!contactChanged || isSavingContact}
+                                                    className="flex-1 h-9 cursor-pointer"
+                                                >
+                                                    {isSavingContact ? "Saving..." : "Save"}
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={() => setIsEditingContact(false)}
+                                                    disabled={isSavingContact}
+                                                    className="h-9 cursor-pointer"
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center text-sm text-muted-foreground">
+                                                <Phone className="mr-3 h-4 w-4 shrink-0" />
+                                                <p className='mr-10'>Phone: </p>
+                                                <span>{user.phone || "No phone linked"}</span>
+                                            </div>
+
+                                            <div className="flex items-center text-sm text-muted-foreground">
+                                                <House className="mr-3 h-4 w-4 shrink-0" />
+                                                <p className='mr-10'>Hostel: </p>
+                                                {user.hostel && (
+                                                    <span>{user.hostel.charAt(0).toUpperCase() + user.hostel?.slice(1)}</span>
+                                                )}
+                                            </div>
+
+                                            {/*Only show if it exists */}
+                                            {user.instagramId && (
+                                                <div className="flex items-center text-sm text-muted-foreground">
+                                                    <Instagram className="mr-3 h-4 w-4 shrink-0" />
+                                                    <p className='mr-5'>Instagram: </p>
+                                                    <span>{user.instagramId}</span>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                     <hr className='my-2' />
                                     <Button

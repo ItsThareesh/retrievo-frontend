@@ -63,7 +63,9 @@ Browser → clientFetch() → NEXT_PUBLIC_BACKEND_URL (direct, no Vercel proxy)
 Browser → Server Action → authFetch() → INTERNAL_BACKEND_URL
 ```
 - Server Actions in `lib/api/`: items, resolutions, admin, notifications, profile
-- Include `X-Internal-Secret` header for backend authentication
+- `internalFetchWithTimeout` adds an `X-Internal-Secret` header, but the backend
+  no longer validates it (that middleware was removed) — the header is sent for
+  legacy/future use only
 
 **Public reads (no auth):**
 ```
@@ -114,7 +116,7 @@ cp .env.example .env.local
 | `AUTH_TRUST_HOST` | Yes | Required by Auth.js — set to `true` |
 | `NEXT_PUBLIC_BACKEND_URL` | Yes | Backend URL used by the browser (e.g. `http://localhost:8000/api/v1`) |
 | `INTERNAL_BACKEND_URL` | Yes | Backend URL used server-side (e.g. `http://localhost:8000/api/v1`) |
-| `INTERNAL_SECRET_KEY` | Yes | Shared secret for server→backend auth |
+| `INTERNAL_SECRET_KEY` | Yes | Required by the frontend fetch helpers; sent as `X-Internal-Secret`, but no longer validated by the backend |
 
 ### Development
 
@@ -212,6 +214,6 @@ public/                  # Static assets
 This frontend communicates with a [FastAPI backend](https://github.com/ItsThareesh/retrievo-backend):
 
 - **Browser→Backend**: `clientFetch()` in `lib/client-fetch.ts` — direct API calls with Bearer token
-- **Server→Backend**: `authFetch()` / `publicFetch()` in `lib/api/helpers.ts` — includes `X-Internal-Secret` header
+- **Server→Backend**: `authFetch()` / `publicFetch()` in `lib/api/helpers.ts` — Bearer-token authenticated; also sends `X-Internal-Secret` (no longer validated by the backend)
 - **Endpoints**: Items CRUD, resolutions, admin moderation, notifications, profile, auth
 - **Image CDN**: `cdn.retrievo.dev` for uploaded item images

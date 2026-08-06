@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { OnboardingPayload } from '@/types/user';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';
 import { useBanHandler } from '@/lib/hooks/use-ban-handler';
+import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@/lib/utils/contact';
 
 export default function OnboardingClient() {
     const { data: session, status, update } = useSession();
@@ -38,22 +39,6 @@ export default function OnboardingClient() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [countryCode, setCountryCode] = useState("+91");
-
-    const codes = [
-        { value: "+91", label: "IN" },
-        { value: "+971", label: "UAE" },
-        { value: "+966", label: "SA" },
-        { value: "+974", label: "QA" },
-        { value: "+965", label: "KW" },
-        { value: "+968", label: "OM" },
-        { value: "+973", label: "BH" },
-        { value: "+1", label: "US/CA" },
-        { value: "+44", label: "UK" },
-        { value: "+61", label: "AU" },
-        { value: "+64", label: "NZ" },
-        { value: "+353", label: "IE" },
-        { value: "+49", label: "DE" },
-    ];
 
     useEffect(() => {
         if (status !== "authenticated" || !session?.backendToken) return;
@@ -72,21 +57,15 @@ export default function OnboardingClient() {
             return;
         }
 
-        if (!phoneNumber.trim() && !instagramId.trim()) {
-            toast.error("Please provide at least one contact detail.");
-            return;
-        }
-
-        if (phoneNumber && phoneNumber.length < 8) {
-            toast.error("Please enter a valid phone number.");
+        const contactError = validateContact(countryCode, phoneNumber, instagramId);
+        if (contactError) {
+            toast.error(contactError);
             return;
         }
 
         const payload: OnboardingPayload = {
             hostel,
-            phone: phoneNumber.trim()
-                ? `${countryCode}${phoneNumber.trim()}`
-                : null,
+            phone: buildPhone(countryCode, phoneNumber) || null,
             instagramId: instagramId.trim() || null,
         };
 
@@ -157,7 +136,7 @@ export default function OnboardingClient() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent className="min-w-[200px]">
-                                        {codes.map((item) => (
+                                        {COUNTRY_CODES.map((item) => (
                                             <DropdownMenuItem
                                                 key={item.value}
                                                 onSelect={() => setCountryCode(item.value)}
@@ -254,19 +233,13 @@ export default function OnboardingClient() {
                                 id="instagram"
                                 placeholder="your_instagram_id"
                                 value={instagramId}
-                                onChange={(e) =>
-                                    setInstagramId(
-                                        e.target.value
-                                            .replace(/\s/g, "")   // no spaces
-                                            .replace(/^@/, "")    // strip @ if user types it
-                                    )
-                                }
+                                onChange={(e) => setInstagramId(sanitizeInstagram(e.target.value))}
                                 disabled={isSubmitting}
                                 className="h-10"
                             />
 
                             <p className="text-xs text-muted-foreground">
-                                Don't include <span className="font-mono">@</span>, just the username.
+                                Don&apos;t include <span className="font-mono">@</span>, just the username.
                             </p>
 
                             <p className="text-xs text-muted-foreground">
