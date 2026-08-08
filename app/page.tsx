@@ -22,7 +22,7 @@ export default function Home() {
 
         {/* Hero Section */}
         <section className="relative flex flex-col items-center justify-start min-h-[calc(100svh-4rem)]  px-4 text-center overflow-hidden">
-          <div className="w-full max-w-4xl relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center pt-[76px] md:pt-25 pb-50 md:pb-30">
+          <div className="w-full max-w-4xl relative z-10 md:animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center pt-[76px] md:pt-25 pb-50 md:pb-30">
 
             <h1 className="text-4xl md:text-7xl font-bold tracking-tight text-foreground leading-tight">
 
