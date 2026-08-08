@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
     }
 
     if (!needsOnboarding(session)) {
-        redirect('/profile');
+        redirect('/items');
     }
 
     return (
