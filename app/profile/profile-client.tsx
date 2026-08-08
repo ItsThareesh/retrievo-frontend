@@ -176,7 +176,7 @@ export function ProfileClient() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+        <div className="container mx-auto px-4 md:px-8 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col md:flex-row gap-8">
                 {/* User Sidebar */}
                 <div className="w-full md:w-1/3 lg:w-1/4">

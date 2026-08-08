@@ -25,7 +25,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-2 md:px-4 py-8">
             <ItemFormClient session={session} type={type} />
         </div>
     );

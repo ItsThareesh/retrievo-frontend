@@ -5,7 +5,7 @@ import { Combobox } from '@/components/ui/combo-box';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { CalendarIcon, Loader2, Upload, X } from 'lucide-react';
+import { CalendarIcon, Camera, Loader2, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -104,6 +104,47 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
     const { handleBanError } = useBanHandler();
 
+    function handleFileSelect(field: any) {
+        return async (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0] ?? null;
+
+            if (!file) {
+                field.onChange(null);
+                setPreview(null);
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error("Original image must be under 10MB. Please choose a smaller image.");
+                e.target.value = "";
+                return;
+            }
+
+            setIsCompressing(true);
+            try {
+                const compressedFile = await compressImage(file);
+
+                if (compressedFile.size > 1 * 1024 * 1024) {
+                    toast.error("Unable to compress image under 1MB. Please choose a smaller or simpler image.");
+                    e.target.value = "";
+                    return;
+                }
+
+                field.onChange(compressedFile);
+
+                const reader = new FileReader();
+                reader.onloadend = () => setPreview(reader.result as string);
+                reader.readAsDataURL(compressedFile);
+            } catch (error) {
+                console.error("Compression error:", error);
+                toast.error("Failed to compress image. Please try a different image.");
+                e.target.value = "";
+            } finally {
+                setIsCompressing(false);
+            }
+        };
+    }
+
     const groupedLocations = (() => {
         const groups: Record<string, { value: string; label: string }[]> = {};
 
@@ -184,12 +225,12 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
     }
 
     return (
-        <div className="max-w-3xl mx-auto py-10 px-2 md:px-4">
+        <div className="max-w-3xl mx-auto py-10 px-1 md:px-4">
             <div className="mb-8 text-center">
                 <h1 className="text-3xl font-bold tracking-tight mb-2">
                     Report Item
                 </h1>
-                <p className="text-muted-foreground max-w-lg mx-auto">
+                <p className="text-muted-foreground max-w-lg mx-auto px-1">
                     Please provide as much detail as possible to help us connect the item with its owner.
                 </p>
             </div>
@@ -380,94 +421,76 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                         <FormItem className="space-y-4">
                             <FormLabel>Image</FormLabel>
 
-                            <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center bg-muted/30 hover:bg-muted/50 transition-colors relative">
-                                {!preview ? (
-                                    <>
-                                        {isCompressing ? (
-                                            <Loader2 className="h-10 w-10 text-muted-foreground mb-2 animate-spin" />
-                                        ) : (
-                                            <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                                        )}
-                                        <p className="text-sm text-muted-foreground font-medium">
-                                            {isCompressing ? "Compressing image..." : "Click to upload an image"}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {isCompressing ? "Please wait" : "JPG, PNG, WebP, HEIC (will be compressed to under 1MB)"}
-                                        </p>
-
-                                        <Input
+                            {isCompressing ? (
+                                <div className="flex flex-col items-center justify-center py-12 border rounded-lg bg-muted/30">
+                                    <Loader2 className="h-10 w-10 text-muted-foreground mb-2 animate-spin" />
+                                    <p className="text-sm text-muted-foreground font-medium">Compressing image...</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Please wait</p>
+                                </div>
+                            ) : preview ? (
+                                <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
+                                    <ImageViewer src={preview} alt="Preview">
+                                        <Image
+                                            src={preview}
+                                            alt="Preview"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 448px"
+                                            className="object-cover" />
+                                    </ImageViewer>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        disabled={isSubmitting}
+                                        className="absolute top-2 right-2 h-8 w-8 rounded-full cursor-pointer z-10"
+                                        onClick={() => {
+                                            setPreview(null);
+                                            field.onChange(null);
+                                        }}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="relative flex flex-col items-center gap-3 h-auto py-10 cursor-pointer hover:bg-muted/50"
+                                        disabled={isSubmitting}
+                                    >
+                                        <Upload className="h-14 w-14 text-muted-foreground" />
+                                        <p className="text-sm font-medium">Gallery</p>
+                                        <input
                                             type="file"
                                             accept="image/*"
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            disabled={isCompressing || isSubmitting}
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0] ?? null;
-
-                                                if (!file) {
-                                                    field.onChange(null);
-                                                    setPreview(null);
-                                                    return;
-                                                }
-
-                                                if (file.size > 10 * 1024 * 1024) {
-                                                    toast.error("Original image must be under 10MB. Please choose a smaller image.");
-                                                    e.target.value = ""; // Reset file input
-                                                    return;
-                                                }
-
-                                                setIsCompressing(true);
-                                                try {
-                                                    // Compress the image to under 1MB
-                                                    const compressedFile = await compressImage(file);
-
-                                                    // Verify compressed size
-                                                    if (compressedFile.size > 1 * 1024 * 1024) {
-                                                        toast.error("Unable to compress image under 1MB. Please choose a smaller or simpler image.");
-                                                        e.target.value = "";
-                                                        return;
-                                                    }
-
-                                                    field.onChange(compressedFile);
-
-                                                    const reader = new FileReader();
-                                                    reader.onloadend = () => setPreview(reader.result as string);
-                                                    reader.readAsDataURL(compressedFile);
-                                                } catch (error) {
-                                                    console.error("Compression error:", error);
-                                                    toast.error("Failed to compress image. Please try a different image.");
-                                                    e.target.value = "";
-                                                } finally {
-                                                    setIsCompressing(false);
-                                                }
-                                            }}
-                                        />
-                                    </>
-                                ) : (
-                                    <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
-                                        <ImageViewer src={preview} alt="Preview">
-                                            <Image
-                                                src={preview}
-                                                alt="Preview"
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, 448px"
-                                                className="object-cover" />
-                                        </ImageViewer>
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="icon"
                                             disabled={isSubmitting}
-                                            className="absolute top-2 right-2 h-8 w-8 rounded-full cursor-pointer z-10"
-                                            onClick={() => {
-                                                setPreview(null);
-                                                field.onChange(null);
-                                            }}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
+                                            onChange={handleFileSelect(field)}
+                                        />
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="relative flex flex-col items-center gap-3 h-auto py-10 cursor-pointer hover:bg-muted/50"
+                                        disabled={isSubmitting}
+                                    >
+                                        <Camera className="h-14 w-14 text-muted-foreground" />
+                                        <p className="text-sm font-medium">Camera</p>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            capture="environment"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            disabled={isSubmitting}
+                                            onChange={handleFileSelect(field)}
+                                        />
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground/60 text-center">Supports JPG, PNG, WebP, HEIC &middot; Auto-compressed under 1MB</p>
+                            </>
+                            )}
 
                             <FormMessage />
                         </FormItem>
