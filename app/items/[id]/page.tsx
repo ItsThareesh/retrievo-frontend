@@ -65,6 +65,7 @@ export default function ItemDetailPage() {
 
         setLoading(true);
         setNotFoundError(false);
+        window.scrollTo(0, 0);
 
         clientFetch<ItemData>(`/items/${id}`, token)
             .then((data) => {
@@ -83,7 +84,8 @@ export default function ItemDetailPage() {
                 }
                 setLoading(false);
             });
-        return () => { cancelled = true; };
+        return () => { cancelled = 
+            true; };
     }, [id, token, sessionStatus]);
 
     if (notFoundError) {

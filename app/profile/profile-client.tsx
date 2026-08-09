@@ -176,12 +176,12 @@ export function ProfileClient() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+        <div className="container mx-auto px-4 md:px-10 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col md:flex-row gap-8">
                 {/* User Sidebar */}
                 <div className="w-full md:w-1/3 lg:w-1/4">
                     <div className="sticky top-24">
-                        <Card className="overflow-hidden border-muted shadow-sm">
+                        <Card className="border-muted shadow-sm relative">
                             <div className="relative h-24 w-full overflow-hidden bg-muted/40 dark:bg-muted/40">
                                 {user.image && (
                                 <Image
@@ -195,6 +195,15 @@ export function ProfileClient() {
                                 />
                             )}
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => (isEditingContact ? setIsEditingContact(false) : openContactEditor())}
+                                aria-label="Edit phone and Instagram"
+                                title="Edit phone / Instagram"
+                                className="absolute top-2 right-2 z-20 cursor-pointer text-muted-foreground hover:text-primary transition-colors bg-background/80 rounded-full p-1.5"
+                            >
+                                <Pencil className="h-4 w-4" />
+                            </button>
                             <CardHeader className="text-center -mt-12 relative z-10">
                                 <div className="mx-auto mb-4 p-1 bg-background rounded-full w-fit">
                                     <Avatar className="w-24 h-24 border-2 border-background">
@@ -207,17 +216,8 @@ export function ProfileClient() {
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <CardTitle className="text-xl flex items-center justify-center gap-2">
+                                <CardTitle className="text-xl">
                                     {user.name}
-                                    <button
-                                        type="button"
-                                        onClick={() => (isEditingContact ? setIsEditingContact(false) : openContactEditor())}
-                                        aria-label="Edit phone and Instagram"
-                                        title="Edit phone / Instagram"
-                                        className="cursor-pointer text-muted-foreground hover:text-primary transition-colors"
-                                    >
-                                        <Pencil className="h-4 w-4" />
-                                    </button>
                                 </CardTitle>
                                 <p className="text-sm text-muted-foreground">{user.email}</p>
                             </CardHeader>
@@ -327,7 +327,7 @@ export function ProfileClient() {
                                                     variant="ghost"
                                                     onClick={() => setIsEditingContact(false)}
                                                     disabled={isSavingContact}
-                                                    className="h-9 cursor-pointer"
+                                                    className=" flex-1 h-9 cursor-pointer"
                                                 >
                                                     Cancel
                                                 </Button>
