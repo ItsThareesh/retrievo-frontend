@@ -15,7 +15,7 @@ export async function Navbar() {
             <div className="container mx-auto px-4 md:px-10 h-16 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary hover:opacity-90 transition-opacity">
                     <Image src="/favicon.ico" alt="Retrievo" width={30} height={30} className="rounded-lg" unoptimized />
-                    <span>Retrievo</span>
+                    <span className='text-2xl'>Retrievo</span>
                 </Link>
 
                 <div className="hidden md:flex items-center gap-8">
