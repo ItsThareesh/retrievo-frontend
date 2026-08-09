@@ -198,22 +198,12 @@ export function Footer() {
           <div className="flex flex-row justify-between">
             {/* Quick Links */}
             <div className="space-y-4 flex flex-col">
-              <h4 className="font-semibold">Platform</h4>
+              <h4 className="font-semibold">Troubleshoot</h4>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li>
-                  <Link href="/items" className="hover:text-primary transition-colors underline">
-                    Browse Items
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/report?type=lost" className="hover:text-primary transition-colors underline">
-                    Report Lost
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/report?type=found" className="hover:text-primary transition-colors underline">
-                    Report Found
-                  </Link>
+                  <a href="mailto:developer.thareesh@gmail.com" className="hover:text-primary transition-colors underline">
+                    Report a bug
+                  </a>
                 </li>
               </ul>
             </div>
@@ -231,11 +221,6 @@ export function Footer() {
                   <span className="text-muted-foreground/50 underline cursor-not-allowed">
                     Terms of Service
                   </span>
-                </li>
-                <li>
-                  <a href="mailto:developer.thareesh@gmail.com" className="hover:text-primary transition-colors underline">
-                    Contact Us
-                  </a>
                 </li>
               </ul>
             </div>
