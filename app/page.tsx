@@ -21,8 +21,8 @@ export default function Home() {
       <div className="flex flex-col">
 
         {/* Hero Section */}
-        <section className="relative flex flex-col items-center justify-start min-h-[calc(100svh-4rem)]  px-4 text-center overflow-hidden">
-          <div className="w-full max-w-4xl relative z-10 md:animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center pt-[76px] md:pt-25 pb-50 md:pb-30">
+        <section className="relative flex flex-col items-center justify-start h-[calc(100svh-4rem)]  px-4 text-center overflow-hidden">
+          <div className="w-full max-w-4xl relative z-10 md:animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center pt-[76px] md:pt-25 pb-[calc(25dvh)] md:pb-30">
 
             <h1 className="text-4xl md:text-7xl font-bold tracking-tight text-foreground leading-tight">
 
@@ -66,12 +66,11 @@ export default function Home() {
               </Button>
               
             </div>
-            {/* <div className="absolute bottom-0 left-1/2 -translate-x-1/2 md:hidden">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 md:hidden">
               <div className='flex flex-col items-center gap-0'>
               <ChevronUp className="h-8 w-8 text-muted-foreground opacity-50 animate-bounce" />
-              <span className="opacity-50"> Scroll up for FAQ</span>
               </div>
-            </div> */}  
+            </div> 
           </div>
 
           {/* Glow element */}
