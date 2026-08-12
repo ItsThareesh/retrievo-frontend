@@ -175,6 +175,11 @@ function ItemDetailContent({
         handleReport
     } = useItemEditable({ item, reporter, resolution_status, session });
 
+    const isReporter = !!session?.backendToken && session.user.public_id === reporter.public_id;
+    const hasResolution = resolution_status !== "none";
+    const showClaim = item.type === "found" && !isReporter && !hasResolution;
+    const showReturn = item.type === "lost" && !isReporter && !hasResolution;
+
     function mapClaimStatusToText(status: ResolutionStatus) {
         switch (status) {
             case "pending":
@@ -518,7 +523,7 @@ function ItemDetailContent({
                         </div>
                     </div>
                     <div className="space-y-3">
-                        {canClaim ? (
+                        {showClaim ? (
                             <Button
                                 size="lg"
                                 className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
@@ -539,11 +544,11 @@ function ItemDetailContent({
                                 This is Mine!
                             </Button>
                         ) : null}
-                        {canReturn ? (
+                        {showReturn ? (
                             <Button
                                 size="lg"
                                 className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
-                                onClick={async () => {
+                                onClick={() => {
                                     if (!session?.backendToken) {
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
                                         return

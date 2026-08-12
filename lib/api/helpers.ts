@@ -15,7 +15,7 @@ export async function safeJson(res: Response) {
 export async function internalFetchWithTimeout(
     url: string,
     options: RequestInit = {},
-    timeout = 5000
+    timeout = 10000,
 ): Promise<Response> {
     if (!process.env.INTERNAL_SECRET_KEY) {
         throw new Error("INTERNAL_SECRET_KEY is not configured");
@@ -83,7 +83,7 @@ export async function authFetch(input: RequestInfo, options: RequestInit = {}, t
 export async function publicFetch(
     input: RequestInfo,
     options: RequestInit = {},
-    timeout = 5000,
+    timeout = 10000,
 ) {
     return internalFetchWithTimeout(
         `${process.env.INTERNAL_BACKEND_URL}${input}`,
