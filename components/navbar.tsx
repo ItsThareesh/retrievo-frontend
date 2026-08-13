@@ -14,7 +14,7 @@ export async function Navbar() {
         <nav className="sticky top-0 z-50 w-full border-b dark:border-black/50 shadow-md shadow-grey-400/10 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
             <div className="container mx-auto px-4 md:px-10 h-16 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary hover:opacity-90 transition-opacity">
-                    <Image src="/favicon.ico" alt="Retrievo" width={30} height={30} className="rounded-lg" unoptimized />
+                    <Image src="/lighthouse.svg" alt="Retrievo" width={30} height={30} className="rounded-lg" unoptimized />
                     <span className='text-2xl'>Retrievo</span>
                 </Link>
 

@@ -23,6 +23,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Retrievo - Lost & Found",
   description: "Find what you lost, return what you found.",
+  icons: {
+    icon: "/lighthouse.svg",
+  },
 };
 
 export default function RootLayout({
