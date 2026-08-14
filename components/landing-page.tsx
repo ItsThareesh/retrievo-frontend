@@ -118,23 +118,27 @@ export function FeaturesSection() {
 const faqsData = [
     {
         question: "Is Retrievo free to use?",
-        answer: "Yes. Retrievo is completely free for both reporting lost items and helping others recover theirs."
+        answer: "Yes. Retrievo is completely free - for reporting lost or found items, searching, and helping items find their way back to their owners."
     },
     {
         question: "How do I report a lost item?",
-        answer: "Click on “I Lost Something”, add a description, upload photos, and specify where you lost the item. The community can then help match it with found reports."
+        answer: "Go to Report Item, add a clear title and description, then pick the category, location, and date, and upload a photo. You can also choose who sees it (everyone, boys only, or girls only) - the more detail you share, the easier it is to get a good match."
     },
     {
         question: "How does matching work?",
-        answer: "Retrievo compares item category, location, date, and descriptions to help connect lost reports with found items."
+        answer: "Retrievo compares category, location, date, and descriptions to surface reports that are likely related. When someone files a claim or initiates a return, you get a notification - proceed only if it truly matches your item."
     },
     {
-        question: "What should I do if I found something valuable?",
-        answer: "Create a found-item report with enough detail for identification, but avoid sharing highly sensitive information publicly."
+        question: "What should I do if I find something valuable?",
+        answer: "Create a found report with enough detail (category, location, date, and a photo) for the owner to recognise the item - but avoid sharing sensitive or identifying information publicly. Let the owner describe the item themselves before handing it over."
+    },
+    {
+        question: "How do I prove an item is mine?",
+        answer: "When you spot an item that looks like yours, submit a claim with a description. If you've already reported it on Retrievo as lost, link that item to your claim as well. The finder will review your claim and approve it if your description matches, so you can then arrange to get it back."
     },
     {
         question: "Can I browse reports without signing in?",
-        answer: "Yes. You can browse public reports freely. Signing in is only required when creating or managing reports."
+        answer: "Yes - public reports are open to browse without an account. Signing in is only required to post items, submit or approve claims, and manage or flag reports."
     }
 ];
 

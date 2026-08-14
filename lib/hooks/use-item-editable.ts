@@ -285,7 +285,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             const res = await flagItem(item.id, reason);
 
             if (res.ok) {
-                toast.success("Item flagged successfully");
+                toast.success("Report submitted. We'll review it shortly.");
             } else {
                 if (res.status === 409) {
                     toast.error("You have already flagged this item");
