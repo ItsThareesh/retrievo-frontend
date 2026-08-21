@@ -5,7 +5,7 @@ import { Combobox } from '@/components/ui/combo-box';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { CalendarIcon, Camera, Loader2, Upload, X } from 'lucide-react';
+import { CalendarIcon, Loader2, MapPin, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -349,7 +349,24 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                             onChange={(value: string) => {
                                                 field.onChange(value);
                                                 if (value === "other") {
-                                                    toast("Items in \"Other\" aren't auto-matched. Mention the specific spot in the description so others can find it.");
+                                                    toast.custom(
+                                                        () => (
+                                                            <div className="pointer-events-auto flex w-full items-start gap-3 rounded-xl border border-border bg-popover px-4 py-3.5 text-popover-foreground shadow-lg ring-1 ring-black/5 dark:ring-white/10">
+                                                                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                                                    <MapPin className="size-5" />
+                                                                </span>
+                                                                <div className="space-y-1">
+                                                                    <p className="text-sm font-semibold leading-none">
+                                                                        Location set to &quot;Other&quot;
+                                                                    </p>
+                                                                    <p className="text-sm text-muted-foreground">
+                                                                        Items here aren&apos;t auto-matched. Mention the specific spot in the description so others can find it.
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ),
+                                                        { duration: 6500 }
+                                                    );
                                                 }
                                             }} />
                                     </FormControl>
@@ -458,42 +475,28 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                 </div>
                             ) : (
                                 <>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="relative flex flex-col items-center gap-3 h-auto py-10 cursor-pointer hover:bg-muted/50"
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="relative flex w-full items-center gap-4 px-4 py-14 cursor-pointer hover:bg-muted/50"
+                                    disabled={isSubmitting}
+                                >
+                                    <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted/60">
+                                        <Upload className="h-6 w-6 text-muted-foreground" />
+                                    </span>
+                                    <span className="text-left">
+                                        <span className="block text-sm font-medium">Add a photo</span>
+                                        <span className="block text-xs text-muted-foreground/70">Take a photo or choose from gallery</span>
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                         disabled={isSubmitting}
-                                    >
-                                        <Upload className="h-14 w-14 text-muted-foreground" />
-                                        <p className="text-sm font-medium">Gallery</p>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            disabled={isSubmitting}
-                                            onChange={handleFileSelect(field)}
-                                        />
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="relative flex flex-col items-center gap-3 h-auto py-10 cursor-pointer hover:bg-muted/50"
-                                        disabled={isSubmitting}
-                                    >
-                                        <Camera className="h-14 w-14 text-muted-foreground" />
-                                        <p className="text-sm font-medium">Camera</p>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            capture="environment"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            disabled={isSubmitting}
-                                            onChange={handleFileSelect(field)}
-                                        />
-                                    </Button>
-                                </div>
-                                <p className="text-xs text-muted-foreground/60 text-center">Supports JPG, PNG, WebP, HEIC &middot; Auto-compressed under 1MB</p>
+                                        onChange={handleFileSelect(field)}
+                                    />
+                                </Button>
+                                <p className="text-xs text-muted-foreground/60 text-center mt-1">Supports JPG, PNG, WebP, HEIC &middot; Auto-compressed under 1MB</p>
                             </>
                             )}
 
