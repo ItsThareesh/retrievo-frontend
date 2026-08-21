@@ -242,6 +242,7 @@ function ItemDetailContent({
                                     src={item.image}
                                     alt={item.title}
                                     fill
+                                    priority
                                     sizes="(max-width: 1024px) 100vw, 66vw"
                                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
@@ -575,7 +576,9 @@ function ItemDetailContent({
                             <ShareButton
                                 url={`${window.location.origin}/items/${item.id}`}
                                 title={item.title}
-                                text={`Check out this ${item.type} item on Retrievo`}
+                                text={item.type === "found"
+                                    ? `Check out this ${item.title} found in ${LOCATION_MAP[formData.location]?.label ?? formData.location} on Retrievo, NITC's lost & found.`
+                                    : `Check out this ${item.title} lost in ${LOCATION_MAP[formData.location]?.label ?? formData.location} on Retrievo, NITC's lost & found.`}
                                 variant="ghost"
                                 size="sm"
                                 className="w-full text-muted-foreground py-3 cursor-pointer"

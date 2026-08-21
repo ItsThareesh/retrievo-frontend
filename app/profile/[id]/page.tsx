@@ -132,7 +132,7 @@ export default function UserPage() {
                         <ShareButton
                             url={`${window.location.origin}/profile/${id}`}
                             title={user.name}
-                            text="Check out this profile on Retrievo"
+                            text={`Check out ${user.name}'s profile on Retrievo, NITC's lost & found.`}
                             variant="outline"
                             size="sm"
                         />

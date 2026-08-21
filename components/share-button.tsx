@@ -21,21 +21,25 @@ export function ShareButton({
     async function onShare() {
         const shareData = { title, text, url };
 
-        try {
-            if (navigator.share) {
+        // On browsers/devices with the Web Share API (iOS, Android, macOS
+        // Safari/Chrome), use the native share sheet and let the OS handle
+        // copying. Never writing the clipboard ourselves here avoids a
+        // double copy — the sheet already places the link on the pasteboard.
+        if (navigator.share) {
+            try {
                 await navigator.share(shareData);
-                return;
+            } catch (err: unknown) {
+                // User dismissed the sheet (AbortError) or it failed — either
+                // way we don't fall back to clipboard to prevent duplicate links.
             }
-        } catch (err: unknown) {
-            // User dismissed the native share sheet — nothing to do.
-            if (err instanceof DOMException && err.name === "AbortError") return;
+            return;
         }
 
-        // Fallback for browsers without the Web Share API: copy a single
-        // plain-text link. writeText only sets the text flavor, so it never
-        // produces the double-link pasteboard issue some macOS apps hit.
+        // Fallback for browsers without the Web Share API: copy the
+        // descriptive text together with the link as a single string, so
+        // pasting into a compose box (e.g. Twitter) keeps the caption.
         try {
-            await navigator.clipboard.writeText(url);
+            await navigator.clipboard.writeText(text ? `${text}\n${url}` : url);
             toast.success("Link copied to clipboard");
         } catch {
             toast.error("Couldn't share this link");
