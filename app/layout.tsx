@@ -21,10 +21,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://retrievo.dev"
+  ),
   title: "Retrievo - Lost & Found",
   description: "Find what you lost, return what you found.",
   icons: {
     icon: "/lighthouse.svg",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Retrievo",
+    title: "Retrievo - Lost & Found",
+    description: "Find what you lost, return what you found.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Retrievo brand logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Retrievo - Lost & Found",
+    description: "Find what you lost, return what you found.",
+    images: ["/og-image.png"],
   },
 };
 
