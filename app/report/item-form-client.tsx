@@ -104,6 +104,21 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
     const { handleBanError } = useBanHandler();
 
+    async function getActualFileSize(file: File): Promise<number> {
+        // iOS Safari reports `file.size` as the decoded bitmap size (width * height * 4)
+        // for HEIC/HEIF photos picked from the library, not the real encoded file size.
+        // A 6.6MB HEIC can report as 40MB+ and falsely trip the size limit.
+        // Read the actual bytes to get the true on-disk size.
+        if (file.type === "image/heic" || file.type === "image/heif") {
+            try {
+                return (await file.arrayBuffer()).byteLength;
+            } catch {
+                return file.size;
+            }
+        }
+        return file.size;
+    }
+
     function handleFileSelect(field: any) {
         return async (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0] ?? null;
@@ -114,7 +129,8 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                 return;
             }
 
-            if (file.size > 10 * 1024 * 1024) {
+            const actualSize = await getActualFileSize(file);
+            if (actualSize > 10 * 1024 * 1024) {
                 toast.error("Original image must be under 10MB. Please choose a smaller image.");
                 e.target.value = "";
                 return;
