@@ -1,6 +1,7 @@
 "use client"
 
 import { ItemCard } from '@/components/item-card';
+import { ShareButton } from '@/components/share-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -128,6 +129,13 @@ export default function UserPage() {
                 <div className="flex-1">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-3xl font-bold tracking-tight">Activity</h2>
+                        <ShareButton
+                            url={`${window.location.origin}/profile/${id}`}
+                            title={user.name}
+                            text="Check out this profile on Retrievo"
+                            variant="outline"
+                            size="sm"
+                        />
                     </div>
 
                     <Tabs defaultValue="all" className="w-full">

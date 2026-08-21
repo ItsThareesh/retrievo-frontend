@@ -9,7 +9,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, Trash2, Calendar, MapPin, Share2, User, Pencil, Flag } from "lucide-react";
+import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag } from "lucide-react";
+import { ShareButton } from "@/components/share-button";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -171,7 +172,6 @@ function ItemDetailContent({
         handleCancel,
         handleDelete,
         handleResolutionSubmit,
-        handleShare,
         handleReport
     } = useItemEditable({ item, reporter, resolution_status, session });
 
@@ -572,15 +572,14 @@ function ItemDetailContent({
                             </Button>
                         ) : null}
                         <div className={`grid gap-3 ${!!session?.backendToken && session.user.public_id != reporter.public_id ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                            <Button
-                                onClick={handleShare}
+                            <ShareButton
+                                url={`${window.location.origin}/items/${item.id}`}
+                                title={item.title}
+                                text={`Check out this ${item.type} item on Retrievo`}
                                 variant="ghost"
                                 size="sm"
                                 className="w-full text-muted-foreground py-3 cursor-pointer"
-                            >
-                                <Share2 className="w-4 h-4 mr-2" />
-                                Share
-                            </Button>
+                            />
                             {!!session?.backendToken && session.user.public_id != reporter.public_id && (
                                 <Button
                                     variant="ghost"

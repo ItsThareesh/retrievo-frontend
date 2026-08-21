@@ -253,31 +253,6 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         }
     }
 
-    async function handleShare() {
-        const shareUrl = `${window.location.origin}/items/${item.id}`;
-        const shareData = {
-            title: item.title,
-            text: `Check out this ${item.type} item`,
-            url: shareUrl,
-        };
-
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                await navigator.clipboard.writeText(shareUrl);
-                toast.success("Link copied to clipboard");
-            }
-        } catch (err: any) {
-            // User cancelled, then silently ignore
-            if (err?.name === "AbortError") return;
-
-            // Real failure
-            await navigator.clipboard.writeText(shareUrl);
-            toast.success("Link copied to clipboard");
-        }
-    }
-
     async function handleReport() {
         setIsReporting(true);
 
@@ -339,7 +314,6 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         handleCancel,
         handleDelete,
         handleResolutionSubmit,
-        handleShare,
         handleReport
     };
 }
