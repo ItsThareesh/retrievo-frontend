@@ -48,8 +48,8 @@ function ReportedItemCard({
                                     <span className="truncate">{item.title}</span>
                                     <ExternalLink className="h-4 w-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </button>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-sm text-muted-foreground">
+                                <div className="flex items-center gap-2 mt-1 min-w-0">
+                                    <span className="text-sm text-muted-foreground truncate">
                                         by {item.owner_name}
                                     </span>
                                 </div>
@@ -148,12 +148,12 @@ function ReportedItemCard({
                                 key={report.id}
                                 className="flex items-start gap-3 p-3 rounded-md bg-card border"
                             >
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-medium text-sm">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1 min-w-0">
+                                        <span className="font-medium text-sm truncate">
                                             {report.reporter_name}
                                         </span>
-                                        <span className="text-xs text-muted-foreground">
+                                        <span className="text-xs text-muted-foreground shrink-0">
                                             {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
                                         </span>
                                     </div>

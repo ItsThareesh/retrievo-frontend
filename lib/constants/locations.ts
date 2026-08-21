@@ -68,6 +68,8 @@ export const LOCATION_MAP = {
 
     soms: { label: "SOMS", category: "South Campus" },
     mba_auditorium: { label: "MBA Auditorium", category: "South Campus" },
+
+    other: { label: "Other", category: "Other" },
 };
 
 export type LocationKey = keyof typeof LOCATION_MAP;

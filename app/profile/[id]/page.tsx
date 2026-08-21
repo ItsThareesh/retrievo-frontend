@@ -8,6 +8,7 @@ import { formatDateString } from '@/lib/date-formatting';
 import { Item } from '@/types/item';
 import { User as UserType } from '@/types/user';
 import Image from 'next/image';
+import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -78,12 +79,12 @@ export default function UserPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+        <div className="container mx-auto px-4 md:px-10 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col md:flex-row gap-8">
                 {/* User Sidebar */}
                 <div className="w-full md:w-1/3 lg:w-1/4">
                     <div className="sticky top-24">
-                        <Card className="overflow-hidden border-muted shadow-sm">
+                        <Card className="border-muted shadow-sm relative">
                             <div className="relative h-24 w-full overflow-hidden bg-muted/40 dark:bg-muted/40">
                                 {user.image && (
                                 <Image
@@ -109,14 +110,16 @@ export default function UserPage() {
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <CardTitle className="text-xl">{user.name}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
-                                <CardContent className="space-y-2 m-2 pb-4">
-                                    <p className="text-sm text-muted-foreground">
+                                <CardTitle className="text-xl px-4 break-words">{user.name}</CardTitle>
+                                <p className="text-sm text-muted-foreground px-4 break-words">{user.email}</p>
+                            </CardHeader>
+                            <CardContent className="space-y-4 p-4">
+                                <div className="flex flex-col space-y-3 w-full max-w-[260px] mx-auto justify-center">
+                                    <p className="text-sm text-muted-foreground text-center">
                                         Member since {formatDateString(user.created_at)}
                                     </p>
-                                </CardContent>
-                            </CardHeader>
+                                </div>
+                            </CardContent>
                         </Card>
                     </div>
                 </div>
@@ -129,14 +132,14 @@ export default function UserPage() {
 
                     <Tabs defaultValue="all" className="w-full">
                         <TabsList className="flex w-full max-w-md mx-auto mb-8">
-                            <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
-                            <TabsTrigger value="found" className="flex-1">Found</TabsTrigger>
-                            <TabsTrigger value="lost" className="flex-1">Lost</TabsTrigger>
+                            <TabsTrigger value="all" className="flex-1 cursor-pointer">All</TabsTrigger>
+                            <TabsTrigger value="found" className="flex-1 cursor-pointer">Found</TabsTrigger>
+                            <TabsTrigger value="lost" className="flex-1 cursor-pointer">Lost</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="all" className="space-y-6 animate-in fade-in-50 duration-500">
                             {userItems.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {userItems.map((item) => (
                                         <div key={item.id} className="relative group">
                                             <ItemCard item={item} type={item.type} />
@@ -144,7 +147,8 @@ export default function UserPage() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed border-muted-foreground/20">
+                                    <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No items reported yet.</p>
                                 </div>
                             )}
@@ -152,13 +156,14 @@ export default function UserPage() {
 
                         <TabsContent value="found" className="space-y-6 animate-in fade-in-50 duration-500">
                             {foundItems.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {foundItems.map((item) => (
                                         <ItemCard key={item.id} item={item} type="found" />
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed border-muted-foreground/20">
+                                    <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No found items reported.</p>
                                 </div>
                             )}
@@ -166,13 +171,14 @@ export default function UserPage() {
 
                         <TabsContent value="lost" className="space-y-6 animate-in fade-in-50 duration-500">
                             {lostItems.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {lostItems.map((item) => (
                                         <ItemCard key={item.id} item={item} type="lost" />
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
+                                <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed border-muted-foreground/20">
+                                    <Search className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
                                     <p className="text-muted-foreground">No lost items reported.</p>
                                 </div>
                             )}

@@ -52,9 +52,9 @@ export function UserMenu({ user }: UserMenuProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user?.name}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
+                    <div className="flex flex-col space-y-1 min-w-0">
+                        <p className="text-sm font-medium leading-none truncate">{user?.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground truncate">
                             {user?.email}
                         </p>
                     </div>

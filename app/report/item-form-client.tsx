@@ -346,7 +346,12 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                             // Pass the form's value directly
                                             value={field.value}
                                             // Pass the form's updater directly to 'onChange'
-                                            onChange={field.onChange} />
+                                            onChange={(value: string) => {
+                                                field.onChange(value);
+                                                if (value === "other") {
+                                                    toast("Items in \"Other\" aren't auto-matched. Mention the specific spot in the description so others can find it.");
+                                                }
+                                            }} />
                                     </FormControl>
                                 </Popover>
                                 <FormMessage />

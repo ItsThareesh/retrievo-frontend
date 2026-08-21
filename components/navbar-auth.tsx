@@ -22,10 +22,10 @@ export function NavbarAuth({ initialSession, initialAuthenticated }: NavbarAuthP
         setMounted(true);
     }, []);
 
-    const effectiveSession = mounted ? session : initialSession;
+    const effectiveSession = mounted ? (session ?? initialSession) : initialSession;
 
     const isAuthenticated = mounted
-        ? status === "authenticated" && !!effectiveSession?.backendToken
+        ? status !== "unauthenticated" && !!effectiveSession?.backendToken
         : initialAuthenticated;
 
     if (isAuthenticated) {

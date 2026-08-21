@@ -220,31 +220,31 @@ export function ResolutionsTab() {
                                         </div>
                                     </TableCell>
 
-                                    <TableCell className="px-6 py-5 align-middle">
-                                        <div className="space-y-1">
+                                    <TableCell className="px-6 py-5 align-middle max-w-[200px]">
+                                        <div className="space-y-1 min-w-0">
                                             <Link
                                                 href={`/profile/${res.owner_id}`}
-                                                className="text-sm font-medium text-foreground hover:underline"
+                                                className="text-sm font-medium text-foreground hover:underline block truncate"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 {res.owner_name}
                                             </Link>
-                                            <div className="text-xs text-muted-foreground leading-relaxed">
+                                            <div className="text-xs text-muted-foreground leading-relaxed truncate">
                                                 {res.owner_email}
                                             </div>
                                         </div>
                                     </TableCell>
 
-                                    <TableCell className="px-6 py-5 align-middle">
-                                        <div className="space-y-1">
+                                    <TableCell className="px-6 py-5 align-middle max-w-[200px]">
+                                        <div className="space-y-1 min-w-0">
                                             <Link
                                                 href={`/profile/${res.finder_id}`}
-                                                className="text-sm font-medium text-foreground hover:underline"
+                                                className="text-sm font-medium text-foreground hover:underline block truncate"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 {res.finder_name}
                                             </Link>
-                                            <div className="text-xs text-muted-foreground leading-relaxed">
+                                            <div className="text-xs text-muted-foreground leading-relaxed truncate">
                                                 {res.finder_email}
                                             </div>
                                         </div>

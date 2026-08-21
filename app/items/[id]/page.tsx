@@ -458,6 +458,12 @@ function ItemDetailContent({
                                             {LOCATION_MAP[formData.location]?.label ?? formData.location}
                                         </p>
                                     )}
+
+                                    {isEditing && formData.location === "other" && (
+                                        <p className="mt-2 text-xs text-muted-foreground">
+                                            Items in &quot;Other&quot; aren&apos;t auto-matched. Mention the specific spot in the description so others can find it.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -492,27 +498,27 @@ function ItemDetailContent({
                             {/* Reported by */}
                             <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border">
                                 <User className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                                <div>
+                                <div className="min-w-0 flex-1">
                                     <p className="font-medium text-sm">Reported by</p>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <Avatar className="h-6 w-6">
+                                    <div className="flex items-center gap-2 mt-1 min-w-0">
+                                        <Avatar className="h-6 w-6 shrink-0">
                                             <AvatarImage src={reporter.image || ""} />
                                             <AvatarFallback>
                                                 {reporter.name?.[0] ?? "U"}
                                             </AvatarFallback>
                                         </Avatar>
                                         {!!session?.backendToken && reporter.public_id === session.user.public_id ? (
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-muted-foreground text-sm">
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <p className="text-muted-foreground text-sm truncate">
                                                     {reporter.name}
                                                 </p>
-                                                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border">
+                                                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border shrink-0">
                                                     You
                                                 </span>
                                             </div>
                                         ) : (
-                                            <Link href={`/profile/${reporter.public_id}`}>
-                                                <p className="hover:underline text-muted-foreground text-sm cursor-pointer">
+                                            <Link href={`/profile/${reporter.public_id}`} className="min-w-0">
+                                                <p className="hover:underline text-muted-foreground text-sm cursor-pointer truncate">
                                                     {reporter.name}
                                                 </p>
                                             </Link>

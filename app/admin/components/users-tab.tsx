@@ -157,17 +157,17 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                             <TableRow key={user.id} className="hover:bg-muted/50 transition-colors">
                                 <TableCell className="px-6 py-5 align-middle">
                                     <div className="flex items-center gap-3">
-                                        <Avatar className="h-8 w-8">
+                                        <Avatar className="h-8 w-8 shrink-0">
                                             <AvatarImage src={user.image || ""} alt={user.name} />
                                             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                                         </Avatar>
-                                        <Link href={`/profile/${user.public_id}`} className="text-sm font-medium text-foreground hover:underline">
+                                        <Link href={`/profile/${user.public_id}`} className="text-sm font-medium text-foreground hover:underline truncate max-w-[180px]">
                                             {user.name}
                                         </Link>
                                     </div>
                                 </TableCell>
-                                <TableCell className="px-6 py-5 align-middle">
-                                    <span className="text-sm text-muted-foreground">{user.email}</span>
+                                <TableCell className="px-6 py-5 align-middle max-w-[220px]">
+                                    <span className="text-sm text-muted-foreground block truncate">{user.email}</span>
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle text-center">
                                     <span className="text-sm text-foreground">{user.items_posted}</span>
