@@ -94,7 +94,7 @@ export default function ItemDetailPage() {
 
     if (loading) {
         return (
-            <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+            <div className="container mx-auto px-4 md:px-10 py-8 min-h-[calc(100vh-4rem)]">
                 <ItemDetailSkeleton />
             </div>
         );
@@ -102,7 +102,7 @@ export default function ItemDetailPage() {
 
     if (!itemData) {
         return (
-            <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+            <div className="container mx-auto px-4 md:px-10 py-8 min-h-[calc(100vh-4rem)]">
                 <div className="text-center py-16">
                     <p className="text-muted-foreground">Failed to load item. Please try again later.</p>
                 </div>
@@ -231,7 +231,7 @@ function ItemDetailContent({
     })();
 
     return (
-        <div className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+        <div className="container mx-auto px-4 md:px-10 py-8 min-h-[calc(100vh-4rem)]">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image */}
                 <div className="lg:col-span-2 space-y-6">
