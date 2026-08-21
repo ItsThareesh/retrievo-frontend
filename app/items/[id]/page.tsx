@@ -9,13 +9,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag } from "lucide-react";
+import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn } from "lucide-react";
 import { ShareButton } from "@/components/share-button";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ImageViewer } from "@/components/image-viewer";
 import { Textarea } from "@/components/ui/textarea";
 import { Item } from "@/types/item";
@@ -57,7 +57,10 @@ export default function ItemDetailPage() {
 
     const [itemData, setItemData] = useState<ItemData | null>(null);
     const [loading, setLoading] = useState(true);
+    
     const [notFoundError, setNotFoundError] = useState(false);
+    const [authRequired, setAuthRequired] = useState(false);
+    const [forbidden, setForbidden] = useState(false);
     const { handleBanError } = useBanHandler();
 
     useEffect(() => {
@@ -66,6 +69,8 @@ export default function ItemDetailPage() {
 
         setLoading(true);
         setNotFoundError(false);
+        setAuthRequired(false);
+        setForbidden(false);
         window.scrollTo(0, 0);
 
         clientFetch<ItemData>(`/items/${id}`, token)
@@ -81,7 +86,13 @@ export default function ItemDetailPage() {
                         handleBanError(err);
                         return;
                     }
-                    setNotFoundError(true);
+                    if (err.status === 401) {
+                        setAuthRequired(true);
+                    } else if (err.status === 403) {
+                        setForbidden(true);
+                    } else {
+                        setNotFoundError(true);
+                    }
                 }
                 setLoading(false);
             });
@@ -91,6 +102,69 @@ export default function ItemDetailPage() {
 
     if (notFoundError) {
         notFound();
+    }
+
+    if (authRequired) {
+        return (
+            <div className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden">
+                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+                <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-background/90 to-muted/30" />
+                <Card className="w-5/6 max-w-md shadow-xl ring-1 ring-black/5 dark:ring-white/10 border-muted/60 animate-in fade-in zoom-in-95 duration-500">
+                    <CardHeader className="text-center space-y-4 pb-2 pt-8">
+                        <div className="mx-auto bg-primary/10 p-4 rounded-2xl w-fit mb-2 ring-1 ring-primary/20 shadow-sm">
+                            <LogIn className="w-8 h-8 text-primary" strokeWidth={2.5} />
+                        </div>
+                        <div className="space-y-2">
+                            <CardTitle className="text-2xl font-bold tracking-tight">Sign in to view this item</CardTitle>
+                            <CardDescription className="text-base">
+                                This item&apos;s visibility is restricted. Sign in to see if you have access.
+                            </CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-8 pt-4">
+                        <Button asChild className="w-full h-12 text-base font-medium shadow-sm cursor-pointer">
+                            <Link href={`/auth/signin?callbackUrl=/items/${id}`}>Sign in</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (forbidden) {
+        return (
+            <div className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden">
+                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+                <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-background/90 to-muted/30" />
+                <Card className="w-5/6 max-w-md shadow-xl ring-1 ring-black/5 dark:ring-white/10 border-muted/60 animate-in fade-in zoom-in-95 duration-500">
+                    <CardHeader className="text-center space-y-4 pb-2 pt-8">
+                        <div className="mx-auto bg-primary/10 p-4 rounded-2xl w-fit mb-2 ring-1 ring-primary/20 shadow-sm">
+                            <Lock className="w-8 h-8 text-primary" strokeWidth={2.5} />
+                        </div>
+                        <div className="space-y-2">
+                            <CardTitle className="text-2xl font-bold tracking-tight">You don&apos;t have access</CardTitle>
+                            <CardDescription className="text-base">
+                                Your account isn&apos;t authorized to view this item.
+                            </CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-8 pt-4 space-y-4">
+                        <Button
+                            asChild
+                            variant="outline"
+                            className="w-full h-12 text-base font-medium cursor-pointer hover:bg-muted/50 transition-all hover:border-primary/50 hover:shadow-sm"
+                        >
+                            <Link href="/">Return to Home</Link>
+                        </Button>
+                        <div className="text-center text-sm text-muted-foreground">
+                            <Link href="/items" className="hover:text-primary hover:underline transition-colors">
+                                Browse all items
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
     }
 
     if (loading) {
