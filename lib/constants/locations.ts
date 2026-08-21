@@ -64,7 +64,7 @@ export const LOCATION_MAP = {
     tbi: { label: "TBI", category: "West Campus" },
     swimming_pool: { label: "Swimming Pool", category: "West Campus" },
     bbc: { label: "Bestie Beans Café", category: "West Campus" },
-    faculty_residency: { label: "Faculty Residential Area", category: "West Campus" },
+    faculty_residence: { label: "Faculty Residential Area", category: "West Campus" },
 
     soms: { label: "SOMS", category: "South Campus" },
     mba_auditorium: { label: "MBA Auditorium", category: "South Campus" },

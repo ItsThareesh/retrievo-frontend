@@ -237,7 +237,7 @@ function ItemDetailContent({
                 <div className="lg:col-span-2 space-y-6">
                     {item.image && (
                         <ImageViewer src={item.image} alt={item.title}>
-                            <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted border shadow-sm group">
+                            <div className="relative aspect-video w-full max-h-[75vh] overflow-hidden rounded-xl bg-muted border shadow-sm group">
                                 <Image
                                     src={item.image}
                                     alt={item.title}

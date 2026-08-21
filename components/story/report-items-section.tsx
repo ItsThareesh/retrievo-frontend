@@ -338,7 +338,7 @@ export function ReportItemsSection() {
 
                                     </>
                                   ) : (
-                                    <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
+                                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border">
                                       <div className="absolute inset-0 bg-muted" />
                                       <Button
                                         type="button"

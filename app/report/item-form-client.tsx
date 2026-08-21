@@ -466,14 +466,16 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                     <p className="text-xs text-muted-foreground mt-1">Please wait</p>
                                 </div>
                             ) : preview ? (
-                                <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
+                                <div className="relative w-full aspect-video max-h-[480px] rounded-lg overflow-hidden border">
                                     <ImageViewer src={preview} alt="Preview">
-                                        <Image
-                                            src={preview}
-                                            alt="Preview"
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, 448px"
-                                            className="object-cover" />
+                                        <div className="absolute inset-0">
+                                            <Image
+                                                src={preview}
+                                                alt="Preview"
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 448px"
+                                                className="object-cover" />
+                                        </div>
                                     </ImageViewer>
                                     <Button
                                         type="button"
