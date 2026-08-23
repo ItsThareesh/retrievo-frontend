@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate:pwa-assets": "node scripts/generate-pwa-assets.mjs"
+    "generate:pwa-assets": "bash scripts/generate-pwa-assets.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
