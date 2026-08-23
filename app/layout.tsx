@@ -8,6 +8,7 @@ import { SWRProvider } from "./swr-provider";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import { SessionProvider } from 'next-auth/react';
+import pwaAssets from "@/lib/pwa-assets.generated.json";
 
 
 const geistSans = Geist({
@@ -20,6 +21,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const cssPixels = (value: number) => Number(value.toFixed(2));
+
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://retrievo.dev"
@@ -27,7 +30,11 @@ export const metadata: Metadata = {
   title: "Retrievo - Lost & Found",
   description: "Find what you lost, return what you found.",
   icons: {
-    icon: "/lighthouse.svg",
+    icon: [
+      { url: "/lighthouse.svg", type: "image/svg+xml" },
+      { url: "/icons/manifest-icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: pwaAssets.appleTouchIcon.src,
   },
   openGraph: {
     type: "website",
@@ -36,7 +43,8 @@ export const metadata: Metadata = {
     description: "Find what you lost, return what you found.",
     images: [
       {
-        url: "/og-image.png",
+        // ?v= busts X/Facebook's aggressive per-URL card cache
+        url: "/og-image.png?v=2",
         width: 1200,
         height: 630,
         alt: "Retrievo brand logo",
@@ -47,7 +55,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Retrievo - Lost & Found",
     description: "Find what you lost, return what you found.",
-    images: ["/og-image.png"],
+    images: ["/og-image.png?v=2"],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Retrievo",
+    statusBarStyle: "black-translucent",
   },
 };
 
@@ -58,6 +71,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
+      <head>
+        {pwaAssets.splash.map(({ src, width, height, scaleFactor }) => (
+          <link
+            key={src}
+            rel="apple-touch-startup-image"
+            href={src}
+            media={`(device-width: ${cssPixels(width / scaleFactor)}px) and (device-height: ${cssPixels(height / scaleFactor)}px) and (-webkit-device-pixel-ratio: ${scaleFactor}) and (orientation: portrait)`}
+          />
+        ))}
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <SessionProvider>
           <ThemeProvider>
