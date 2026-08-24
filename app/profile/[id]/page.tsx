@@ -111,8 +111,8 @@ export default function UserPage() {
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <CardTitle className="text-xl px-4 break-words">{user.name}</CardTitle>
-                                <p className="text-sm text-muted-foreground px-4 break-words">{user.email}</p>
+                                <CardTitle className="px-4 text-xl break-words line-clamp-2">{user.name}</CardTitle>
+                                <p className="text-sm text-muted-foreground px-4 break-words line-clamp-2">{user.email}</p>
                             </CardHeader>
                             <CardContent className="space-y-4 p-4">
                                 <div className="flex flex-col space-y-3 w-full max-w-[260px] mx-auto justify-center">

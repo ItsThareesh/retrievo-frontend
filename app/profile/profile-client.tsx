@@ -216,13 +216,11 @@ export function ProfileClient() {
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <CardTitle className="text-xl px-4 break-words">
-                                    {user.name}
-                                </CardTitle>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                                <CardTitle className="px-4 text-xl break-words line-clamp-2">{user.name}</CardTitle>
+                                <p className="text-sm text-muted-foreground px-4 break-words line-clamp-2">{user.email}</p>
                             </CardHeader>
                             <CardContent className="space-y-4 p-4">
-                                <div className="flex flex-col space-y-3 w-full max-w-[260px] mx-auto justify-center">
+                                <div className="w-full max-w-[260px] mx-auto">
 
                                     {isEditingContact ? (
                                         <>
@@ -334,30 +332,25 @@ export function ProfileClient() {
                                             </div>
                                         </>
                                     ) : (
-                                        <>
-                                            <div className="flex items-center text-sm text-muted-foreground">
-                                                <House className="mr-3 h-4 w-4 shrink-0" />
-                                                <p className='mr-10'>Hostel: </p>
-                                                {user.hostel && (
-                                                    <span>{user.hostel.charAt(0).toUpperCase() + user.hostel?.slice(1)}</span>
-                                                )}
-                                            </div>
+                                        <div className="grid grid-cols-[16px_72px_1fr] items-center gap-x-3 gap-y-3 text-sm text-muted-foreground">
+                                            <House className="h-4 w-4 shrink-0" />
+                                            <span className="shrink-0">Hostel</span>
+                                            <span className="break-words">
+                                                {user.hostel ? user.hostel.charAt(0).toUpperCase() + user.hostel.slice(1) : ""}
+                                            </span>
 
-                                            <div className="flex items-center text-sm text-muted-foreground">
-                                                <Phone className="mr-3 h-4 w-4 shrink-0" />
-                                                <p className='mr-10'>Phone: </p>
-                                                <span>{user.phone || "No phone linked"}</span>
-                                            </div>
+                                            <Phone className="h-4 w-4 shrink-0" />
+                                            <span className="shrink-0">Phone</span>
+                                            <span className="break-words">{user.phone || "No phone linked"}</span>
 
-                                            {/*Only show if it exists */}
                                             {user.instagramId && (
-                                                <div className="flex items-center text-sm text-muted-foreground">
-                                                    <Instagram className="mr-3 h-4 w-4 shrink-0" />
-                                                    <p className='mr-5'>Instagram: </p>
-                                                    <span>{user.instagramId}</span>
-                                                </div>
+                                                <>
+                                                    <Instagram className="h-4 w-4 shrink-0" />
+                                                    <span className="shrink-0">Instagram</span>
+                                                    <span className="break-words">{user.instagramId}</span>
+                                                </>
                                             )}
-                                        </>
+                                        </div>
                                     )}
                                     <hr className='my-2' />
                                     <Button
