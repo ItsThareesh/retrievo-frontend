@@ -44,7 +44,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     ],
     session: {
         strategy: "jwt",
-        maxAge: 60 * 60 * 1, // 1 hour, matches backend token expiry (no refresh)
+        maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
     },
     callbacks: {
         async signIn({ account, profile }) {

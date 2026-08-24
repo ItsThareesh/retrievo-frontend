@@ -114,7 +114,7 @@ export function useNotifications() {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,
             dedupingInterval: 10_000, // 10 seconds
-            refreshInterval: 120_000, // 2 minutes — lightweight Redis-backed poll
+            refreshInterval: 120_000, // 2 minutes - lightweight Redis-backed poll
         }
     );
 
@@ -172,15 +172,15 @@ export function useNotifications() {
     // Mark a single notification as read.
     //
     // Uses SWR's built-in optimistic pattern:
-    //   optimisticData  — applied synchronously before the async fn runs.
+    // - optimisticData  — applied synchronously before the async fn runs.
     //                     Omitted when the list is not yet in cache to avoid
     //                     committing { notifications: [] } as ground truth.
-    //   rollbackOnError — SWR reverts to the pre-mutation snapshot if the
+    // - rollbackOnError — SWR reverts to the pre-mutation snapshot if the
     //                     async fn throws; no manual snapshot needed.
-    //   revalidate:false — do NOT re-fetch after the async fn resolves;
+    // - revalidate:false — do NOT re-fetch after the async fn resolves;
     //                      the returned value IS the new cache state, and
     //                      re-fetching would be a wasted round trip.
-    //   populateCache:true — use the async fn's return value to update
+    // - populateCache:true — use the async fn's return value to update
     //                        NOTIFICATIONS_KEY (default for async mutators;
     //                        stated explicitly for clarity).
 
@@ -212,7 +212,7 @@ export function useNotifications() {
                     populateCache: true,
                 }
             );
-            if (updated) setStoredNotifications(updated, new Date().toISOString());
+            if (updated) setStoredNotifications(updated, updated.last_updated_at);
             await mutate(
                 COUNT_KEY,
                 (current?: CountResponse) => {
@@ -252,7 +252,7 @@ export function useNotifications() {
                     populateCache: true,
                 }
             );
-            if (updated) setStoredNotifications(updated, new Date().toISOString());
+            if (updated) setStoredNotifications(updated, updated.last_updated_at);
             await mutate(
                 COUNT_KEY,
                 (current?: CountResponse) => {

@@ -16,7 +16,7 @@ import { useBanHandler } from "./use-ban-handler";
 interface UseItemEditableProps {
     item: Item;
     reporter: UserType;
-    resolution_status: ResolutionStatus | "none";
+    resolution_status: ResolutionStatus | null;
     session: Session | null;
 }
 
@@ -43,7 +43,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const isReporter = reporter.public_id === session?.user?.public_id;
     const isFoundItem = item.type === "found";
     const isLostItem = item.type === "lost";
-    const hasResolution = resolutionStatus !== "none";
+    const hasResolution = resolutionStatus !== null;
 
     const [formData, setFormData] = useState({
         title: item.title,

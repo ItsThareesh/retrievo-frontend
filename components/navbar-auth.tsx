@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { NotificationsDropdown } from "./notifications-dropdown"
+import { NotificationsBell } from "./notifications-bell"
 import { UserMenu } from "./user-menu"
 import type { Session } from "next-auth"
 
@@ -31,7 +31,7 @@ export function NavbarAuth({ initialSession, initialAuthenticated }: NavbarAuthP
     if (isAuthenticated) {
         return (
             <div className="flex items-center gap-4">
-                <NotificationsDropdown />
+                <NotificationsBell />
                 <UserMenu
                     user={{
                         name: effectiveSession?.user?.name ?? null,

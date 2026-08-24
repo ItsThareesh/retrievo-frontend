@@ -46,7 +46,7 @@ import { useBanHandler } from "@/lib/hooks/use-ban-handler";
 interface ItemData {
     item: Item;
     reporter: UserType;
-    claim_status: ResolutionStatus | "none";
+    claim_status: ResolutionStatus | null;
 }
 
 export default function ItemDetailPage() {
@@ -205,7 +205,7 @@ function ItemDetailContent({
 }: {
     item: Item;
     reporter: UserType;
-    resolution_status: ResolutionStatus | "none";
+    resolution_status: ResolutionStatus | null;
     session: Session | null;
 }) {
     const router = useRouter();
@@ -250,7 +250,7 @@ function ItemDetailContent({
     } = useItemEditable({ item, reporter, resolution_status, session });
 
     const isReporter = !!session?.backendToken && session.user.public_id === reporter.public_id;
-    const hasResolution = resolution_status !== "none";
+    const hasResolution = resolution_status !== null;
     const showClaim = item.type === "found" && !isReporter && !hasResolution;
     const showReturn = item.type === "lost" && !isReporter && !hasResolution;
 
@@ -330,7 +330,7 @@ function ItemDetailContent({
                                         {item.type === "lost" ? "Lost" : "Found"}
                                     </Badge>
 
-                                    {resolutionStatus !== "none" && (
+                                    {resolutionStatus !== null && (
                                         <Badge
                                             className={`text-sm md:text-lg px-4 py-1 md:px-5 md:py-2 shadow-md text-white  ${mapClaimStatusBg(resolutionStatus)}`}
                                         >
