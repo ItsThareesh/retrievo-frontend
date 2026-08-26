@@ -124,7 +124,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (!token.backendToken || !token.expires_at) return token;
 
             //! TOKEN_REFRESH_DISABLED: Token refresh logic disabled
-            // Backend now issues 1-hour tokens without refresh support
+            // Backend issues 30-day login tokens (LOGIN_TOKEN_TTL_DAYS); the session
+            // callback invalidates the NextAuth session once expires_at passes.
             // When switching to proper refresh library, re-enable this block:
             //
             // const now = Date.now();

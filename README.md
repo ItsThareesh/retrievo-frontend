@@ -47,7 +47,7 @@ A modern Lost & Found web application for campus communities built with Next.js 
 4. `jwt` callback fetches `/auth/me` for user profile
 5. `session` callback attaches `backendToken` + user data to the client session
 6. **Production**: only `@nitc.ac.in` emails allowed; all domains allowed in development
-7. **Token refresh**: 1-hour expiry, no auto-refresh — expired tokens require re-auth
+7. **Token expiry**: backend issues 30-day login tokens (`LOGIN_TOKEN_TTL_DAYS`), no auto-refresh — once `expires_at` passes, the NextAuth session is invalidated and re-auth is required
 
 ### Data Flow
 

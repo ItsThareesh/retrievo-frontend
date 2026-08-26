@@ -26,7 +26,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
     interface JWT {
         backendToken?: string;
-        expires_at?: number; // expires_at: No longer refreshed - backend handles 1-hour token expiry
+        expires_at?: number; // Backend token expiry (ms) from LOGIN_TOKEN_TTL_DAYS (30 days); not refreshed
         user?: {
             public_id: string;
             name: string;

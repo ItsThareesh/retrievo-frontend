@@ -5,7 +5,7 @@
 ## Auth Flow
 - Google OAuth → POST `id_token` → receive `{ access_token, expires_at }`
 - `@nitc.ac.in` only in production; redirect others to error. Otherwise allow all domains in testing.
-- JWT: initial sign-in caches `/profile/me`; refresh on `trigger="update"`; auto-refresh if within 10min expiry
+- JWT: initial sign-in caches `/profile/me`; refresh on `trigger="update"`; no auto-refresh — session invalidated when the backend token expires (backend issues 30-day tokens, `LOGIN_TOKEN_TTL_DAYS`)
 - **Guards in page.tsx:** redirect to signin or onboarding for pages that need it (profile, admin, report, onboarding); never in middleware
 - **SessionProvider** is in the root layout — `useSession()` available everywhere
 
