@@ -1,4 +1,4 @@
-import { clientFetch, clientMutate } from "@/lib/client-fetch";
+import { clientFetch } from "@/lib/client-fetch";
 import { OnboardingPayload, ContactPayload } from "@/types/user";
 
 /** GET: Current user's items */
@@ -11,9 +11,9 @@ export function getUserProfile(userId: string, token?: string) {
     return clientFetch(`/profile/${userId}`, token);
 }
 
-/** POST: Onboarding Completion */
+/** POST: Onboarding Completion (returns fresh access_token) */
 export function updateOnboarding(payload: OnboardingPayload, token?: string) {
-    return clientMutate('/profile/complete-onboarding', token, {
+    return clientFetch<{ access_token: string; expires_at: number }>('/profile/complete-onboarding', token, {
         method: "POST",
         body: JSON.stringify(payload),
     });
@@ -21,7 +21,7 @@ export function updateOnboarding(payload: OnboardingPayload, token?: string) {
 
 /** PATCH: Update contact details (phone / Instagram) */
 export function updateContact(payload: ContactPayload, token?: string) {
-    return clientMutate('/profile/contact', token, {
+    return clientFetch('/profile/contact', token, {
         method: "PATCH",
         body: JSON.stringify(payload),
     });

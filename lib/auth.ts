@@ -1,23 +1,11 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-import { internalFetchWithTimeout } from "./api/helpers";
-
-// Deduplicate concurrent token refresh requests per token
-// TOKEN_REFRESH_DISABLED: Used for token refresh when switching to proper refresh library
-// const pendingRefreshPromises = new Map<string, Promise<{ access_token: string; expires_at: number }>>();
+import { clientFetch } from "./client-fetch";
+import { APIError } from "./api-error";
 
 async function getProfile(tokenString: string) {
-    const res = await internalFetchWithTimeout(
-        `${process.env.INTERNAL_BACKEND_URL}/auth/me`,
-        { headers: { Authorization: `Bearer ${tokenString}` } },
-        5000
-    );
+    const userData = await clientFetch("/auth/me", tokenString, { timeout: 5000 });
 
-    if (!res.ok) {
-        throw new Error(`Failed to fetch user data, status: ${res.status}`);
-    }
-
-    const userData = await res.json();
     return {
         public_id: userData.public_id,
         name: userData.name,
@@ -61,25 +49,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
 
             try {
-                const res = await internalFetchWithTimeout(
-                    `${process.env.INTERNAL_BACKEND_URL}/auth/google`,
+                const data = await clientFetch<{ access_token: string; expires_at: number }>(
+                    "/auth/google",
+                    undefined,
                     {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ id_token: account.id_token }),
-                    },
-                    8000
+                        timeout: 8000,
+                    }
                 );
 
-                if (res.status === 403) return "/auth/error?error=UserBanned";
-                if (!res.ok) return "/auth/error?error=Default";
-
-                const data = await res.json();
                 account.backendToken = data.access_token;
                 account.expires_at = data.expires_at * 1000; // Convert to ms
 
                 return true;
             } catch (err) {
+                if (err instanceof APIError && err.status === 403) return "/auth/error?error=UserBanned";
                 console.error("Backend unreachable during signIn:", err);
                 return "/auth/error?error=BackendAuthFailed";
             }
@@ -123,58 +108,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // Guard: nothing to validate
             if (!token.backendToken || !token.expires_at) return token;
 
-            //! TOKEN_REFRESH_DISABLED: Token refresh logic disabled
-            // Backend issues 30-day login tokens (LOGIN_TOKEN_TTL_DAYS); the session
-            // callback invalidates the NextAuth session once expires_at passes.
-            // When switching to proper refresh library, re-enable this block:
-            //
-            // const now = Date.now();
-            // console.log("Current Token", token.backendToken);
-            // console.log("Persisted token expiry", new Date(token.expires_at as number).toISOString());
-            //
-            // if (now > (token.expires_at as number)) {
-            //     const tokenStr = token.backendToken as string;
-            //     try {
-            //         // Safety valve against map growth during outages
-            //         if (pendingRefreshPromises.size > 100) {
-            //             pendingRefreshPromises.clear();
-            //         }
-            //
-            //         let refreshPromise = pendingRefreshPromises.get(tokenStr);
-            //
-            //         if (!refreshPromise) {
-            //             refreshPromise = internalFetchWithTimeout(
-            //                 `${process.env.INTERNAL_BACKEND_URL}/auth/refresh`,
-            //                 {
-            //                     method: "POST",
-            //                     headers: { "Content-Type": "application/json" },
-            //                     body: JSON.stringify({ token: tokenStr }),
-            //                 }
-            //             ).then(async (res) => {
-            //                 if (!res.ok) throw new Error("Token refresh failed");
-            //                 const data = await res.json();
-            //                 console.log(data.expires_at);
-            //                 return data as Promise<{ access_token: string; expires_at: number }>;
-            //             }).finally(() => {
-            //                 pendingRefreshPromises.delete(tokenStr);
-            //             });
-            //
-            //             pendingRefreshPromises.set(tokenStr, refreshPromise);
-            //         }
-            //
-            //         const data = await refreshPromise;
-            //         token.backendToken = data.access_token;
-            //         token.expires_at = data.expires_at * 1000;
-            //         console.log("New Token", token.backendToken);
-            //         console.log("New Expiry Time", new Date(token.expires_at as number).toISOString());
-            //         return token;
-            //     } catch (err) {
-            //         console.error("Token refresh error:", err);
-            //         token.backendToken = undefined;
-            //         token.expires_at = undefined;
-            //         token.user = undefined;
-            //     }
-            // }
+            // No auto-refresh: the backend issues 30-day login tokens and the
+            // session callback below invalidates the session once expires_at passes.
 
             return token;
         },

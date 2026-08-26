@@ -14,8 +14,9 @@ import { ActivitySkeleton } from "./skeletons";
 import { getReportedItems } from "@/lib/api/admin";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { APIError } from "@/lib/api-error";
 import { ReportedItemDetail } from "@/types/admin";
-import { useBanHandler } from "@/lib/hooks/use-ban-handler";
+import { handleBanError } from "@/lib/ban-handler";
 
 function ReportedItemCard({
     item,
@@ -180,7 +181,6 @@ export function ReportsTab() {
     const { data: session } = useSession();
     const token = session?.backendToken;
     const isModerating = useRef(false);
-    const { handleBanError } = useBanHandler();
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [modalConfig, setModalConfig] = useState<{
         isOpen: boolean;
@@ -221,37 +221,36 @@ export function ReportsTab() {
                 setModalConfig(prev => ({ ...prev, isLoading: true }));
             }
 
-            const result = await moderateItem(itemId, { action, force }, token) as any;
+            await moderateItem(itemId, { action, force }, token);
 
-            console.log(result);
-
-            if (result.ok) {
-                const actionText = action === "hide" ? "hidden" : action === "restore" ? "restored" : "deleted";
-                toast.success(`Item ${actionText} successfully`);
-                mutate();
-                setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
-            } else {
-                if (
-                    result.status === 409 &&
-                    result.data?.detail?.code === "ACTIVE_RESOLUTIONS_EXIST"
-                ) {
-                    setModalConfig({
-                        isOpen: true,
-                        view: "force_warning",
-                        itemId,
-                        action,
-                        warningMessage: result.data.detail.message,
-                        isLoading: false,
-                    });
-                } else {
-                    toast.error(result.data?.detail || `Failed to ${action} item`);
-                    setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
-                }
-            }
+            const actionText = action === "hide" ? "hidden" : action === "restore" ? "restored" : "deleted";
+            toast.success(`Item ${actionText} successfully`);
+            mutate();
+            setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
         } catch (err) {
             if (handleBanError(err)) return;
-            toast.error(`Failed to ${action} item`);
-            setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
+
+            const apiErr = err instanceof APIError ? err : undefined;
+            const detail = apiErr?.data as { detail?: { code?: string; message?: string } | string } | undefined;
+            const errorDetail = detail?.detail;
+            const isActiveResolutionConflict =
+                apiErr?.status === 409 &&
+                typeof errorDetail === "object" &&
+                errorDetail.code === "ACTIVE_RESOLUTIONS_EXIST";
+
+            if (isActiveResolutionConflict && typeof errorDetail === "object") {
+                setModalConfig({
+                    isOpen: true,
+                    view: "force_warning",
+                    itemId,
+                    action,
+                    warningMessage: errorDetail.message ?? "",
+                    isLoading: false,
+                });
+            } else {
+                toast.error(typeof errorDetail === "string" ? errorDetail : `Failed to ${action} item`);
+                setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
+            }
         } finally {
             isModerating.current = false;
         }

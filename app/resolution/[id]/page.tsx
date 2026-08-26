@@ -24,6 +24,7 @@ import {
     failResolution,
 } from "@/lib/api/resolutions";
 import { APIError } from "@/lib/api-error";
+import { handleBanError } from "@/lib/ban-handler";
 import { getResolution } from "@/lib/api/resolutions";
 
 import { ActionButtons } from "./components/action-buttons";
@@ -36,7 +37,6 @@ import { ThemeKey, THEMES } from "./theme";
 import { formatDateString } from "@/lib/date-formatting";
 import { LOCATION_MAP } from "@/lib/constants/locations";
 import { ResolutionDetailSkeleton } from "@/app/items/items-loading-skeleton";
-import { useBanHandler } from "@/lib/hooks/use-ban-handler";
 
 
 /* STATUS UI MAP */
@@ -312,7 +312,6 @@ export default function ClaimStatusPage() {
     const token = session?.backendToken;
 
     const [resolution, setResolution] = useState<Resolution | null>(null);
-    const { handleBanError } = useBanHandler();
     const [item, setItem] = useState<Item | null>(null);
     const [finderContact, setFinderContact] = useState<FinderContact | null>(null);
     const [viewer, setViewer] = useState<Viewer | null>(null);
@@ -428,13 +427,9 @@ export default function ClaimStatusPage() {
 
         setActionLoading(true);
         try {
-            const result = action === "approve"
-                ? await approveResolution(resId, itemId, token)
-                : action === "complete"
-                    ? await completeResolution(resId, token)
-                    : await failResolution(resId, itemId, token);
-
-            if (!result?.ok) throw new Error();
+            if (action === "approve") await approveResolution(resId, itemId, token);
+            else if (action === "complete") await completeResolution(resId, token);
+            else await failResolution(resId, itemId, token);
         } catch (err) {
             if (handleBanError(err)) return;
             toast.error("Action failed. Please try again.");
@@ -455,8 +450,7 @@ export default function ClaimStatusPage() {
 
         setActionLoading(true);
         try {
-            const result = await rejectResolution(resId, reason, itemId, token);
-            if (!result.ok) throw new Error();
+            await rejectResolution(resId, reason, itemId, token);
             setShowRejectDialog(false);
             setRejectionReason("");
         } catch (err) {

@@ -1,4 +1,4 @@
-import { clientFetch, clientMutate } from "@/lib/client-fetch";
+import { clientFetch } from "@/lib/client-fetch";
 
 /** GET: All notifications for the current user */
 export function getNotifications(token?: string) {
@@ -12,10 +12,10 @@ export function getNotificationCount(token?: string) {
 
 /** POST: Mark a single notification as read */
 export function readNotification(notificationId: string, token?: string) {
-    return clientMutate(`/notifications/${notificationId}/mark-read`, token, { method: "POST" });
+    return clientFetch(`/notifications/${notificationId}/mark-read`, token, { method: "POST" });
 }
 
 /** POST: Mark all notifications as read */
 export function readAllNotifications(token?: string) {
-    return clientMutate(`/notifications/mark-all-read`, token, { method: "POST" });
+    return clientFetch(`/notifications/mark-all-read`, token, { method: "POST" });
 }

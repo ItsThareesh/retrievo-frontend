@@ -1,4 +1,4 @@
-import { clientFetch, clientMutate } from "@/lib/client-fetch";
+import { clientFetch } from "@/lib/client-fetch";
 
 /** GET: Resolution detail (with item, viewer, actions) */
 export function getResolution(resolutionId: string, token?: string) {
@@ -22,17 +22,17 @@ export function createResolution(
     if (foundItemId) body.found_item_id = foundItemId;
     if (description) body.description = description;
 
-    return clientMutate('/resolutions/create', token, { method: "POST", body: JSON.stringify(body) });
+    return clientFetch('/resolutions/create', token, { method: "POST", body: JSON.stringify(body) });
 }
 
 /** POST: Approve a resolution */
 export function approveResolution(claimId: string, itemId: string, token?: string) {
-    return clientMutate(`/resolutions/${claimId}/approve`, token, { method: "POST" });
+    return clientFetch(`/resolutions/${claimId}/approve`, token, { method: "POST" });
 }
 
 /** POST: Reject a resolution with a reason */
 export function rejectResolution(resolutionID: string, rejectionReason: string, itemId: string, token?: string) {
-    return clientMutate(`/resolutions/${resolutionID}/reject`, token, {
+    return clientFetch(`/resolutions/${resolutionID}/reject`, token, {
         method: "POST",
         body: JSON.stringify({ rejection_reason: rejectionReason }),
     });
@@ -40,10 +40,10 @@ export function rejectResolution(resolutionID: string, rejectionReason: string, 
 
 /** POST: Complete a resolution */
 export function completeResolution(resolutionId: string, token?: string) {
-    return clientMutate(`/resolutions/${resolutionId}/complete`, token, { method: "POST" });
+    return clientFetch(`/resolutions/${resolutionId}/complete`, token, { method: "POST" });
 }
 
 /** POST: Fail a resolution */
 export function failResolution(resolutionId: string, itemId: string, token?: string) {
-    return clientMutate(`/resolutions/${resolutionId}/fail`, token, { method: "POST" });
+    return clientFetch(`/resolutions/${resolutionId}/fail`, token, { method: "POST" });
 }

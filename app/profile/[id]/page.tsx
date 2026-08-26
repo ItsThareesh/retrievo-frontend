@@ -15,6 +15,7 @@ import { useParams, notFound } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { APIError } from '@/lib/api-error';
 import { getUserProfile } from '@/lib/api/profile';
+import { handleBanError } from '@/lib/ban-handler';
 import { standardizeItemDate } from '@/lib/date-formatting';
 import { UserProfileLoading } from '../user-profile-loading';
 
@@ -46,6 +47,7 @@ export default function UserPage() {
             })
             .catch((err) => {
                 if (cancelled) return;
+                if (handleBanError(err)) return;
                 if (err instanceof APIError && err.status === 404) {
                     setNotFoundError(true);
                 }

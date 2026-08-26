@@ -10,6 +10,7 @@ import {
     readNotification,
     readAllNotifications,
 } from "@/lib/api/notifications";
+import { handleBanError } from "@/lib/ban-handler";
 
 interface NotificationsResponse {
     notifications: Notification[];
@@ -164,7 +165,8 @@ export function useNotifications() {
     const loadNotifications = async (): Promise<void> => {
         try {
             await mutateNotifications();
-        } catch {
+        } catch (err) {
+            handleBanError(err);
             // error is exposed via isError; do not let an unhandled rejection
             // propagate from a fire-and-forget call site in the dropdown
         }
@@ -189,12 +191,7 @@ export function useNotifications() {
         try {
             const updated = await mutateNotifications(
                 async (current) => {
-                    const res = await readNotification(id, token);
-                    if (!res.ok) {
-                        throw new Error(
-                            `markAsRead failed: ${(res as { status?: number }).status ?? "unknown"}`
-                        );
-                    }
+                    await readNotification(id, token);
                     return applyUpdate(
                         current,
                         (n) => (n.id === id ? { ...n, is_read: true } : n)
@@ -226,7 +223,8 @@ export function useNotifications() {
                 false
             );
             return { ok: true };
-        } catch {
+        } catch (err) {
+            handleBanError(err);
             return { ok: false };
         }
     };
@@ -235,12 +233,7 @@ export function useNotifications() {
         try {
             const updated = await mutateNotifications(
                 async (current) => {
-                    const res = await readAllNotifications(token);
-                    if (!res.ok) {
-                        throw new Error(
-                            `markAllAsRead failed: ${(res as { status?: number }).status ?? "unknown"}`
-                        );
-                    }
+                    await readAllNotifications(token);
                     return applyUpdate(current, (n) => ({ ...n, is_read: true }));
                 },
                 {
@@ -266,7 +259,8 @@ export function useNotifications() {
                 false
             );
             return { ok: true };
-        } catch {
+        } catch (err) {
+            handleBanError(err);
             return { ok: false };
         }
     };

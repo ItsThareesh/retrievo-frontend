@@ -33,13 +33,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { postLostFoundItem } from '@/lib/api/items';
+import { APIError } from '@/lib/api-error';
+import { handleBanError } from '@/lib/ban-handler';
 import { signIn } from "next-auth/react";
 import type { Session } from 'next-auth';
 import { ImageViewer } from '@/components/image-viewer';
 import { toast } from 'sonner';
 import { LOCATION_MAP } from '../../lib/constants/locations';
 import { compressImage } from '@/lib/utils/img-compressor';
-import { useBanHandler } from '@/lib/hooks/use-ban-handler';
 
 
 const formSchema = z.object({
@@ -101,8 +102,6 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             item_type: type,
         },
     });
-
-    const { handleBanError } = useBanHandler();
 
     async function getActualFileSize(file: File): Promise<number> {
         // iOS Safari reports `file.size` as the decoded bitmap size (width * height * 4)
@@ -184,7 +183,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
     })();
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        let res: Awaited<ReturnType<typeof postLostFoundItem>>;
+        let newItemId: string | undefined;
 
         try {
             setIsSubmitting(true);
@@ -203,31 +202,27 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                 }
             });
 
-            res = await postLostFoundItem(formData, session?.backendToken);
-
-            if (res.status === 401) {
-                router.push(`/auth/signin?callbackUrl=/report?type=${type}`);
-                return;
-            }
-
-            if (res.status === 429) {
-                toast.error("You have reached your monthly limit for reporting items. Please try again later.");
-                return;
-            }
-
-            if (res.status === 400) {
-                toast.error("Image upload failed. The image may be too large or invalid. Please try a different image.");
-                return;
-            }
-
-            if (!res.ok) {
-                toast.error("Failed to submit item. Please try again.");
-                return;
-            }
+            const res = await postLostFoundItem(formData, session?.backendToken);
+            newItemId = res?.item_id;
 
             toast.success("Item reported successfully!");
         } catch (error) {
             if (handleBanError(error)) return;
+
+            const status = error instanceof APIError ? error.status : undefined;
+            if (status === 401) {
+                router.push(`/auth/signin?callbackUrl=/report?type=${type}`);
+                return;
+            }
+            if (status === 429) {
+                toast.error("You have reached your monthly limit for reporting items. Please try again later.");
+                return;
+            }
+            if (status === 400) {
+                toast.error("Image upload failed. The image may be too large or invalid. Please try a different image.");
+                return;
+            }
+
             console.error(error);
             toast.error("Something went wrong. Please try again.");
             return;
@@ -237,7 +232,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
         }
 
         // Redirects to the newly created item page only after successful submission
-        router.push(`/items/${res.data.item_id}`);
+        router.push(`/items/${newItemId}`);
     }
 
     return (

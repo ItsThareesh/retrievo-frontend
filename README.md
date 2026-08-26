@@ -12,7 +12,7 @@ A modern Lost & Found web application for campus communities built with Next.js 
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com/) (New York Style)
 - **Authentication**: [NextAuth v5](https://authjs.dev/) (Google OAuth + JWT backend)
-- **Data Fetching**: Browser->Backend via `clientFetch()` (reads) and `clientMutate()` (writes)
+- **Data Fetching**: Browser->Backend via single throwing primitive `clientFetch()`
 - **Client State**: [SWR](https://swr.vercel.app/) for notifications
 - **Forms**: React Hook Form + Zod v4
 - **Icons**: Lucide React
@@ -53,11 +53,12 @@ A modern Lost & Found web application for campus communities built with Next.js 
 
 **All API calls (reads + writes):**
 ```
-Browser → lib/api/<domain> function → clientFetch() / clientMutate() → NEXT_PUBLIC_BACKEND_URL
+Browser → lib/api/<domain> function → clientFetch() → NEXT_PUBLIC_BACKEND_URL
 ```
-- Every endpoint is a plain function in `lib/api/` with a trailing optional `token`:
-  - Reads `get*(...)` return data and throw `APIError`; writes resolve `{ ok, status?, data? }` (`USER_BANNED` rethrown)
-  - Components never import fetch helpers or hardcode API paths — they import from `lib/api/*` only
+- Every endpoint is a plain function in `lib/api/` with a trailing optional `token`
+- One axios-style contract: any non-2xx throws `APIError` (`err.status`, `err.code`, `err.data` = backend body); requests abort after 15s by default (60s for uploads) → `APIError(408)`
+- Callers try/catch: `handleBanError(err)` first, then branch on `err.status`
+- Components never import fetch helpers or hardcode API paths — they import from `lib/api/*` only
 
 **Public reads (no auth):**
 ```
@@ -106,9 +107,7 @@ cp .env.example .env.local
 | `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret |
 | `NEXTAUTH_SECRET` | Yes | NextAuth session encryption key |
 | `AUTH_TRUST_HOST` | Yes | Required by Auth.js — set to `true` |
-| `NEXT_PUBLIC_BACKEND_URL` | Yes | Backend URL used by the browser (e.g. `http://localhost:8000/api/v1`) |
-| `INTERNAL_BACKEND_URL` | Yes | Backend URL used by NextAuth server callbacks (e.g. `http://localhost:8000/api/v1`) |
-| `INTERNAL_SECRET_KEY` | Yes | Sent as `X-Internal-Secret` by NextAuth server callbacks; no longer validated by the backend |
+| `NEXT_PUBLIC_BACKEND_URL` | Yes | Backend URL — used by the browser (clientFetch) and NextAuth server callbacks (e.g. `http://localhost:8000/api/v1`) |
 
 ### Development
 
@@ -158,17 +157,18 @@ components/              # React components
 └── ...
 
 lib/                     # Core logic
-├── auth.ts              # NextAuth configuration
-├── client-fetch.ts      # Browser→backend fetch utilities (clientFetch reads, clientMutate writes)
-├── api/                 # Thin client-side endpoint wrappers (mutations)
-│   ├── helpers.ts       # internalFetchWithTimeout (NextAuth server callbacks only)
-│   ├── items.ts         # postLostFoundItem, updateItem, deleteItem, flagItem
-│   ├── resolutions.ts   # create/approve/reject/complete/fail resolution
-│   ├── admin.ts         # moderateUser, moderateItem
-│   ├── notifications.ts # readNotification, readAllNotifications
-│   └── profile.ts       # updateOnboarding, updateContact
+├── auth.ts              # NextAuth configuration (uses clientFetch for backend calls)
+├── ban-handler.ts       # Ban detection + sign-out flow
+├── client-fetch.ts      # Browser→backend fetch utility (single primitive, throws APIError)
+├── api/                 # Endpoint registry — one function per API route
+│   ├── items.ts         # getItems, getItem | postLostFoundItem, updateItem, deleteItem, flagItem
+│   ├── resolutions.ts   # getResolution, getLinkableItems | create/approve/reject/complete/fail
+│   ├── admin.ts         # getStats, getActivity, getUsers, getReportedItems, getAdminResolutions | moderateUser, moderateItem
+│   ├── notifications.ts # getNotifications, getNotificationCount | readNotification, readAllNotifications
+│   └── profile.ts       # getMyItems, getUserProfile | updateOnboarding, updateContact
 ├── constants/           # Locations, report reasons
 ├── hooks/               # useNotifications, useItemEditable, useDebounce
+├── ban-handler.ts       # isBanError / handleBanError (single source of truth)
 └── utils/               # cn(), image compression, validation, date formatting
 
 types/                   # TypeScript type definitions
@@ -188,7 +188,7 @@ public/                  # Static assets
 - **Image Compression**: Uploaded images are compressed to WebP ≤ 0.9 MB (HEIC/HEIF supported)
 - **Diff-Only PATCHES**: Item edits send only changed fields to the backend
 - **Debounced Search**: 400ms debounce on search input to reduce server load
-- **Error Handling**: `APIError` from `clientFetch`/`clientMutate`; `code === "USER_BANNED"` triggers sign-out
+- **Error Handling**: any non-2xx throws `APIError` from `clientFetch`; `code === "USER_BANNED"` triggers sign-out
 - **Auth Guards**: In `page.tsx` files (redirect to `/auth/signin` or `/onboarding`), never in middleware
 - **Token in Session**: `backendToken` attached to session — never stored in `localStorage`
 
@@ -205,7 +205,7 @@ public/                  # Static assets
 
 This frontend communicates with a [FastAPI backend](https://github.com/ItsThareesh/retrievo-backend):
 
-- **Browser→Backend**: `clientFetch()` / `clientMutate()` in `lib/client-fetch.ts` — direct API calls with Bearer token
-- **Server→Backend**: `internalFetchWithTimeout()` in `lib/api/helpers.ts` — NextAuth signIn/jwt callbacks only; sends `X-Internal-Secret` (no longer validated by the backend)
+- **Browser→Backend**: `clientFetch()` in `lib/client-fetch.ts` — direct API calls with Bearer token, axios-style errors
+- **Server→Backend**: none — even the NextAuth signIn/jwt callbacks use `clientFetch()` against `NEXT_PUBLIC_BACKEND_URL`
 - **Endpoints**: Items CRUD, resolutions, admin moderation, notifications, profile, auth
 - **Image CDN**: `cdn.retrievo.dev` for uploaded item images

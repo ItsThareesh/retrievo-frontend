@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, Phone, Building2, Check, Instagram } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { APIError } from '@/lib/api-error';
+import { handleBanError } from '@/lib/ban-handler';
 import {
     Card,
     CardHeader,
@@ -25,13 +27,11 @@ import { updateOnboarding } from '@/lib/api/profile';
 import { toast } from 'sonner';
 import { OnboardingPayload } from '@/types/user';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';
-import { useBanHandler } from '@/lib/hooks/use-ban-handler';
 import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@/lib/utils/contact';
 
 export default function OnboardingClient() {
     const { data: session, status, update } = useSession();
     const router = useRouter();
-    const { handleBanError } = useBanHandler();
 
     const [phoneNumber, setPhoneNumberState] = useState(session?.user?.phone || '');
     const [hostel, setHostelState] = useState<'boys' | 'girls' | ''>(session?.user?.hostel || '');
@@ -74,26 +74,23 @@ export default function OnboardingClient() {
 
             const res = await updateOnboarding(payload, session?.backendToken);
 
-            if (res.status === 422) {
-                toast.error("Invalid. Please check your details and try again.");
-                return;
-            }
-
-            if (!res.ok) {
-                toast.error("Failed to complete onboarding. Please try again.");
-                return;
-            }
-
             // Update NextAuth session - include the fresh JWT so the hostel claim is accurate immediately
             await update({
                 ...payload,
-                backendToken: res.data?.access_token,
-                expires_at: res.data?.expires_at,
+                backendToken: res.access_token,
+                expires_at: res.expires_at,
             });
 
             toast.success("Welcome! Your profile has been set up.");
         } catch (err) {
             if (handleBanError(err)) return;
+
+            const status = err instanceof APIError ? err.status : undefined;
+            if (status === 422) {
+                toast.error("Invalid. Please check your details and try again.");
+                return;
+            }
+
             console.error("Onboarding error:", err);
             toast.error("An unexpected error occurred. Please try again.");
             return;

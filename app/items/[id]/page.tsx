@@ -41,7 +41,7 @@ import { getItem } from "@/lib/api/items";
 import { ItemDetailSkeleton } from "../items-loading-skeleton";
 import { useEffect, useState } from "react";
 import { Session } from "next-auth";
-import { useBanHandler } from "@/lib/hooks/use-ban-handler";
+import { handleBanError } from "@/lib/ban-handler";
 
 interface ItemData {
     item: Item;
@@ -61,7 +61,6 @@ export default function ItemDetailPage() {
     const [notFoundError, setNotFoundError] = useState(false);
     const [authRequired, setAuthRequired] = useState(false);
     const [forbidden, setForbidden] = useState(false);
-    const { handleBanError } = useBanHandler();
 
     useEffect(() => {
         if (!id || sessionStatus === "loading") return;

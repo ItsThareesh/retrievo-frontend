@@ -32,7 +32,7 @@ import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { UsersSkeleton } from "./skeletons";
 import { getUsers } from "@/lib/api/admin";
-import { useBanHandler } from "@/lib/hooks/use-ban-handler";
+import { handleBanError } from "@/lib/ban-handler";
 
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 
@@ -46,7 +46,6 @@ function getInitials(name: string) {
 }
 
 function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => void }) {
-    const { handleBanError } = useBanHandler();
     const { data: session } = useSession();
     const [actionDialog, setActionDialog] = useState<{
         open: boolean;

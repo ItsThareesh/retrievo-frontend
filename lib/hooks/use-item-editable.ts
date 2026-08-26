@@ -10,7 +10,7 @@ import { createResolution, getLinkableItems } from "@/lib/api/resolutions";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
 import { ResolutionStatus } from "@/types/resolutions";
-import { useBanHandler } from "./use-ban-handler";
+import { handleBanError } from "@/lib/ban-handler";
 
 interface UseItemEditableProps {
     item: Item;
@@ -21,7 +21,6 @@ interface UseItemEditableProps {
 
 export function useItemEditable({ item, reporter, resolution_status, session }: UseItemEditableProps) {
     const router = useRouter();
-    const { handleBanError } = useBanHandler();
 
     const [reason, setReason] = useState("fake");
 

@@ -1,12 +1,5 @@
-import { 
-    ModerateUserRequest, 
-    ModerateItemRequest, 
-    UserDetail, 
-    ResolutionDetail, 
-    ActivityItem, 
-    ReportedItemDetail 
-} from "@/types/admin";
-import { clientFetch, clientMutate } from "@/lib/client-fetch";
+import { ModerateUserRequest, ModerateItemRequest, UserDetail, ResolutionDetail, ActivityItem, ReportedItemDetail } from "@/types/admin";
+import { clientFetch } from "@/lib/client-fetch";
 
 /** GET: Platform stats for the overview tab */
 export function getStats(token?: string) {
@@ -39,15 +32,17 @@ export function getAdminResolutions(search: string, token?: string) {
     return clientFetch<ResolutionDetail[]>(`/admin/resolutions?${params}`, token);
 }
 
+/** POST: Warn / ban / unban a user */
 export function moderateUser(userId: number, request: ModerateUserRequest, token?: string) {
-    return clientMutate(`/admin/users/${userId}/moderate`, token, {
+    return clientFetch(`/admin/users/${userId}/moderate`, token, {
         method: "POST",
         body: JSON.stringify(request),
     });
 }
 
+/** POST: Hide / restore / delete an item */
 export function moderateItem(itemId: string, request: ModerateItemRequest, token?: string) {
-    return clientMutate(`/admin/items/${itemId}/moderate`, token, {
+    return clientFetch(`/admin/items/${itemId}/moderate`, token, {
         method: "POST",
         body: JSON.stringify(request),
     });

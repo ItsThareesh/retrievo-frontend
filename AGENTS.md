@@ -10,11 +10,11 @@
 - **SessionProvider** is in the root layout — `useSession()` available everywhere
 
 ## Data Flow
-- **All reads and writes:** Browser → Backend API directly via `clientFetch()` / `clientMutate()` in `lib/client-fetch.ts`
+- **All reads and writes:** Browser → Backend API directly via `clientFetch()` in `lib/client-fetch.ts`
   - Uses `NEXT_PUBLIC_BACKEND_URL` + Bearer token from `useSession().backendToken`
   - Data never passes through Vercel servers
   - Used in: ItemsGrid, ItemDetail, Profile, UserProfile, Resolution, Admin tabs, Notifications, LinkableItems
-- **Mutations (writes):** thin endpoint wrappers in `lib/api/` over `clientMutate()` (plain functions, no Server Actions)
+- **Mutations (writes):** thin endpoint wrappers in `lib/api/` over `clientFetch()` (plain functions, no Server Actions)
   - `postLostFoundItem`, `updateItem`, `deleteItem`, `flagItem` — `lib/api/items.ts`
   - `createResolution`, `approveResolution`, `rejectResolution`, `completeResolution`, `failResolution` — `lib/api/resolutions.ts`
   - `moderateUser`, `moderateItem` — `lib/api/admin.ts`
@@ -22,16 +22,18 @@
   - `updateOnboarding`, `updateContact` — `lib/api/profile.ts`
 
 ## API Rules
-- **Transport** (`lib/client-fetch.ts` — the only two primitives):
-  - `clientFetch(path, token?, options?)` — reads; throws `APIError` (has `.status`, `.code`, `.data`)
-  - `clientMutate(path, token?, options?)` — writes; resolves to `{ ok, status?, data? }`; rethrows only `USER_BANNED`
+- **Transport** (`lib/client-fetch.ts` — the single primitive, axios-style):
+  - `clientFetch(path, token?, options?)` — ALL reads and writes; throws `APIError` on any non-2xx (`err.status`, `err.code`, `err.data` = raw backend body)
+  - Aborts after `options.timeout` (default **15s**) and throws `APIError(408, "Request timed out", "TIMEOUT")`; image upload passes 60s
+  - Handles Bearer token, JSON + FormData bodies, tolerant response parsing
 - **Endpoints** live ONLY in `lib/api/<domain>.ts` as plain functions, one uniform convention:
-  - Reads: `get<Thing>(...args, token?)` → returns data, throws on failure
-  - Writes: `<verb><Thing>(...args, token?)` → returns `{ ok }` result
-  - To add a new endpoint: add a one-liner to the relevant domain module (create the module if new domain); never call `clientFetch`/hardcode paths in components
-- **Token**: callers pass `session?.backendToken` from `useSession()` as trailing arg
-- **Server->Backend**: `internalFetchWithTimeout` in `lib/api/helpers.ts` (NextAuth signIn/jwt callbacks only)
-- **Env:** `NEXT_PUBLIC_BACKEND_URL` (browser), `INTERNAL_BACKEND_URL` + `INTERNAL_SECRET_KEY` (NextAuth server callbacks only)
+  - Reads: `get<Thing>(...args, token?)` → returns parsed data
+  - Writes: `<verb><Thing>(...args, token?)` → returns parsed data too; failures throw
+  - To add a new endpoint: add a one-liner to the domain module; never import fetch helpers or hardcode paths in components
+- **Callers**: wrap mutations in try/catch — check `handleBanError(err)` first, then `err.status` / `err.data.detail`
+- **Token**: pass `session?.backendToken` from `useSession()` as trailing arg
+- **Auth flow server calls**: NextAuth signIn (`/auth/google`) and jwt profile fetch (`/auth/me`) also go through `clientFetch()` with `AbortSignal.timeout()` — same primitive as the browser
+- **Env:** `NEXT_PUBLIC_BACKEND_URL` only (browser + NextAuth server callbacks)
 
 ## Mutations & Reads (client-side wrappers in `lib/api/`)
 - `items.ts`: getItems, getItem | postLostFoundItem, updateItem, deleteItem, flagItem
@@ -46,6 +48,14 @@
 - `notifications/count`: 5s dedup, never mutated
 - Count derived from list (race safety)
 - Optimistic writes: `rollbackOnError: true, revalidate: false`
+
+## Ban Handling
+- **Backend contract (verified):** banned users get `403 { detail, code: "USER_BANNED" }` on every authenticated request — from `BanCheckMiddleware` (Redis fast path, all routes) and the DB backstop in `get_db_user` (fail-safe when Redis is down)
+- **Frontend:** `lib/ban-handler.ts` is the single source of truth — `isBanError()` classifies, `handleBanError()` toasts + signs out to `/auth/error?error=UserBanned`
+- Every request path must route bans through `handleBanError`:
+  - **SWR hooks**: covered automatically by the global `onError` in `app/swr-provider.tsx` — do NOT add per-hook onError
+  - **Everything else** (effect reads, mutation catches, manual fetches): call `handleBanError(err)` first
+- Login-time rejection (no JWT yet) is server-side only → NextAuth redirects to `/auth/error?error=UserBanned`
 
 ## Key Conventions
 - Images: compress to WebP ≤ 0.9 MB before FormData

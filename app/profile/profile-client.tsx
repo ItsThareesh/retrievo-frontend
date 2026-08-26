@@ -22,9 +22,9 @@ import { ContactPayload } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { APIError } from '@/lib/api-error';
+import { handleBanError } from '@/lib/ban-handler';
 import { getMyItems } from '@/lib/api/profile';
 import { standardizeItemDate } from '@/lib/date-formatting';
-import { useBanHandler } from '@/lib/hooks/use-ban-handler';
 import { updateContact } from '@/lib/api/profile';
 import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@/lib/utils/contact';
 
@@ -43,7 +43,6 @@ export function ProfileClient() {
     const [instagramInput, setInstagramInput] = useState("");
     const [countryCode, setCountryCode] = useState("+91");
     const [isSavingContact, setIsSavingContact] = useState(false);
-    const { handleBanError } = useBanHandler();
 
     function parsePhone(phone?: string) {
         if (!phone) return { countryCode: "+91", number: "" };
@@ -83,31 +82,28 @@ export function ProfileClient() {
             setIsSavingContact(true);
             const res = await updateContact(payload, token);
 
-            if (res.status === 422) {
-                toast.error("Invalid. Please check your details and try again.");
-                return;
-            }
-
-            if (!res.ok) {
-                toast.error("Failed to update contact details. Please try again.");
-                return;
-            }
-
             setUser(prev => prev ? {
                 ...prev,
-                phone: res.data?.phone ?? undefined,
-                instagramId: res.data?.instagramId ?? undefined,
+                phone: res.phone ?? undefined,
+                instagramId: res.instagramId ?? undefined,
             } : prev);
 
             await update({
-                phone: res.data?.phone ?? null,
-                instagramId: res.data?.instagramId ?? null,
+                phone: res.phone ?? null,
+                instagramId: res.instagramId ?? null,
             });
 
             setIsEditingContact(false);
             toast.success("Contact details updated.");
         } catch (err) {
             if (handleBanError(err)) return;
+
+            const status = err instanceof APIError ? err.status : undefined;
+            if (status === 422) {
+                toast.error("Invalid. Please check your details and try again.");
+                return;
+            }
+
             console.error("Failed to update contact:", err);
             toast.error("Failed to update contact details. Please try again.");
         } finally {

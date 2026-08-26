@@ -15,6 +15,7 @@ import { ItemCard } from "@/components/item-card";
 import { Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getItems } from "@/lib/api/items";
+import { handleBanError } from "@/lib/ban-handler";
 import { standardizeItemDate } from "@/lib/date-formatting";
 import { ItemsGridSkeleton, ItemsLoadMoreSkeleton } from "./items-loading-skeleton";
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
@@ -57,7 +58,8 @@ export function ItemsGridClient() {
         try {
             const data = await getItems(cursor, search, category, type, token);
             return data;
-        } catch {
+        } catch (err) {
+            handleBanError(err);
             return null;
         }
     }
