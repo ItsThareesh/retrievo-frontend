@@ -203,7 +203,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                 }
             });
 
-            res = await postLostFoundItem(formData);
+            res = await postLostFoundItem(formData, session?.backendToken);
 
             if (res.status === 401) {
                 router.push(`/auth/signin?callbackUrl=/report?type=${type}`);

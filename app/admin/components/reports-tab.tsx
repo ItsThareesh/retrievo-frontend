@@ -221,7 +221,7 @@ export function ReportsTab() {
                 setModalConfig(prev => ({ ...prev, isLoading: true }));
             }
 
-            const result = await moderateItem(itemId, { action, force }) as any;
+            const result = await moderateItem(itemId, { action, force }, token) as any;
 
             console.log(result);
 
@@ -233,18 +233,18 @@ export function ReportsTab() {
             } else {
                 if (
                     result.status === 409 &&
-                    result.errorData?.detail?.code === "ACTIVE_RESOLUTIONS_EXIST"
+                    result.data?.detail?.code === "ACTIVE_RESOLUTIONS_EXIST"
                 ) {
                     setModalConfig({
                         isOpen: true,
                         view: "force_warning",
                         itemId,
                         action,
-                        warningMessage: result.errorData.detail.message,
+                        warningMessage: result.data.detail.message,
                         isLoading: false,
                     });
                 } else {
-                    toast.error(result.errorData?.detail || `Failed to ${action} item`);
+                    toast.error(result.data?.detail || `Failed to ${action} item`);
                     setModalConfig(prev => ({ ...prev, isOpen: false, isLoading: false }));
                 }
             }

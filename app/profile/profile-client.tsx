@@ -81,7 +81,7 @@ export function ProfileClient() {
 
         try {
             setIsSavingContact(true);
-            const res = await updateContact(payload);
+            const res = await updateContact(payload, token);
 
             if (res.status === 422) {
                 toast.error("Invalid. Please check your details and try again.");
@@ -95,13 +95,13 @@ export function ProfileClient() {
 
             setUser(prev => prev ? {
                 ...prev,
-                phone: res.phone ?? undefined,
-                instagramId: res.instagramId ?? undefined,
+                phone: res.data?.phone ?? undefined,
+                instagramId: res.data?.instagramId ?? undefined,
             } : prev);
 
             await update({
-                phone: res.phone ?? null,
-                instagramId: res.instagramId ?? null,
+                phone: res.data?.phone ?? null,
+                instagramId: res.data?.instagramId ?? null,
             });
 
             setIsEditingContact(false);

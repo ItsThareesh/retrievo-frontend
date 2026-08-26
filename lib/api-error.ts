@@ -3,6 +3,7 @@ export class APIError extends Error {
     public status: number,
     message?: string,
     public code?: string,
+    public data?: unknown,
   ) {
     super(message || `API error: ${status}`);
     this.name = "APIError";

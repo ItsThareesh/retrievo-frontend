@@ -438,10 +438,10 @@ export default function ClaimStatusPage() {
         setActionLoading(true);
         try {
             const result = action === "approve"
-                ? await approveResolution(resId, itemId)
+                ? await approveResolution(resId, itemId, token)
                 : action === "complete"
-                    ? await completeResolution(resId)
-                    : await failResolution(resId, itemId);
+                    ? await completeResolution(resId, token)
+                    : await failResolution(resId, itemId, token);
 
             if (!result?.ok) throw new Error();
         } catch (err) {
@@ -464,7 +464,7 @@ export default function ClaimStatusPage() {
 
         setActionLoading(true);
         try {
-            const result = await rejectResolution(resId, reason, itemId);
+            const result = await rejectResolution(resId, reason, itemId, token);
             if (!result.ok) throw new Error();
             setShowRejectDialog(false);
             setRejectionReason("");

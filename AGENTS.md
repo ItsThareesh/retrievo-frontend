@@ -10,30 +10,30 @@
 - **SessionProvider** is in the root layout — `useSession()` available everywhere
 
 ## Data Flow
-- **Reads (auth-gated data):** Browser → Backend API directly via `clientFetch()` in `lib/client-fetch.ts`
+- **All reads and writes:** Browser → Backend API directly via `clientFetch()` / `clientMutate()` in `lib/client-fetch.ts`
   - Uses `NEXT_PUBLIC_BACKEND_URL` + Bearer token from `useSession().backendToken`
   - Data never passes through Vercel servers
   - Used in: ItemsGrid, ItemDetail, Profile, UserProfile, Resolution, Admin tabs, Notifications, LinkableItems
-- **Mutations (writes):** Still use Server Actions (`"use server"` in `lib/api/`) for convenience
+- **Mutations (writes):** thin endpoint wrappers in `lib/api/` over `clientMutate()` (plain functions, no Server Actions)
   - `postLostFoundItem`, `updateItem`, `deleteItem`, `flagItem` — `lib/api/items.ts`
   - `createResolution`, `approveResolution`, `rejectResolution`, `completeResolution`, `failResolution` — `lib/api/resolutions.ts`
   - `moderateUser`, `moderateItem` — `lib/api/admin.ts`
   - `readNotification`, `readAllNotifications` — `lib/api/notifications.ts`
-  - `updateOnboarding` — `lib/api/profile.ts`
+  - `updateOnboarding`, `updateContact` — `lib/api/profile.ts`
 
 ## API Rules
-- **Server->Backend**: `authFetch` / `publicFetch` / `internalFetchWithTimeout` in `lib/api/helpers.ts` (used by server actions & auth)
-- **Browser->Backend**: `clientFetch` in `lib/client-fetch.ts` (used by client components)
-  - Passes token from `useSession()` automatically; no cache headers needed (browser native cache)
-- **Env:** `NEXT_PUBLIC_BACKEND_URL` (browser), `INTERNAL_BACKEND_URL` (server), `INTERNAL_SECRET_KEY`
+- **Server->Backend**: `internalFetchWithTimeout` in `lib/api/helpers.ts` (NextAuth signIn/jwt callbacks only)
+- **Browser->Backend**: `clientFetch` (reads, throws `APIError`) and `clientMutate` (writes, returns `{ ok, status?, data? }`; rethrows `USER_BANNED`) in `lib/client-fetch.ts`
+  - Pass token from `useSession()` automatically at call sites; no cache headers needed (browser native cache)
+- **Env:** `NEXT_PUBLIC_BACKEND_URL` (browser), `INTERNAL_BACKEND_URL` + `INTERNAL_SECRET_KEY` (NextAuth server callbacks only)
 
-## Server Actions (mutations only — kept in `lib/api/`)
+## Mutations (client-side wrappers in `lib/api/`)
 - `items.ts`: `postLostFoundItem`, `updateItem`, `deleteItem`, `flagItem`
 - `resolutions.ts`: `createResolution`, `approveResolution`, `rejectResolution`, `completeResolution`, `failResolution`
 - `admin.ts`: `moderateUser`, `moderateItem`
 - `notifications.ts`: `readNotification`, `readAllNotifications`
-- `profile.ts`: `updateOnboarding`
-- (Read-only server actions removed — migrated to client-side)
+- `profile.ts`: `updateOnboarding`, `updateContact`
+- (Server Actions fully removed — all requests are direct browser→backend)
 
 ## SWR (Notifications)
 - `notifications/all`: 300s dedup, no focus revalidate

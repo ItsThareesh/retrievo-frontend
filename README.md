@@ -12,7 +12,7 @@ A modern Lost & Found web application for campus communities built with Next.js 
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com/) (New York Style)
 - **Authentication**: [NextAuth v5](https://authjs.dev/) (Google OAuth + JWT backend)
-- **Data Fetching**: Browser->Backend via `clientFetch()` (reads); Server Actions (mutations)
+- **Data Fetching**: Browser->Backend via `clientFetch()` (reads) and `clientMutate()` (writes)
 - **Client State**: [SWR](https://swr.vercel.app/) for notifications
 - **Forms**: React Hook Form + Zod v4
 - **Icons**: Lucide React
@@ -51,21 +51,13 @@ A modern Lost & Found web application for campus communities built with Next.js 
 
 ### Data Flow
 
-**Reads (auth-gated data):**
+**All API calls (reads + writes):**
 ```
-Browser → clientFetch() → NEXT_PUBLIC_BACKEND_URL (direct, no Vercel proxy)
+Browser → clientFetch() / clientMutate() → NEXT_PUBLIC_BACKEND_URL (direct, no Vercel proxy)
 ```
 - Uses Bearer token from `useSession().backendToken`
-- Used in: ItemsGrid, ItemDetail, Profile, Resolution, Admin tabs, Notifications
-
-**Mutations (writes):**
-```
-Browser → Server Action → authFetch() → INTERNAL_BACKEND_URL
-```
-- Server Actions in `lib/api/`: items, resolutions, admin, notifications, profile
-- `internalFetchWithTimeout` adds an `X-Internal-Secret` header, but the backend
-  no longer validates it (that middleware was removed) — the header is sent for
-  legacy/future use only
+- Reads throw `APIError` on failure; writes return `{ ok, status?, data? }` (`USER_BANNED` rethrown)
+- Thin endpoint wrappers live in `lib/api/`: items, resolutions, admin, notifications, profile
 
 **Public reads (no auth):**
 ```
@@ -115,8 +107,8 @@ cp .env.example .env.local
 | `NEXTAUTH_SECRET` | Yes | NextAuth session encryption key |
 | `AUTH_TRUST_HOST` | Yes | Required by Auth.js — set to `true` |
 | `NEXT_PUBLIC_BACKEND_URL` | Yes | Backend URL used by the browser (e.g. `http://localhost:8000/api/v1`) |
-| `INTERNAL_BACKEND_URL` | Yes | Backend URL used server-side (e.g. `http://localhost:8000/api/v1`) |
-| `INTERNAL_SECRET_KEY` | Yes | Required by the frontend fetch helpers; sent as `X-Internal-Secret`, but no longer validated by the backend |
+| `INTERNAL_BACKEND_URL` | Yes | Backend URL used by NextAuth server callbacks (e.g. `http://localhost:8000/api/v1`) |
+| `INTERNAL_SECRET_KEY` | Yes | Sent as `X-Internal-Secret` by NextAuth server callbacks; no longer validated by the backend |
 
 ### Development
 
@@ -167,14 +159,14 @@ components/              # React components
 
 lib/                     # Core logic
 ├── auth.ts              # NextAuth configuration
-├── client-fetch.ts      # Browser→backend fetch utility
-├── api/                 # Server Actions (mutations only)
-│   ├── helpers.ts       # authFetch, publicFetch, internalFetchWithTimeout
+├── client-fetch.ts      # Browser→backend fetch utilities (clientFetch reads, clientMutate writes)
+├── api/                 # Thin client-side endpoint wrappers (mutations)
+│   ├── helpers.ts       # internalFetchWithTimeout (NextAuth server callbacks only)
 │   ├── items.ts         # postLostFoundItem, updateItem, deleteItem, flagItem
 │   ├── resolutions.ts   # create/approve/reject/complete/fail resolution
 │   ├── admin.ts         # moderateUser, moderateItem
 │   ├── notifications.ts # readNotification, readAllNotifications
-│   └── profile.ts       # updateOnboarding
+│   └── profile.ts       # updateOnboarding, updateContact
 ├── constants/           # Locations, report reasons
 ├── hooks/               # useNotifications, useItemEditable, useDebounce
 └── utils/               # cn(), image compression, validation, date formatting
@@ -196,7 +188,7 @@ public/                  # Static assets
 - **Image Compression**: Uploaded images are compressed to WebP ≤ 0.9 MB (HEIC/HEIF supported)
 - **Diff-Only PATCHES**: Item edits send only changed fields to the backend
 - **Debounced Search**: 400ms debounce on search input to reduce server load
-- **Error Handling**: `APIError` from `authFetch` re-thrown through server actions; `code === "USER_BANNED"` triggers sign-out
+- **Error Handling**: `APIError` from `clientFetch`/`clientMutate`; `code === "USER_BANNED"` triggers sign-out
 - **Auth Guards**: In `page.tsx` files (redirect to `/auth/signin` or `/onboarding`), never in middleware
 - **Token in Session**: `backendToken` attached to session — never stored in `localStorage`
 
@@ -213,7 +205,7 @@ public/                  # Static assets
 
 This frontend communicates with a [FastAPI backend](https://github.com/ItsThareesh/retrievo-backend):
 
-- **Browser→Backend**: `clientFetch()` in `lib/client-fetch.ts` — direct API calls with Bearer token
-- **Server→Backend**: `authFetch()` / `publicFetch()` in `lib/api/helpers.ts` — Bearer-token authenticated; also sends `X-Internal-Secret` (no longer validated by the backend)
+- **Browser→Backend**: `clientFetch()` / `clientMutate()` in `lib/client-fetch.ts` — direct API calls with Bearer token
+- **Server→Backend**: `internalFetchWithTimeout()` in `lib/api/helpers.ts` — NextAuth signIn/jwt callbacks only; sends `X-Internal-Secret` (no longer validated by the backend)
 - **Endpoints**: Items CRUD, resolutions, admin moderation, notifications, profile, auth
 - **Image CDN**: `cdn.retrievo.dev` for uploaded item images

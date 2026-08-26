@@ -125,7 +125,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         console.log(updates);
 
         try {
-            const res = await updateItem(item.id, updates);
+            const res = await updateItem(item.id, updates, session?.backendToken);
 
             if (res.ok) {
                 toast.success("Item updated successfully.");
@@ -159,7 +159,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         setIsProcessingDelete(true);
 
         try {
-            const res = await deleteItem(item.id);
+            const res = await deleteItem(item.id, session?.backendToken);
 
             if (res.ok) {
                 toast.success("Item deleted successfully");
@@ -214,10 +214,10 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
             }
 
             const description = claimText.trim() || null;
-            const res = await createResolution(lostItemId, foundItemId, description);
+            const res = await createResolution(lostItemId, foundItemId, description, session?.backendToken);
 
             if (!res.ok) {
-                const errorCode = res.detail?.code;
+                const errorCode = res.data?.detail?.code;
                 if (errorCode === "RESOLUTION_COOLDOWN_ACTIVE") {
                     toast.error("Your claim has been rejected recently. Please wait before creating a new one.");
                 } else if (errorCode === "PAIR_TEMPORARILY_SUPPRESSED") {
@@ -257,7 +257,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         setIsReporting(true);
 
         try {
-            const res = await flagItem(item.id, reason);
+            const res = await flagItem(item.id, reason, session?.backendToken);
 
             if (res.ok) {
                 toast.success("Report submitted. We'll review it shortly.");

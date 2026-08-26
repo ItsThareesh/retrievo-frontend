@@ -47,6 +47,7 @@ function getInitials(name: string) {
 
 function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => void }) {
     const { handleBanError } = useBanHandler();
+    const { data: session } = useSession();
     const [actionDialog, setActionDialog] = useState<{
         open: boolean;
         action: () => Promise<void>;
@@ -60,7 +61,7 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
         reason?: string
     ) => {
         try {
-            await moderateUser(userId, { action, reason, ban_days: 7 });
+            await moderateUser(userId, { action, reason, ban_days: 7 }, session?.backendToken);
             onUpdate();
         } catch (error) {
             if (handleBanError(error)) return;

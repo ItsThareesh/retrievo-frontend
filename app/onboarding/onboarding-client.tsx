@@ -72,7 +72,7 @@ export default function OnboardingClient() {
         try {
             setIsSubmitting(true);
 
-            const res = await updateOnboarding(payload);
+            const res = await updateOnboarding(payload, session?.backendToken);
 
             if (res.status === 422) {
                 toast.error("Invalid. Please check your details and try again.");
@@ -87,8 +87,8 @@ export default function OnboardingClient() {
             // Update NextAuth session - include the fresh JWT so the hostel claim is accurate immediately
             await update({
                 ...payload,
-                backendToken: res.access_token,
-                expires_at: res.expires_at,
+                backendToken: res.data?.access_token,
+                expires_at: res.data?.expires_at,
             });
 
             toast.success("Welcome! Your profile has been set up.");

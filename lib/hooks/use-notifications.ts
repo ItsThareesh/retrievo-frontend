@@ -188,7 +188,7 @@ export function useNotifications() {
         try {
             const updated = await mutateNotifications(
                 async (current) => {
-                    const res = await readNotification(id);
+                    const res = await readNotification(id, token);
                     if (!res.ok) {
                         throw new Error(
                             `markAsRead failed: ${(res as { status?: number }).status ?? "unknown"}`
@@ -234,7 +234,7 @@ export function useNotifications() {
         try {
             const updated = await mutateNotifications(
                 async (current) => {
-                    const res = await readAllNotifications();
+                    const res = await readAllNotifications(token);
                     if (!res.ok) {
                         throw new Error(
                             `markAllAsRead failed: ${(res as { status?: number }).status ?? "unknown"}`
