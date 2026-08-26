@@ -22,18 +22,24 @@
   - `updateOnboarding`, `updateContact` — `lib/api/profile.ts`
 
 ## API Rules
+- **Transport** (`lib/client-fetch.ts` — the only two primitives):
+  - `clientFetch(path, token?, options?)` — reads; throws `APIError` (has `.status`, `.code`, `.data`)
+  - `clientMutate(path, token?, options?)` — writes; resolves to `{ ok, status?, data? }`; rethrows only `USER_BANNED`
+- **Endpoints** live ONLY in `lib/api/<domain>.ts` as plain functions, one uniform convention:
+  - Reads: `get<Thing>(...args, token?)` → returns data, throws on failure
+  - Writes: `<verb><Thing>(...args, token?)` → returns `{ ok }` result
+  - To add a new endpoint: add a one-liner to the relevant domain module (create the module if new domain); never call `clientFetch`/hardcode paths in components
+- **Token**: callers pass `session?.backendToken` from `useSession()` as trailing arg
 - **Server->Backend**: `internalFetchWithTimeout` in `lib/api/helpers.ts` (NextAuth signIn/jwt callbacks only)
-- **Browser->Backend**: `clientFetch` (reads, throws `APIError`) and `clientMutate` (writes, returns `{ ok, status?, data? }`; rethrows `USER_BANNED`) in `lib/client-fetch.ts`
-  - Pass token from `useSession()` automatically at call sites; no cache headers needed (browser native cache)
 - **Env:** `NEXT_PUBLIC_BACKEND_URL` (browser), `INTERNAL_BACKEND_URL` + `INTERNAL_SECRET_KEY` (NextAuth server callbacks only)
 
-## Mutations (client-side wrappers in `lib/api/`)
-- `items.ts`: `postLostFoundItem`, `updateItem`, `deleteItem`, `flagItem`
-- `resolutions.ts`: `createResolution`, `approveResolution`, `rejectResolution`, `completeResolution`, `failResolution`
-- `admin.ts`: `moderateUser`, `moderateItem`
-- `notifications.ts`: `readNotification`, `readAllNotifications`
-- `profile.ts`: `updateOnboarding`, `updateContact`
-- (Server Actions fully removed — all requests are direct browser→backend)
+## Mutations & Reads (client-side wrappers in `lib/api/`)
+- `items.ts`: getItems, getItem | postLostFoundItem, updateItem, deleteItem, flagItem
+- `resolutions.ts`: getResolution, getLinkableItems | createResolution, approveResolution, rejectResolution, completeResolution, failResolution
+- `admin.ts`: getStats, getActivity, getUsers, getReportedItems, getAdminResolutions | moderateUser, moderateItem
+- `notifications.ts`: getNotifications, getNotificationCount | readNotification, readAllNotifications
+- `profile.ts`: getMyItems, getUserProfile | updateOnboarding, updateContact
+- (No Server Actions — all requests are direct browser→backend)
 
 ## SWR (Notifications)
 - `notifications/all`: 300s dedup, no focus revalidate

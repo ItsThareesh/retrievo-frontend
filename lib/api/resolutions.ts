@@ -1,4 +1,14 @@
-import { clientMutate } from "@/lib/client-fetch";
+import { clientFetch, clientMutate } from "@/lib/client-fetch";
+
+/** GET: Resolution detail (with item, viewer, actions) */
+export function getResolution(resolutionId: string, token?: string) {
+    return clientFetch(`/resolutions/${resolutionId}`, token);
+}
+
+/** GET: Items linkable to a resolution (claim/return) */
+export function getLinkableItems(itemId: string, token?: string) {
+    return clientFetch(`/resolutions/linkable-items/${itemId}`, token);
+}
 
 /** POST: Create a resolution (claim/return) */
 export function createResolution(

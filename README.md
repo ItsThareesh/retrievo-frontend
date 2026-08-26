@@ -53,11 +53,11 @@ A modern Lost & Found web application for campus communities built with Next.js 
 
 **All API calls (reads + writes):**
 ```
-Browser → clientFetch() / clientMutate() → NEXT_PUBLIC_BACKEND_URL (direct, no Vercel proxy)
+Browser → lib/api/<domain> function → clientFetch() / clientMutate() → NEXT_PUBLIC_BACKEND_URL
 ```
-- Uses Bearer token from `useSession().backendToken`
-- Reads throw `APIError` on failure; writes return `{ ok, status?, data? }` (`USER_BANNED` rethrown)
-- Thin endpoint wrappers live in `lib/api/`: items, resolutions, admin, notifications, profile
+- Every endpoint is a plain function in `lib/api/` with a trailing optional `token`:
+  - Reads `get*(...)` return data and throw `APIError`; writes resolve `{ ok, status?, data? }` (`USER_BANNED` rethrown)
+  - Components never import fetch helpers or hardcode API paths — they import from `lib/api/*` only
 
 **Public reads (no auth):**
 ```

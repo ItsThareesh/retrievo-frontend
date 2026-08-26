@@ -24,7 +24,7 @@ import {
     failResolution,
 } from "@/lib/api/resolutions";
 import { APIError } from "@/lib/api-error";
-import { clientFetch } from "@/lib/client-fetch";
+import { getResolution } from "@/lib/api/resolutions";
 
 import { ActionButtons } from "./components/action-buttons";
 import { RejectionDialog } from "./components/rejection-dialog";
@@ -305,15 +305,6 @@ function resolveStatusUI(
 }
 
 
-interface ResolutionData {
-    resolution: Resolution;
-    item: Item;
-    finder_contact: FinderContact | null;
-    viewer: Viewer;
-    allowed_actions: AllowedAction[];
-    linked_item: LinkedItem | null;
-}
-
 export default function ClaimStatusPage() {
     const params = useParams();
     const resolutionId = params.id as string;
@@ -338,7 +329,7 @@ export default function ClaimStatusPage() {
 
         setIsLoading(true);
         setFetchError(null);
-        clientFetch<ResolutionData>(`/resolutions/${resolutionId}`, token)
+        getResolution(resolutionId, token)
             .then((data) => {
                 if (cancelled) return;
                 setResolution(data.resolution);

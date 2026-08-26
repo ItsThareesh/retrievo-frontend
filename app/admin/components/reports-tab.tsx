@@ -11,7 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { ActivitySkeleton } from "./skeletons";
-import { clientFetch } from "@/lib/client-fetch";
+import { getReportedItems } from "@/lib/api/admin";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ReportedItemDetail } from "@/types/admin";
@@ -199,7 +199,7 @@ export function ReportsTab() {
     });
     const { data: reportedItems, isLoading, mutate } = useSWR(
         token ? ['reported-items', 50, token] : null,
-        ([, , t]) => clientFetch<ReportedItemDetail[]>('/admin/reported-items?limit=50', t),
+        ([, , t]) => getReportedItems(t),
     );
 
     const toggleExpanded = (itemId: string) => {

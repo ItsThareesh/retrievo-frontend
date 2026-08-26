@@ -1,5 +1,15 @@
-import { clientMutate } from "@/lib/client-fetch";
+import { clientFetch, clientMutate } from "@/lib/client-fetch";
 import { OnboardingPayload, ContactPayload } from "@/types/user";
+
+/** GET: Current user's items */
+export function getMyItems(token?: string) {
+    return clientFetch('/profile/items', token);
+}
+
+/** GET: Public profile of a user with their items */
+export function getUserProfile(userId: string, token?: string) {
+    return clientFetch(`/profile/${userId}`, token);
+}
 
 /** POST: Onboarding Completion */
 export function updateOnboarding(payload: OnboardingPayload, token?: string) {

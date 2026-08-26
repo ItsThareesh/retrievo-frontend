@@ -5,10 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Notification } from "@/types/notification";
 import {
+    getNotifications,
+    getNotificationCount,
     readNotification,
     readAllNotifications,
 } from "@/lib/api/notifications";
-import { clientFetch } from "@/lib/client-fetch";
 
 interface NotificationsResponse {
     notifications: Notification[];
@@ -92,7 +93,7 @@ export function useNotifications() {
         mutate: mutateNotifications,
     } = useSWR<NotificationsResponse>(
         swrKey,
-        ([, t]) => clientFetch<NotificationsResponse>("/notifications/all", t),
+        ([, t]) => getNotifications(t),
         {
             fallbackData: undefined,
             revalidateOnMount: false,
@@ -109,7 +110,7 @@ export function useNotifications() {
 
     const { data: countData } = useSWR<CountResponse>(
         countKey,
-        ([, t]) => clientFetch<CountResponse>("/notifications/count", t),
+        ([, t]) => getNotificationCount(t),
         {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,

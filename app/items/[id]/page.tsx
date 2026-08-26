@@ -37,7 +37,7 @@ import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./ite
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 import { formatDateString } from "@/lib/date-formatting";
 import { APIError } from "@/lib/api-error";
-import { clientFetch } from "@/lib/client-fetch";
+import { getItem } from "@/lib/api/items";
 import { ItemDetailSkeleton } from "../items-loading-skeleton";
 import { useEffect, useState } from "react";
 import { Session } from "next-auth";
@@ -73,7 +73,7 @@ export default function ItemDetailPage() {
         setForbidden(false);
         window.scrollTo(0, 0);
 
-        clientFetch<ItemData>(`/items/${id}`, token)
+        getItem(id, token)
             .then((data) => {
                 if (cancelled) return;
                 setItemData(data);

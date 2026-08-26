@@ -6,11 +6,10 @@ import { Item } from "@/types/item";
 import { Session } from "next-auth";
 import { User as UserType } from "@/types/user";
 import { updateItem, deleteItem, flagItem } from "@/lib/api/items";
-import { createResolution } from "@/lib/api/resolutions";
-import { clientFetch } from "@/lib/client-fetch";
+import { createResolution, getLinkableItems } from "@/lib/api/resolutions";
 import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
-import { ResolutionStatus, LinkableItem } from "@/types/resolutions";
+import { ResolutionStatus } from "@/types/resolutions";
 import { useBanHandler } from "./use-ban-handler";
 
 interface UseItemEditableProps {
@@ -61,9 +60,9 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
 
     const { data: linkableItemsData, isLoading: isLoadingLinkableItems } = useSWR(
         (canClaim || canReturn) && session?.backendToken && isClaiming
-            ? [`/resolutions/linkable-items/${item.id}`, session.backendToken]
+            ? [item.id, session.backendToken]
             : null,
-        ([url, t]) => clientFetch<LinkableItem[]>(url, t)
+        ([itemId, t]) => getLinkableItems(itemId, t)
     );
     const linkableItems = linkableItemsData || [];
 

@@ -22,7 +22,7 @@ import { ContactPayload } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { APIError } from '@/lib/api-error';
-import { clientFetch } from '@/lib/client-fetch';
+import { getMyItems } from '@/lib/api/profile';
 import { standardizeItemDate } from '@/lib/date-formatting';
 import { useBanHandler } from '@/lib/hooks/use-ban-handler';
 import { updateContact } from '@/lib/api/profile';
@@ -119,7 +119,7 @@ export function ProfileClient() {
         if (status !== "authenticated" || !token) return;
         let cancelled = false;
 
-        clientFetch<{ lost_items: Item[]; found_items: Item[] }>('/profile/items', token)
+        getMyItems(token)
             .then((data) => {
                 if (cancelled) return;
                 setLostItems(data.lost_items.map(standardizeItemDate));

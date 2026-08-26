@@ -31,7 +31,7 @@ import { UserDetail } from "@/types/admin";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { UsersSkeleton } from "./skeletons";
-import { clientFetch } from "@/lib/client-fetch";
+import { getUsers } from "@/lib/api/admin";
 import { useBanHandler } from "@/lib/hooks/use-ban-handler";
 
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
@@ -242,15 +242,9 @@ export function UsersTab() {
     const [search, setSearch] = useState("");
     const debouncedSearch = useDebouncedValue(search, 500);
 
-    const buildUsersUrl = (search: string) => {
-        const params = new URLSearchParams({ limit: "50", skip: "0" });
-        if (search) params.set("search", search);
-        return `/admin/users?${params}`;
-    };
-
     const { data: users, isLoading, mutate } = useSWR(
         token ? ['users', debouncedSearch, token] : null,
-        ([, search, t]) => clientFetch<UserDetail[]>(buildUsersUrl(search), t),
+        ([, search, t]) => getUsers(search, t),
     );
 
     return (
