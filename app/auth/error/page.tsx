@@ -5,10 +5,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle, Home, RefreshCw, Wifi, WifiOff } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useIsPwa } from "@/lib/hooks/use-is-pwa";
 import { Suspense } from "react";
 
 function AuthErrorContent() {
     const searchParams = useSearchParams();
+    const isPwa = useIsPwa();
     const error = searchParams.get('error');
 
     const errorMap: Record<string, {
@@ -165,7 +167,7 @@ function AuthErrorContent() {
                         className="w-full h-12 text-base font-medium cursor-pointer hover:bg-muted transition-all"
                         asChild
                     >
-                        <Link href="/">
+                        <Link href={isPwa ? "/items" : "/"}>
                             <Home className="w-4 h-4 mr-2" />
                             Return to Home
                         </Link>

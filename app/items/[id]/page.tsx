@@ -29,6 +29,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter, useParams, notFound } from "next/navigation";
+import { useIsPwa } from "@/lib/hooks/use-is-pwa";
 import { useItemEditable } from "@/lib/hooks/use-item-editable";
 import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
@@ -54,6 +55,7 @@ export default function ItemDetailPage() {
     const id = params.id as string;
     const { data: session, status: sessionStatus } = useSession();
     const token = session?.backendToken;
+    const isPwa = useIsPwa();
 
     const [itemData, setItemData] = useState<ItemData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -153,7 +155,7 @@ export default function ItemDetailPage() {
                             variant="outline"
                             className="w-full h-12 text-base font-medium cursor-pointer hover:bg-muted/50 transition-all hover:border-primary/50 hover:shadow-sm"
                         >
-                            <Link href="/">Return to Home</Link>
+                            <Link href={isPwa ? "/items" : "/"}>Return to Home</Link>
                         </Button>
                         <div className="text-center text-sm text-muted-foreground">
                             <Link href="/items" className="hover:text-primary hover:underline transition-colors">

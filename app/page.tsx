@@ -5,9 +5,18 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Play, ChevronUp } from 'lucide-react';
 import { FeaturesSection, FAQSection, Glow, Footer } from "@/components/landing-page";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useIsPwa } from "@/lib/hooks/use-is-pwa";
 
 export default function Home() {
-  useEffect(() => { window.scrollTo(0, 0) }, []);
+  const router = useRouter();
+  const isPwa = useIsPwa();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // Installed PWA users never see the landing page - straight to the feed
+    if (isPwa) router.replace("/items");
+  }, [isPwa, router]);
 
   const heroAnimations = `
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

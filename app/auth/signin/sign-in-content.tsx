@@ -6,12 +6,14 @@ import { Loader2, Search } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useIsPwa } from "@/lib/hooks/use-is-pwa";
 import { useState } from "react";
 
 export default function SignInContent() {
     const searchParams = useSearchParams();
+    const isPwa = useIsPwa();
     const error = searchParams.get("error");
-    const callbackUrl = searchParams.get("callbackUrl") || "/";
+    const callbackUrl = searchParams.get("callbackUrl") || (isPwa ? "/items" : "/");
     const [isSigningIn, setIsSigningIn] = useState(false);
 
     return (
@@ -63,7 +65,7 @@ export default function SignInContent() {
 
                 <CardFooter className="flex flex-col gap-4 pb-8 text-center">
                     <div className="text-sm text-muted-foreground">
-                        <Link href="/" className="hover:text-primary hover:underline transition-colors inline-flex items-center gap-1">
+                        <Link href={isPwa ? "/items" : "/"} className="hover:text-primary hover:underline transition-colors inline-flex items-center gap-1">
                             Return to Home
                         </Link>
                     </div>
