@@ -10,8 +10,8 @@ import { formatDistanceToNow } from "date-fns";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { OverviewSkeleton } from "./skeletons";
-import type { OverviewStats, ActivityItem } from "@/types/admin";
-import { clientFetch } from "@/lib/client-fetch";
+import type { OverviewStats } from "@/types/admin";
+import { getStats, getActivity } from "@/lib/api/admin";
 
 function TrendIndicator({ current, previous, suffix }: { current: number; previous: number; suffix?: string }) {
     if (previous === 0 && current === 0) {
@@ -219,11 +219,11 @@ export function OverviewTab() {
 
     const { data: stats, isLoading: statsLoading } = useSWR(
         token ? ["stats", token] : null,
-        ([, t]) => clientFetch<OverviewStats>("/admin/stats", t),
+        ([, t]) => getStats(t),
     );
     const { data: activity, isLoading: activityLoading } = useSWR(
         token ? ["activity", 10, token] : null,
-        ([, , t]) => clientFetch<ActivityItem[]>(`/admin/activity?limit=10`, t),
+        ([, , t]) => getActivity(t),
     );
 
     if (statsLoading || activityLoading) {

@@ -14,7 +14,8 @@ import {
 import { ItemCard } from "@/components/item-card";
 import { Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { clientFetch } from "@/lib/client-fetch";
+import { getItems } from "@/lib/api/items";
+import { handleBanError } from "@/lib/ban-handler";
 import { standardizeItemDate } from "@/lib/date-formatting";
 import { ItemsGridSkeleton, ItemsLoadMoreSkeleton } from "./items-loading-skeleton";
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
@@ -24,21 +25,6 @@ interface PaginatedResponse {
     items: Item[];
     cursor: string | null;
     has_more: boolean;
-}
-
-/** Build a query string for the given cursor and current filter values. */
-function buildQueryString(
-    cursor: string | null,
-    search: string,
-    category: string,
-    type: string,
-): string {
-    const params = new URLSearchParams({ limit: "16" });
-    if (cursor) params.set("cursor", cursor);
-    if (search) params.set("search", search);
-    if (category !== "all") params.set("category", category);
-    if (type !== "all") params.set("item_type", type);
-    return params.toString();
 }
 
 export function ItemsGridClient() {
@@ -70,12 +56,10 @@ export function ItemsGridClient() {
         type: string,
     ): Promise<PaginatedResponse | null> {
         try {
-            const data = await clientFetch<PaginatedResponse>(
-                `/items/all?${buildQueryString(cursor, search, category, type)}`,
-                token,
-            );
+            const data = await getItems(cursor, search, category, type, token);
             return data;
-        } catch {
+        } catch (err) {
+            handleBanError(err);
             return null;
         }
     }

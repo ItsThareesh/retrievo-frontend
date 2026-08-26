@@ -1,43 +1,21 @@
-"use server";
+import { clientFetch } from "@/lib/client-fetch";
 
-import { authFetch, APIError } from "./helpers";
-
-export async function readNotification(notificationId: string) {
-    try {
-        const res = await authFetch(`/notifications/${notificationId}/mark-read`, {
-            method: "POST",
-        });
-
-        if (!res.ok) {
-            console.error("readNotification failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("readNotification error:", err);
-        return { ok: false, error: String(err) };
-    }
+/** GET: All notifications for the current user */
+export function getNotifications(token?: string) {
+    return clientFetch('/notifications/all', token);
 }
 
-export async function readAllNotifications() {
-    try {
-        const res = await authFetch(`/notifications/mark-all-read`, {
-            method: "POST",
-        });
+/** GET: Unread notification count */
+export function getNotificationCount(token?: string) {
+    return clientFetch('/notifications/count', token);
+}
 
-        if (!res.ok) {
-            console.error("readAllNotifications failed:", res.status);
-            return { ok: false, status: res.status };
-        }
+/** POST: Mark a single notification as read */
+export function readNotification(notificationId: string, token?: string) {
+    return clientFetch(`/notifications/${notificationId}/mark-read`, token, { method: "POST" });
+}
 
-        return { ok: true };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("readAllNotifications error:", err);
-        return { ok: false, error: String(err) };
-    }
+/** POST: Mark all notifications as read */
+export function readAllNotifications(token?: string) {
+    return clientFetch(`/notifications/mark-all-read`, token, { method: "POST" });
 }

@@ -14,7 +14,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { APIError } from '@/lib/api-error';
-import { clientFetch } from '@/lib/client-fetch';
+import { getUserProfile } from '@/lib/api/profile';
+import { handleBanError } from '@/lib/ban-handler';
 import { standardizeItemDate } from '@/lib/date-formatting';
 import { UserProfileLoading } from '../user-profile-loading';
 
@@ -36,10 +37,7 @@ export default function UserPage() {
 
         setIsLoading(true);
         setNotFoundError(false);
-        clientFetch<{ user: UserType; lost_items: Item[]; found_items: Item[] }>(
-            `/profile/${id}`,
-            token,
-        )
+        getUserProfile(id, token)
             .then((data) => {
                 if (cancelled) return;
                 setUser(data.user);
@@ -49,6 +47,7 @@ export default function UserPage() {
             })
             .catch((err) => {
                 if (cancelled) return;
+                if (handleBanError(err)) return;
                 if (err instanceof APIError && err.status === 404) {
                     setNotFoundError(true);
                 }

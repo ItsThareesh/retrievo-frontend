@@ -1,62 +1,28 @@
-"use server";
-
-import { authFetch, APIError } from "./helpers";
+import { clientFetch } from "@/lib/client-fetch";
 import { OnboardingPayload, ContactPayload } from "@/types/user";
 
-/** POST: Onboarding Completion */
-export async function updateOnboarding(payload: OnboardingPayload) {
-    try {
-        const res = await authFetch('/profile/complete-onboarding', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
+/** GET: Current user's items */
+export function getMyItems(token?: string) {
+    return clientFetch('/profile/items', token);
+}
 
-        if (!res.ok) {
-            console.error("updateOnboarding failed:", res.status);
-            return { ok: false, status: res.status };
-        }
+/** GET: Public profile of a user with their items */
+export function getUserProfile(userId: string, token?: string) {
+    return clientFetch(`/profile/${userId}`, token);
+}
 
-        const data = await res.json();
-
-        return {
-            ok: true,
-            access_token: data.access_token as string,
-            expires_at: data.expires_at as number,
-        };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("updateOnboarding error:", err);
-        return { ok: false, error: String(err) };
-    }
+/** POST: Onboarding Completion (returns fresh access_token) */
+export function updateOnboarding(payload: OnboardingPayload, token?: string) {
+    return clientFetch<{ access_token: string; expires_at: number }>('/profile/complete-onboarding', token, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
 }
 
 /** PATCH: Update contact details (phone / Instagram) */
-export async function updateContact(payload: ContactPayload) {
-    try {
-        const res = await authFetch('/profile/contact', {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-            console.error("updateContact failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        const data = await res.json();
-
-        return {
-            ok: true,
-            phone: data.phone as string | null,
-            instagramId: data.instagramId as string | null,
-        };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("updateContact error:", err);
-        return { ok: false, error: String(err) };
-    }
+export function updateContact(payload: ContactPayload, token?: string) {
+    return clientFetch('/profile/contact', token, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+    });
 }

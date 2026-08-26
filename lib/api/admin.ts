@@ -1,56 +1,49 @@
-"use server";
+import { ModerateUserRequest, ModerateItemRequest, UserDetail, ResolutionDetail, ActivityItem, ReportedItemDetail } from "@/types/admin";
+import { clientFetch } from "@/lib/client-fetch";
 
-import {
-    ModerateUserRequest,
-    ModerateItemRequest,
-} from "@/types/admin";
-import { authFetch, safeJson, APIError } from "./helpers";
-
-export async function moderateUser(userId: number, request: ModerateUserRequest) {
-    try {
-        const res = await authFetch(`/admin/users/${userId}/moderate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(request),
-        });
-
-        if (!res.ok) {
-            console.error("moderateUser failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true, data: await safeJson(res) };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("moderateUser error:", err);
-        return { ok: false, error: String(err) };
-    }
+/** GET: Platform stats for the overview tab */
+export function getStats(token?: string) {
+    return clientFetch("/admin/stats", token);
 }
 
-export async function moderateItem(itemId: string, request: ModerateItemRequest) {
-    try {
-        const res = await authFetch(`/admin/items/${itemId}/moderate`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(request),
-        });
+/** GET: Recent admin-relevant activity */
+export function getActivity(token?: string) {
+    return clientFetch<ActivityItem[]>("/admin/activity?limit=10", token);
+}
 
-        if (!res.ok) {
-            console.error("moderateItem failed:", res.status);
-            try {
-                const errorData = await res.json();
-                return { ok: false, status: res.status, errorData };
-            } catch (e) {
-                return { ok: false, status: res.status };
-            }
-        }
+/** GET: Users (optionally filtered by search) */
+export function getUsers(search: string, token?: string) {
+    const params = new URLSearchParams({ limit: "50", skip: "0" });
+    if (search) params.set("search", search);
 
-        return { ok: true, data: await safeJson(res) };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
+    return clientFetch<UserDetail[]>(`/admin/users?${params}`, token);
+}
 
-        console.error("moderateItem error:", err);
-        return { ok: false, error: String(err) };
-    }
+/** GET: Reported items */
+export function getReportedItems(token?: string) {
+    return clientFetch<ReportedItemDetail[]>("/admin/reported-items?limit=50", token);
+}
+
+/** GET: Resolutions (optionally filtered by search) */
+export function getAdminResolutions(search: string, token?: string) {
+    const params = new URLSearchParams({ limit: "50", skip: "0" });
+    if (search) params.set("search", search);
+
+    return clientFetch<ResolutionDetail[]>(`/admin/resolutions?${params}`, token);
+}
+
+/** POST: Warn / ban / unban a user */
+export function moderateUser(userId: number, request: ModerateUserRequest, token?: string) {
+    return clientFetch(`/admin/users/${userId}/moderate`, token, {
+        method: "POST",
+        body: JSON.stringify(request),
+    });
+}
+
+/** POST: Hide / restore / delete an item */
+export function moderateItem(itemId: string, request: ModerateItemRequest, token?: string) {
+    return clientFetch(`/admin/items/${itemId}/moderate`, token, {
+        method: "POST",
+        body: JSON.stringify(request),
+    });
 }

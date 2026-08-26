@@ -22,9 +22,9 @@ import { ContactPayload } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { APIError } from '@/lib/api-error';
-import { clientFetch } from '@/lib/client-fetch';
+import { handleBanError } from '@/lib/ban-handler';
+import { getMyItems } from '@/lib/api/profile';
 import { standardizeItemDate } from '@/lib/date-formatting';
-import { useBanHandler } from '@/lib/hooks/use-ban-handler';
 import { updateContact } from '@/lib/api/profile';
 import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@/lib/utils/contact';
 
@@ -43,7 +43,6 @@ export function ProfileClient() {
     const [instagramInput, setInstagramInput] = useState("");
     const [countryCode, setCountryCode] = useState("+91");
     const [isSavingContact, setIsSavingContact] = useState(false);
-    const { handleBanError } = useBanHandler();
 
     function parsePhone(phone?: string) {
         if (!phone) return { countryCode: "+91", number: "" };
@@ -81,17 +80,7 @@ export function ProfileClient() {
 
         try {
             setIsSavingContact(true);
-            const res = await updateContact(payload);
-
-            if (res.status === 422) {
-                toast.error("Invalid. Please check your details and try again.");
-                return;
-            }
-
-            if (!res.ok) {
-                toast.error("Failed to update contact details. Please try again.");
-                return;
-            }
+            const res = await updateContact(payload, token);
 
             setUser(prev => prev ? {
                 ...prev,
@@ -108,6 +97,13 @@ export function ProfileClient() {
             toast.success("Contact details updated.");
         } catch (err) {
             if (handleBanError(err)) return;
+
+            const status = err instanceof APIError ? err.status : undefined;
+            if (status === 422) {
+                toast.error("Invalid. Please check your details and try again.");
+                return;
+            }
+
             console.error("Failed to update contact:", err);
             toast.error("Failed to update contact details. Please try again.");
         } finally {
@@ -119,7 +115,7 @@ export function ProfileClient() {
         if (status !== "authenticated" || !token) return;
         let cancelled = false;
 
-        clientFetch<{ lost_items: Item[]; found_items: Item[] }>('/profile/items', token)
+        getMyItems(token)
             .then((data) => {
                 if (cancelled) return;
                 setLostItems(data.lost_items.map(standardizeItemDate));

@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Notification } from "@/types/notification";
 import {
+    getNotifications,
+    getNotificationCount,
     readNotification,
     readAllNotifications,
 } from "@/lib/api/notifications";
-import { clientFetch } from "@/lib/client-fetch";
+import { handleBanError } from "@/lib/ban-handler";
 
 interface NotificationsResponse {
     notifications: Notification[];
@@ -92,7 +94,7 @@ export function useNotifications() {
         mutate: mutateNotifications,
     } = useSWR<NotificationsResponse>(
         swrKey,
-        ([, t]) => clientFetch<NotificationsResponse>("/notifications/all", t),
+        ([, t]) => getNotifications(t),
         {
             fallbackData: undefined,
             revalidateOnMount: false,
@@ -109,7 +111,7 @@ export function useNotifications() {
 
     const { data: countData } = useSWR<CountResponse>(
         countKey,
-        ([, t]) => clientFetch<CountResponse>("/notifications/count", t),
+        ([, t]) => getNotificationCount(t),
         {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,
@@ -163,7 +165,8 @@ export function useNotifications() {
     const loadNotifications = async (): Promise<void> => {
         try {
             await mutateNotifications();
-        } catch {
+        } catch (err) {
+            handleBanError(err);
             // error is exposed via isError; do not let an unhandled rejection
             // propagate from a fire-and-forget call site in the dropdown
         }
@@ -188,12 +191,7 @@ export function useNotifications() {
         try {
             const updated = await mutateNotifications(
                 async (current) => {
-                    const res = await readNotification(id);
-                    if (!res.ok) {
-                        throw new Error(
-                            `markAsRead failed: ${(res as { status?: number }).status ?? "unknown"}`
-                        );
-                    }
+                    await readNotification(id, token);
                     return applyUpdate(
                         current,
                         (n) => (n.id === id ? { ...n, is_read: true } : n)
@@ -225,7 +223,8 @@ export function useNotifications() {
                 false
             );
             return { ok: true };
-        } catch {
+        } catch (err) {
+            handleBanError(err);
             return { ok: false };
         }
     };
@@ -234,12 +233,7 @@ export function useNotifications() {
         try {
             const updated = await mutateNotifications(
                 async (current) => {
-                    const res = await readAllNotifications();
-                    if (!res.ok) {
-                        throw new Error(
-                            `markAllAsRead failed: ${(res as { status?: number }).status ?? "unknown"}`
-                        );
-                    }
+                    await readAllNotifications(token);
                     return applyUpdate(current, (n) => ({ ...n, is_read: true }));
                 },
                 {
@@ -265,7 +259,8 @@ export function useNotifications() {
                 false
             );
             return { ok: true };
-        } catch {
+        } catch (err) {
+            handleBanError(err);
             return { ok: false };
         }
     };

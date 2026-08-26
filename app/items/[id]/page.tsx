@@ -37,11 +37,11 @@ import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./ite
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 import { formatDateString } from "@/lib/date-formatting";
 import { APIError } from "@/lib/api-error";
-import { clientFetch } from "@/lib/client-fetch";
+import { getItem } from "@/lib/api/items";
 import { ItemDetailSkeleton } from "../items-loading-skeleton";
 import { useEffect, useState } from "react";
 import { Session } from "next-auth";
-import { useBanHandler } from "@/lib/hooks/use-ban-handler";
+import { handleBanError } from "@/lib/ban-handler";
 
 interface ItemData {
     item: Item;
@@ -61,7 +61,6 @@ export default function ItemDetailPage() {
     const [notFoundError, setNotFoundError] = useState(false);
     const [authRequired, setAuthRequired] = useState(false);
     const [forbidden, setForbidden] = useState(false);
-    const { handleBanError } = useBanHandler();
 
     useEffect(() => {
         if (!id || sessionStatus === "loading") return;
@@ -73,7 +72,7 @@ export default function ItemDetailPage() {
         setForbidden(false);
         window.scrollTo(0, 0);
 
-        clientFetch<ItemData>(`/items/${id}`, token)
+        getItem(id, token)
             .then((data) => {
                 if (cancelled) return;
                 setItemData(data);

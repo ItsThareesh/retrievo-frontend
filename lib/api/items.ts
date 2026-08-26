@@ -1,96 +1,37 @@
-"use server";
+import { clientFetch } from "@/lib/client-fetch";
 
-import { authFetch, safeJson, APIError } from "./helpers";
+/** GET: Item feed (paginated) */
+export function getItems(cursor: string | null, search: string, category: string, type: string, token?: string) {
+    const params = new URLSearchParams({ limit: "16" });
+    if (cursor) params.set("cursor", cursor);
+    if (search) params.set("search", search);
+    if (category !== "all") params.set("category", category);
+    if (type !== "all") params.set("item_type", type);
+
+    return clientFetch(`/items/all?${params}`, token);
+}
+
+/** GET: Single item with reporter info */
+export function getItem(itemId: string, token?: string) {
+    return clientFetch(`/items/${itemId}`, token);
+}
 
 /** POST: Create a new Lost or Found Item */
-export async function postLostFoundItem(formData: FormData) {
-    try {
-        const res = await authFetch('/items/create', {
-            method: "POST",
-            body: formData,
-        });
-
-        if (!res.ok) {
-            console.error("postLostFoundItem failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        const result = await safeJson(res);
-
-        return { ok: true, data: result };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("postLostFoundItem error:", err);
-        return { ok: false, error: String(err) };
-    }
+export function postLostFoundItem(formData: FormData, token?: string) {
+    return clientFetch('/items/create', token, { method: "POST", body: formData, timeout: 30000 }); // Image upload can take time, so we set a longer timeout
 }
 
 /** PATCH: Update item's details */
-export async function updateItem(itemId: string, data: Record<string, any>) {
-    try {
-        const res = await authFetch(`/items/${itemId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        if (!res.ok) {
-            console.error("updateItem failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        const result = await safeJson(res);
-
-        return { ok: true, data: result };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("updateItem error:", err);
-        return { ok: false, error: String(err) };
-    }
+export function updateItem(itemId: string, data: Record<string, any>, token?: string) {
+    return clientFetch(`/items/${itemId}`, token, { method: "PATCH", body: JSON.stringify(data) });
 }
 
 /** DELETE: Delete an item */
-export async function deleteItem(itemId: string) {
-    try {
-        const res = await authFetch(`/items/${itemId}`, {
-            method: "DELETE",
-        });
-
-        if (!res.ok) {
-            console.error("deleteItem failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("deleteItem error:", err);
-        return { ok: false, error: String(err) };
-    }
+export function deleteItem(itemId: string, token?: string) {
+    return clientFetch(`/items/${itemId}`, token, { method: "DELETE" });
 }
 
 /** POST: Flag Item */
-export async function flagItem(itemId: string, reason: string) {
-    try {
-        const res = await authFetch(`/items/${itemId}/flag`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ reason }),
-        });
-
-        if (!res.ok) {
-            console.error("flagItem failed:", res.status);
-            return { ok: false, status: res.status };
-        }
-
-        return { ok: true };
-    } catch (err) {
-        if (err instanceof APIError) throw err;
-
-        console.error("flagItem error:", err);
-        return { ok: false, error: String(err) };
-    }
+export function flagItem(itemId: string, reason: string, token?: string) {
+    return clientFetch(`/items/${itemId}/flag`, token, { method: "POST", body: JSON.stringify({ reason }) });
 }

@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
 import { useSession } from "next-auth/react";
-import { clientFetch } from "@/lib/client-fetch";
+import { getAdminResolutions } from "@/lib/api/admin";
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 import { ClaimsSkeleton } from "./skeletons";
 import { ResolutionStatus } from "@/types/resolutions";
@@ -113,15 +113,9 @@ export function ResolutionsTab() {
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearch = useDebouncedValue(searchQuery, 500);
 
-    const buildResolutionsUrl = (search: string) => {
-        const params = new URLSearchParams({ limit: "50", skip: "0" });
-        if (search) params.set("search", search);
-        return `/admin/resolutions?${params}`;
-    };
-
     const { data, isLoading } = useSWR(
         token ? ["resolutions", debouncedSearch, token] : null,
-        ([, search, t]) => clientFetch<ResolutionDetail[]>(buildResolutionsUrl(search), t),
+        ([, search, t]) => getAdminResolutions(search, t),
     );
 
     if (isLoading) {

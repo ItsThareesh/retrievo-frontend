@@ -31,8 +31,8 @@ import { UserDetail } from "@/types/admin";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { UsersSkeleton } from "./skeletons";
-import { clientFetch } from "@/lib/client-fetch";
-import { useBanHandler } from "@/lib/hooks/use-ban-handler";
+import { getUsers } from "@/lib/api/admin";
+import { handleBanError } from "@/lib/ban-handler";
 
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 
@@ -46,7 +46,7 @@ function getInitials(name: string) {
 }
 
 function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => void }) {
-    const { handleBanError } = useBanHandler();
+    const { data: session } = useSession();
     const [actionDialog, setActionDialog] = useState<{
         open: boolean;
         action: () => Promise<void>;
@@ -60,7 +60,7 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
         reason?: string
     ) => {
         try {
-            await moderateUser(userId, { action, reason, ban_days: 7 });
+            await moderateUser(userId, { action, reason, ban_days: 7 }, session?.backendToken);
             onUpdate();
         } catch (error) {
             if (handleBanError(error)) return;
@@ -241,15 +241,9 @@ export function UsersTab() {
     const [search, setSearch] = useState("");
     const debouncedSearch = useDebouncedValue(search, 500);
 
-    const buildUsersUrl = (search: string) => {
-        const params = new URLSearchParams({ limit: "50", skip: "0" });
-        if (search) params.set("search", search);
-        return `/admin/users?${params}`;
-    };
-
     const { data: users, isLoading, mutate } = useSWR(
         token ? ['users', debouncedSearch, token] : null,
-        ([, search, t]) => clientFetch<UserDetail[]>(buildUsersUrl(search), t),
+        ([, search, t]) => getUsers(search, t),
     );
 
     return (
