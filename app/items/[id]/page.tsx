@@ -9,7 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn } from "lucide-react";
+import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn, ArrowLeft } from "lucide-react";
 import { ShareButton } from "@/components/share-button";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -211,6 +211,14 @@ function ItemDetailContent({
 }) {
     const router = useRouter();
 
+    function handleBack() {
+        if (window.history.length > 1) {
+            router.back();
+        } else {
+            router.push("/items");
+        }
+    }
+
     const {
         reason,
         setReason,
@@ -306,7 +314,18 @@ function ItemDetailContent({
     })();
 
     return (
-        <div className="container mx-auto px-4 md:px-10 py-8 min-h-[calc(100vh-4rem)]">
+        <div className="container mx-auto px-4 md:px-10 pt-4 md:pt-8 pb-8 min-h-[calc(100vh-4rem)]">
+            <div className="md:hidden flex items-center h-10 mb-4">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleBack}
+                    className="cursor-pointer"
+                    aria-label="Go back"
+                >
+                    <ArrowLeft className="h-5 w-5" />
+                </Button>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image */}
                 <div className="lg:col-span-2 space-y-6">
