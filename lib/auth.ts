@@ -4,7 +4,10 @@ import { clientFetch } from "./client-fetch";
 import { APIError } from "./api-error";
 
 async function getProfile(tokenString: string) {
-    const userData = await clientFetch("/auth/me", tokenString, { timeout: 5000 });
+    const userData = await clientFetch("/auth/me", tokenString, {
+        timeout: 5000,
+        backendUrl: process.env.INTERNAL_BACKEND_URL,
+    });
 
     return {
         public_id: userData.public_id,
@@ -56,6 +59,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         method: "POST",
                         body: JSON.stringify({ id_token: account.id_token }),
                         timeout: 8000,
+                        backendUrl: process.env.INTERNAL_BACKEND_URL,
                     }
                 );
 

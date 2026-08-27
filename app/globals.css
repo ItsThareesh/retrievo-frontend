@@ -130,4 +130,28 @@
   ::selection {
     @apply bg-primary/20 text-primary;
   }
+
+  /*
+   * In PWA/standalone mode iOS Safari zooms the whole page to ~16px when an
+   * input is focused if its font-size is below 16px. That zoom also introduces
+   * a vertical scrollbar. Force 16px on form controls while installed to stop
+   * both the zoom and the scrollbar.
+   */
+  @media (display-mode: standalone) {
+    html {
+      overscroll-behavior-y: none;
+      scrollbar-width: none; /* Firefox */
+    }
+
+    html::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Edge */
+    }
+
+    /* iOS Safari auto-zooms (and spawns a scrollbar) on focus when a form
+       control's font-size is below 16px. Force >=16px in PWA mode. 1rem
+       respects OS Larger Text scaling. !important beats Tailwind text-sm. */
+    input, textarea, select {
+      font-size: 1rem !important;
+    }
+  }
 }

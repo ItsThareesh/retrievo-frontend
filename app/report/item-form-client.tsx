@@ -35,7 +35,6 @@ import { useRouter } from 'next/navigation';
 import { postLostFoundItem } from '@/lib/api/items';
 import { APIError } from '@/lib/api-error';
 import { handleBanError } from '@/lib/ban-handler';
-import { signIn } from "next-auth/react";
 import type { Session } from 'next-auth';
 import { ImageViewer } from '@/components/image-viewer';
 import { toast } from 'sonner';
@@ -215,11 +214,11 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                 return;
             }
             if (status === 429) {
-                toast.error("You have reached your monthly limit for reporting items. Please try again later.");
+                toast.error("You have reached your monthly limit for reporting items.");
                 return;
             }
             if (status === 400) {
-                toast.error("Image upload failed. The image may be too large or invalid. Please try a different image.");
+                toast.error("Image upload failed. The image may be too large or invalid.");
                 return;
             }
 
@@ -265,7 +264,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                             <FormItem className="col-span-1 md:col-span-2">
                                 <FormLabel>Title</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g. Blue Jansport Backpack" {...field} className="h-11 text-sm" disabled={isSubmitting} />
+                                    <Input placeholder="e.g. Blue Jansport Backpack" {...field} className="h-9" disabled={isSubmitting} />
                                 </FormControl>
                                 <FormDescription>
                                     A short, descriptive title for the item.
@@ -435,7 +434,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                             <FormControl>
                                 <Textarea
                                     placeholder="Mention where it was found or its general appearance. Avoid sharing unique identifying details."
-                                    className="resize-none min-h-[120px] text-sm"
+                                    className="resize-none min-h-[120px]"
                                     disabled={isSubmitting}
                                     {...field} 
                                 />
