@@ -153,5 +153,27 @@
     input, textarea, select {
       font-size: 1rem !important;
     }
+
+    /* 
+    In PWA mode, disable text selection app-wide to avoid the
+    long-press selection UI on body/content text. Keep it enabled for
+    anything the user types into (forms, search bars, textareas). 
+    */
+    body {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    input,
+    textarea,
+    select,
+    [contenteditable],
+    code,
+    pre,
+    .selectable {
+      -webkit-user-select: text;
+      user-select: text;
+    }
   }
 }

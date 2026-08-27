@@ -13,7 +13,7 @@ export function NotificationsBell() {
             asChild
             variant="ghost"
             size="icon"
-            className="relative rounded-full hover:bg-muted/60 transition-colors cursor-pointer"
+            className="relative rounded-full hover:bg-muted/60 active:bg-muted/70 transition-all duration-150 cursor-pointer"
         >
             <Link href="/notifications" aria-label="Notifications">
                 <Bell className="h-5 w-5 text-muted-foreground" />

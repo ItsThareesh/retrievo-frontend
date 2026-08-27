@@ -235,7 +235,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
     }
 
     return (
-        <div className="max-w-3xl mx-auto py-10 px-1 md:px-4">
+        <div className="max-w-3xl mx-auto py-8 px-1 md:px-4">
             <div className="mb-8 text-center">
                 <h1 className="text-3xl font-bold tracking-tight mb-2">
                     Report Item

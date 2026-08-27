@@ -45,7 +45,7 @@ export function UserMenu({ user }: UserMenuProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
-                <Avatar className="h-9 w-9 border-2 border-background ring-2 ring-muted hover:ring-primary transition-all cursor-pointer">
+                <Avatar className="h-9 w-9 border-2 border-background ring-2 ring-muted hover:ring-primary active:ring-primary transition-all duration-150 cursor-pointer">
                     {user?.image && user?.name && <AvatarImage src={user?.image} alt={user?.name} />}
                     <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
