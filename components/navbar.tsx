@@ -11,7 +11,7 @@ export async function Navbar() {
     const isAuthenticated = !!session?.backendToken;
 
     return (
-        <nav className="sticky top-0 z-50 w-full border-b dark:border-black/50 shadow-md shadow-grey-400/10 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <nav className="sticky top-0 z-50 w-full border-b dark:border-black/50 shadow-md shadow-grey-400/10 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 pt-[env(safe-area-inset-top)]">
             <div className="container mx-auto px-4 md:px-10 h-16 flex items-center justify-between">
                 <BrandLink />
 
