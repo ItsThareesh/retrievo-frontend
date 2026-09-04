@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useEffect, useRef, useMemo, useState } from 'react';
+import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Item } from '@/types/item';
@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { APIError } from '@/lib/api-error';
 import { handleBanError } from '@/lib/ban-handler';
 import { getMyItems } from '@/lib/api/profile';
+import { usePtrRefreshHandler } from '@/components/pull-to-refresh';
 import { standardizeItemDate } from '@/lib/date-formatting';
 import { updateContact } from '@/lib/api/profile';
 import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@/lib/utils/contact';
@@ -43,6 +44,7 @@ export function ProfileClient() {
     const [instagramInput, setInstagramInput] = useState("");
     const [countryCode, setCountryCode] = useState("+91");
     const [isSavingContact, setIsSavingContact] = useState(false);
+    const profileGenRef = useRef(0);
 
     function parsePhone(phone?: string) {
         if (!phone) return { countryCode: "+91", number: "" };
@@ -111,35 +113,40 @@ export function ProfileClient() {
         }
     }
 
-    useEffect(() => {
+    const reloadProfile = useCallback(async (): Promise<void> => {
         if (status !== "authenticated" || !token) return;
-        let cancelled = false;
-
-        getMyItems(token)
-            .then((data) => {
-                if (cancelled) return;
-                setLostItems(data.lost_items.map(standardizeItemDate));
-                setFoundItems(data.found_items.map(standardizeItemDate));
-                setUser({
-                    name: session?.user?.name ?? '',
-                    email: session?.user?.email ?? '',
-                    image: session?.user?.image ?? '',
-                    phone: session?.user?.phone ?? '',
-                    hostel: session?.user?.hostel ?? '',
-                    instagramId: session?.user?.instagramId ?? '',
-                });
-                setIsLoading(false);
-            })
-            .catch((err) => {
-                if (cancelled) return;
-                if (err instanceof APIError) {
-                    handleBanError(err);
-                }
-                console.error('Failed to load profile items:', err);
-                setIsLoading(false);
+        const gen = ++profileGenRef.current;
+        setIsLoading(true);
+        try {
+            const data = await getMyItems(token);
+            if (gen !== profileGenRef.current) return;
+            setLostItems(data.lost_items.map(standardizeItemDate));
+            setFoundItems(data.found_items.map(standardizeItemDate));
+            setUser({
+                name: session?.user?.name ?? '',
+                email: session?.user?.email ?? '',
+                image: session?.user?.image ?? '',
+                phone: session?.user?.phone ?? '',
+                hostel: session?.user?.hostel ?? '',
+                instagramId: session?.user?.instagramId ?? '',
             });
-        return () => { cancelled = true; };
-    }, [status, token]);
+        } catch (err) {
+            if (gen !== profileGenRef.current) return;
+            if (err instanceof APIError) {
+                handleBanError(err);
+            }
+            console.error('Failed to load profile items:', err);
+        } finally {
+            if (gen === profileGenRef.current) setIsLoading(false);
+        }
+    }, [status, token, session]);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        reloadProfile();
+    }, [reloadProfile]);
+
+    usePtrRefreshHandler(reloadProfile);
 
     const toastShownRef = useRef(false);
     const params = useSearchParams();

@@ -10,11 +10,12 @@ import { Item } from '@/types/item';
 import { User as UserType } from '@/types/user';
 import Image from 'next/image';
 import { Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { APIError } from '@/lib/api-error';
 import { getUserProfile } from '@/lib/api/profile';
+import { usePtrRefreshHandler } from '@/components/pull-to-refresh';
 import { handleBanError } from '@/lib/ban-handler';
 import { standardizeItemDate } from '@/lib/date-formatting';
 import { UserProfileLoading } from '../user-profile-loading';
@@ -31,30 +32,36 @@ export default function UserPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [notFoundError, setNotFoundError] = useState(false);
 
-    useEffect(() => {
-        if (!id || sessionStatus === "loading") return;
-        let cancelled = false;
+    const userGenRef = useRef(0);
 
+    const reloadUser = useCallback(async (): Promise<void> => {
+        if (!id || sessionStatus === "loading") return;
+        const gen = ++userGenRef.current;
         setIsLoading(true);
         setNotFoundError(false);
-        getUserProfile(id, token)
-            .then((data) => {
-                if (cancelled) return;
-                setUser(data.user);
-                setLostItems(data.lost_items.map(standardizeItemDate));
-                setFoundItems(data.found_items.map(standardizeItemDate));
-                setIsLoading(false);
-            })
-            .catch((err) => {
-                if (cancelled) return;
-                if (handleBanError(err)) return;
-                if (err instanceof APIError && err.status === 404) {
-                    setNotFoundError(true);
-                }
-                setIsLoading(false);
-            });
-        return () => { cancelled = true; };
+        try {
+            const data = await getUserProfile(id, token);
+            if (gen !== userGenRef.current) return;
+            setUser(data.user);
+            setLostItems(data.lost_items.map(standardizeItemDate));
+            setFoundItems(data.found_items.map(standardizeItemDate));
+        } catch (err) {
+            if (gen !== userGenRef.current) return;
+            if (handleBanError(err)) return;
+            if (err instanceof APIError && err.status === 404) {
+                setNotFoundError(true);
+            }
+        } finally {
+            if (gen === userGenRef.current) setIsLoading(false);
+        }
     }, [id, token, sessionStatus]);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        reloadUser();
+    }, [reloadUser]);
+
+    usePtrRefreshHandler(reloadUser);
 
     const userItems: Item[] = useMemo(() => {
         const items = [...lostItems, ...foundItems];

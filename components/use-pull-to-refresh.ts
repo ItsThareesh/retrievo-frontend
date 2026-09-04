@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface UsePullToRefreshOptions {
     onRefresh: () => Promise<void>;
@@ -11,13 +11,7 @@ interface UsePullToRefreshOptions {
 interface UsePullToRefreshReturn {
     pullDistance: number;
     isRefreshing: boolean;
-    isPulling: boolean;
-    pullProps: {
-        onTouchStart: (e: React.TouchEvent) => void;
-        onTouchMove: (e: React.TouchEvent) => void;
-        onTouchEnd: (e: React.TouchEvent) => void;
-        style?: React.CSSProperties;
-    };
+    containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function usePullToRefresh({
@@ -27,65 +21,100 @@ export function usePullToRefresh({
 }: UsePullToRefreshOptions): UsePullToRefreshReturn {
     const [pullDistance, setPullDistance] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [isPulling, setIsPulling] = useState(false);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+
     const pullDistanceRef = useRef(0);
+    const startYRef = useRef(0);
+    const trackingRef = useRef(false);
+    const refreshingRef = useRef(false);
+    const onRefreshRef = useRef(onRefresh);
+    useEffect(() => {
+        onRefreshRef.current = onRefresh;
+    }, [onRefresh]);
 
-    const startY = useRef(0);
-    const currentY = useRef(0);
-    const isAtTop = useRef(true);
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
 
-    const handleTouchStart = useCallback((e: React.TouchEvent) => {
-        if (isRefreshing) return;
-        const touch = e.touches[0];
-        startY.current = touch.clientY;
-        isAtTop.current = window.scrollY === 0;
-        setIsPulling(true);
-    }, [isRefreshing]);
+        const isAtTop = () => {
+            if (el.scrollTop > 0) return false;
+            const doc = document.scrollingElement;
+            if (doc && doc.scrollTop > 0) return false;
+            return window.scrollY <= 0;
+        };
 
-    const handleTouchMove = useCallback((e: React.TouchEvent) => {
-        if (isRefreshing || !isPulling) return;
-        const touch = e.touches[0];
-        currentY.current = touch.clientY;
-        const diff = Math.max(0, currentY.current - startY.current);
+        const handleTouchStart = (e: TouchEvent) => {
+            if (refreshingRef.current || e.touches.length > 1) {
+                trackingRef.current = false;
+                return;
+            }
+            if (!isAtTop()) {
+                trackingRef.current = false;
+                return;
+            }
+            trackingRef.current = true;
+            startYRef.current = e.touches[0].clientY;
+        };
 
-        if (diff > 0 && isAtTop.current && window.scrollY === 0) {
+        const handleTouchMove = (e: TouchEvent) => {
+            if (refreshingRef.current || !trackingRef.current) return;
+            if (e.touches.length > 1) {
+                trackingRef.current = false;
+                setPullDistance(0);
+                pullDistanceRef.current = 0;
+                return;
+            }
+            const diff = e.touches[0].clientY - startYRef.current;
+            if (diff <= 0) {
+                if (pullDistanceRef.current !== 0) {
+                    setPullDistance(0);
+                    pullDistanceRef.current = 0;
+                }
+                return;
+            }
+            if (!isAtTop()) return;
             e.preventDefault();
             const dampened = Math.min(diff * 0.5, maxPull);
             setPullDistance(dampened);
             pullDistanceRef.current = dampened;
-        }
-    }, [isRefreshing, isPulling, maxPull]);
+        };
 
-    const handleTouchEnd = useCallback(async () => {
-        if (isRefreshing) return;
-        setIsPulling(false);
-
-        if (pullDistanceRef.current >= threshold) {
-            setIsRefreshing(true);
-            try {
-                await onRefresh();
-            } finally {
-                setIsRefreshing(false);
-                setPullDistance(0);
-                pullDistanceRef.current = 0;
-            }
-        } else {
+        const reset = () => {
+            trackingRef.current = false;
             setPullDistance(0);
             pullDistanceRef.current = 0;
-        }
-    }, [isRefreshing, threshold, onRefresh]);
+        };
 
-    const isDragging = isPulling && pullDistance > 0 && !isRefreshing;
+        const handleTouchEnd = async () => {
+            if (refreshingRef.current || !trackingRef.current) return;
+            trackingRef.current = false;
+            if (pullDistanceRef.current < threshold) {
+                reset();
+                return;
+            }
+            refreshingRef.current = true;
+            setIsRefreshing(true);
+            try {
+                await onRefreshRef.current();
+            } finally {
+                refreshingRef.current = false;
+                setIsRefreshing(false);
+                reset();
+            }
+        };
 
-    return {
-        pullDistance,
-        isRefreshing,
-        isPulling,
-        pullProps: {
-            onTouchStart: handleTouchStart,
-            onTouchMove: handleTouchMove,
-            onTouchEnd: handleTouchEnd,
-            style: isDragging ? { touchAction: "none" as const } : undefined,
-        },
-    };
+        el.addEventListener("touchstart", handleTouchStart, { passive: true });
+        el.addEventListener("touchmove", handleTouchMove, { passive: false });
+        el.addEventListener("touchend", handleTouchEnd, { passive: true });
+        el.addEventListener("touchcancel", reset, { passive: true });
+
+        return () => {
+            el.removeEventListener("touchstart", handleTouchStart);
+            el.removeEventListener("touchmove", handleTouchMove);
+            el.removeEventListener("touchend", handleTouchEnd);
+            el.removeEventListener("touchcancel", reset);
+        };
+    }, [threshold, maxPull]);
+
+    return { pullDistance, isRefreshing, containerRef };
 }

@@ -40,8 +40,9 @@ import { formatDateString } from "@/lib/date-formatting";
 import { APIError } from "@/lib/api-error";
 import { getItem } from "@/lib/api/items";
 import { ItemDetailSkeleton } from "../items-loading-skeleton";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Session } from "next-auth";
+import { usePtrRefreshHandler } from "@/components/pull-to-refresh";
 import { handleBanError } from "@/lib/ban-handler";
 
 interface ItemData {
@@ -64,42 +65,49 @@ export default function ItemDetailPage() {
     const [authRequired, setAuthRequired] = useState(false);
     const [forbidden, setForbidden] = useState(false);
 
-    useEffect(() => {
+    const itemGenRef = useRef(0);
+
+    const reloadItem = useCallback(async (scrollTop = false): Promise<void> => {
         if (!id || sessionStatus === "loading") return;
-        let cancelled = false;
+        const gen = ++itemGenRef.current;
 
         setLoading(true);
         setNotFoundError(false);
         setAuthRequired(false);
         setForbidden(false);
-        window.scrollTo(0, 0);
+        if (scrollTop) window.scrollTo(0, 0);
 
-        getItem(id, token)
-            .then((data) => {
-                if (cancelled) return;
-                setItemData(data);
-                setLoading(false);
-            })
-            .catch((err) => {
-                if (cancelled) return;
-                if (err instanceof APIError) {
-                    if (err.code === "USER_BANNED") {
-                        handleBanError(err);
-                        return;
-                    }
-                    if (err.status === 401) {
-                        setAuthRequired(true);
-                    } else if (err.status === 403) {
-                        setForbidden(true);
-                    } else {
-                        setNotFoundError(true);
-                    }
+        try {
+            const data = await getItem(id, token);
+            if (gen !== itemGenRef.current) return;
+            setItemData(data);
+        } catch (err) {
+            if (gen !== itemGenRef.current) return;
+            if (err instanceof APIError) {
+                if (err.code === "USER_BANNED") {
+                    handleBanError(err);
+                    return;
                 }
-                setLoading(false);
-            });
-        return () => { cancelled = 
-            true; };
+                if (err.status === 401) {
+                    setAuthRequired(true);
+                } else if (err.status === 403) {
+                    setForbidden(true);
+                } else {
+                    setNotFoundError(true);
+                }
+            }
+        } finally {
+            if (gen === itemGenRef.current) setLoading(false);
+        }
     }, [id, token, sessionStatus]);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        reloadItem(true);
+    }, [reloadItem]);
+
+    const ptrReloadItem = useCallback((): Promise<void> => reloadItem(false), [reloadItem]);
+    usePtrRefreshHandler(ptrReloadItem);
 
     if (notFoundError) {
         notFound();
