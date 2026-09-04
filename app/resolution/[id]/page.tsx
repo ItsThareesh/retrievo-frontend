@@ -29,6 +29,7 @@ import { getResolution } from "@/lib/api/resolutions";
 
 import { ActionButtons } from "./components/action-buttons";
 import { RejectionDialog } from "./components/rejection-dialog";
+import { CompleteDialog } from "./components/complete-dialog";
 import { ClaimDescription } from "./components/claim-description";
 import { ItemSummary } from "./components/item-summary";
 import { StatusAlert } from "./components/status-alert";
@@ -361,6 +362,7 @@ export default function ClaimStatusPage() {
 
     const [actionLoading, setActionLoading] = useState(false);
     const [showRejectDialog, setShowRejectDialog] = useState(false);
+    const [showCompleteDialog, setShowCompleteDialog] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
 
     const config = useMemo(
@@ -425,6 +427,14 @@ export default function ClaimStatusPage() {
             return;
         }
 
+        // Completing hides the owner's lost post — forewarn with a dialog
+        // when this resolution has a lost item. Admin review completions and
+        // lost-less resolutions proceed directly.
+        if (action === "complete" && viewer?.role === "owner" && resolution?.lost_item_id) {
+            setShowCompleteDialog(true);
+            return;
+        }
+
         setActionLoading(true);
         try {
             if (action === "approve") await approveResolution(resId, itemId, token);
@@ -463,6 +473,27 @@ export default function ClaimStatusPage() {
         setRefreshKey(k => k + 1);
         setActionLoading(false);
     }
+
+    async function handleComplete() {
+        setActionLoading(true);
+        try {
+            await completeResolution(resId, token);
+            setShowCompleteDialog(false);
+        } catch (err) {
+            if (handleBanError(err)) return;
+            toast.error("Failed to complete resolution.");
+            setActionLoading(false);
+            return;
+        }
+
+        setRefreshKey(k => k + 1);
+        setActionLoading(false);
+    }
+
+    // Mirrors the backend's primary/linked derivation: finder-initiated
+    // resolutions lead with the lost item, owner-initiated ones link it.
+    const lostTitle =
+        resolution.type === "finder_initiated" ? item.title : linkedItem?.title ?? null;
 
     return (
         <div className="min-h-screen py-8 px-4">
@@ -515,6 +546,14 @@ export default function ClaimStatusPage() {
                     onReasonChange={setRejectionReason}
                     onConfirm={handleReject}
                     onCancel={() => setShowRejectDialog(false)}
+                />
+
+                <CompleteDialog
+                    open={showCompleteDialog}
+                    onOpenChange={setShowCompleteDialog}
+                    onConfirm={handleComplete}
+                    loading={actionLoading}
+                    lostTitle={lostTitle}
                 />
                 
                 {/* TODO: Display contents of `failure_reason` or `rejection_reason` or `invalidated_reason` for the user

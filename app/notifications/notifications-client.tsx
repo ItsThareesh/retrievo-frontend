@@ -186,8 +186,6 @@ export function NotificationsClient() {
             router.push('/items/' + notification.item_id)
         } else if (notification.type === "resolution" && notification.resolution_id !== undefined) {
             router.push('/resolution/' + notification.resolution_id)
-        } else if (notification.type === 'item' && notification.item_id !== undefined) {
-            router.push('/items/' + notification.item_id)
         }
     }
 
