@@ -275,6 +275,8 @@ function ItemDetailContent({
                 return item.type === "lost" ? "Return Initiated" : "Return Requested";
             case "pending_admin_review":
                 return "Admin Review";
+            default:
+                return "";
         }
     }
 
@@ -289,6 +291,8 @@ function ItemDetailContent({
                 return "bg-green-600";
             case "pending_admin_review":
                 return "bg-violet-500";
+            default:
+                return "bg-gray-500";
         }
     }
 

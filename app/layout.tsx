@@ -8,6 +8,8 @@ import { SWRProvider } from "./swr-provider";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import { SessionProvider } from 'next-auth/react';
+import { PullToRefresh } from "@/components/pull-to-refresh";
+import { RegisterSW } from "@/components/register-sw";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://retrievo.dev";
 
@@ -139,14 +141,17 @@ export default function RootLayout({
           <ThemeProvider>
             <SWRProvider>
               <Navbar />
-              <main className="flex-1">
-                {children}
-              </main>
+              <PullToRefresh>
+                <main className="flex-1">
+                  {children}
+                </main>
+              </PullToRefresh>
               <Toaster />
             </SWRProvider>
           </ThemeProvider>
         </SessionProvider>
 
+        <RegisterSW />
         <Analytics />
         <SpeedInsights />
       </body>
