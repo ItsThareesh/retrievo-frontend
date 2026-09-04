@@ -727,6 +727,7 @@ function ItemDetailContent({
                 setIsDeleting={setIsDeleting}
                 handleDelete={handleDelete}
                 isProcessingDelete={isProcessingDelete}
+                itemType={item.type}
             />
 
             <SubmitClaimDialog

@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, Trash2, X, Link2, FileText, MapPin, Calendar, Loader2 } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { LinkableItem } from "@/types/resolutions";
+import { item_type } from "@/types/item";
 import { formatDateString } from "@/lib/date-formatting";
 import { LOCATION_MAP } from "@/lib/constants/locations";
 import { delete_reasons_map } from "@/lib/constants/delete-reasons";
@@ -299,15 +300,20 @@ interface DeleteConfirmationDialogProps {
     setIsDeleting: Dispatch<SetStateAction<boolean>>;
     handleDelete: (closeReason?: string) => Promise<void>;
     isProcessingDelete: boolean;
+    itemType?: item_type;
 }
 
 export function DeleteConfirmationDialog({
     isDeleting,
     setIsDeleting,
     handleDelete,
-    isProcessingDelete
+    isProcessingDelete,
+    itemType,
 }: DeleteConfirmationDialogProps) {
     const [closeReason, setCloseReason] = useState<string | null>(null);
+    const visibleReasons = itemType === "found"
+        ? delete_reasons_map.filter((r) => r.value !== "found_it_myself")
+        : delete_reasons_map;
 
     return <AlertDialog open={isDeleting} onOpenChange={(open) => {
         setIsDeleting(open);
@@ -333,7 +339,7 @@ export function DeleteConfirmationDialog({
                 </div>
             </AlertDialogHeader>
             <div className="space-y-2 py-1">
-                {delete_reasons_map.map((r) => (
+                {visibleReasons.map((r) => (
                     <Label
                         key={r.value}
                         className={cn(
