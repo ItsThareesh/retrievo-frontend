@@ -35,7 +35,11 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const [isSubmittingResolution, setIsSubmittingResolution] = useState(false);
     const [linkedItemId, setLinkedItemId] = useState<string | null>(null);
 
-    const [resolutionStatus, setResolutionStatus] = useState(resolution_status);
+    const [resolutionStatus, setResolutionStatus] = useState<ResolutionStatus | null>(resolution_status);
+
+    useEffect(() => {
+        setResolutionStatus(resolution_status);
+    }, [resolution_status]);
 
     const isLoggedIn = !!session?.backendToken;
     const isReporter = reporter.public_id === session?.user?.public_id;

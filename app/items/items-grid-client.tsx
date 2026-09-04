@@ -15,6 +15,7 @@ import { ItemCard } from "@/components/item-card";
 import { Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getItems } from "@/lib/api/items";
+import { usePtrRefreshHandler } from "@/components/pull-to-refresh";
 import { handleBanError } from "@/lib/ban-handler";
 import { standardizeItemDate } from "@/lib/date-formatting";
 import { ItemsGridSkeleton, ItemsLoadMoreSkeleton } from "./items-loading-skeleton";
@@ -49,12 +50,12 @@ export function ItemsGridClient() {
     const searchQuery = useDebouncedValue(searchInput, 400);
     const typeFilter = activeTab === "all" ? "all" : activeTab;
 
-    async function fetchPage(
+    const fetchPage = useCallback(async (
         cursor: string | null,
         search: string,
         category: string,
         type: string,
-    ): Promise<PaginatedResponse | null> {
+    ): Promise<PaginatedResponse | null> => {
         try {
             const data = await getItems(cursor, search, category, type, token);
             return data;
@@ -62,12 +63,9 @@ export function ItemsGridClient() {
             handleBanError(err);
             return null;
         }
-    }
+    }, [token]);
 
-    // Reload from page 1 whenever any filter changes.
-    useEffect(() => {
-        if (status === "loading") return;
-        
+    const reloadFirstPage = useCallback(async (): Promise<void> => {
         // Bump generation to invalidate any in-flight loadMore calls.
         const gen = ++generationRef.current;
 
@@ -77,19 +75,29 @@ export function ItemsGridClient() {
         hasMoreRef.current = false;
         nextCursorRef.current = null;
 
-        fetchPage(null, searchQuery, categoryFilter, typeFilter).then((data) => {
-            if (gen !== generationRef.current || !data) {
-                if (gen === generationRef.current) setIsLoading(false);
-                return;
-            }
-            setAllItems(data.items.map(standardizeItemDate));
-            setHasMore(data.has_more);
-            hasMoreRef.current = data.has_more;
-            nextCursorRef.current = data.cursor;
-            setIsLoading(false);
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchQuery, categoryFilter, typeFilter, status]);
+        const data = await fetchPage(null, searchQuery, categoryFilter, typeFilter);
+        
+        if (gen !== generationRef.current || !data) {
+            if (gen === generationRef.current) setIsLoading(false);
+            return;
+        }
+        setAllItems(data.items.map(standardizeItemDate));
+        setHasMore(data.has_more);
+        hasMoreRef.current = data.has_more;
+        nextCursorRef.current = data.cursor;
+        setIsLoading(false);
+    }, [fetchPage, searchQuery, categoryFilter, typeFilter]);
+
+    // Reload from page 1 whenever any filter changes.
+    useEffect(() => {
+        if (status === "loading") return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        reloadFirstPage();
+    }, [searchQuery, categoryFilter, typeFilter, status, reloadFirstPage]);
+
+    // Pull-to-refresh: re-run the first-page fetch so the global PTR
+    // indicator awaits the feed reload.
+    usePtrRefreshHandler(reloadFirstPage);
 
     // Load the next page and append items.
     const loadMore = useCallback(async () => {
@@ -118,7 +126,7 @@ export function ItemsGridClient() {
 
         loadingMoreRef.current = false;
         setIsLoadingMore(false);
-    }, [searchQuery, categoryFilter, typeFilter, token]);
+    }, [fetchPage, searchQuery, categoryFilter, typeFilter]);
 
     // Infinite scroll
     useEffect(() => {
