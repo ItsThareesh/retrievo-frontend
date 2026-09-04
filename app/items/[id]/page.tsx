@@ -9,7 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn, ArrowLeft } from "lucide-react";
+import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn, ArrowLeft, X } from "lucide-react";
 import { ShareButton } from "@/components/share-button";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -260,8 +260,22 @@ function ItemDetailContent({
 
     const isReporter = !!session?.backendToken && session.user.public_id === reporter.public_id;
     const hasResolution = resolution_status !== null;
+    
+    const [nudgeDismissed, setNudgeDismissed] = useState(() => {
+        try {
+            return localStorage.getItem(`nudge_dismissed:${item.id}`) !== null;
+        } catch { return false; }
+    });
+    const [daysSincePost] = useState(() => Math.floor((Date.now() - new Date(item.created_at).getTime()) / 86400000));
+    const showStaleNudge = isReporter && !item.hidden && daysSincePost >= 14 && !nudgeDismissed && !hasResolution;
+    
     const showClaim = item.type === "found" && !isReporter && !hasResolution;
     const showReturn = item.type === "lost" && !isReporter && !hasResolution;
+
+    function dismissNudge() {
+        try { localStorage.setItem(`nudge_dismissed:${item.id}`, "1"); } catch { /* ignore */ }
+        setNudgeDismissed(true);
+    }
 
     function mapClaimStatusToText(status: ResolutionStatus) {
         switch (status) {
@@ -326,6 +340,21 @@ function ItemDetailContent({
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
             </div>
+            {showStaleNudge && (
+                <div className="flex items-center justify-between gap-3 rounded-lg border p-4 mb-6 bg-muted/40">
+                    <p className="text-sm text-muted-foreground">
+                        Still unresolved? If you&apos;ve already sorted this out directly, just remove the post.
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <Button size="sm" variant="outline" onClick={() => setIsDeleting(true)}>
+                            Remove post
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={dismissNudge} aria-label="Dismiss">
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Image */}
                 <div className="lg:col-span-2 space-y-6">

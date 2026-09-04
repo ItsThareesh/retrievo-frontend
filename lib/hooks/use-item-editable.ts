@@ -152,12 +152,12 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         setIsEditing(false);
     }
 
-    async function handleDelete() {
+    async function handleDelete(closeReason?: string) {
         if (isProcessingDelete) return;
         setIsProcessingDelete(true);
 
         try {
-            const res = await deleteItem(item.id, session?.backendToken);
+            const res = await deleteItem(item.id, session?.backendToken, closeReason);
 
             if (res.ok) {
                 toast.success("Item deleted successfully");

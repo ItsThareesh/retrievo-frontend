@@ -27,8 +27,9 @@ export function updateItem(itemId: string, data: Record<string, any>, token?: st
 }
 
 /** DELETE: Delete an item */
-export function deleteItem(itemId: string, token?: string) {
-    return clientFetch(`/items/${itemId}`, token, { method: "DELETE" });
+export function deleteItem(itemId: string, token?: string, reason?: string) {
+    const path = reason ? `/items/${itemId}?reason=${encodeURIComponent(reason)}` : `/items/${itemId}`;
+    return clientFetch(path, token, { method: "DELETE" });
 }
 
 /** POST: Flag Item */

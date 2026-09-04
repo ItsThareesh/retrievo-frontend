@@ -34,8 +34,8 @@ export function CompleteDialog({
                         <AlertDialogTitle>Mark as completed?</AlertDialogTitle>
                         <AlertDialogDescription>
                             {lostTitle
-                                ? <>This will close the resolution and take down your lost post &ldquo;{lostTitle}&rdquo;. You can still view this resolution afterwards.</>
-                                : <>This will close the resolution and take down your lost post. You can still view this resolution afterwards.</>}
+                                ? <>This will close the resolution and take down your lost post &ldquo;{lostTitle}&rdquo;. This is final &mdash; no further actions will be possible. You can still view this resolution afterwards.</>
+                                : <>This will close the resolution. This is final &mdash; no further actions will be possible. You can still view it afterwards.</>}
                         </AlertDialogDescription>
                     </div>
                     <Button

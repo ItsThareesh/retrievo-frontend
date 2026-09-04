@@ -24,6 +24,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { LinkableItem } from "@/types/resolutions";
 import { formatDateString } from "@/lib/date-formatting";
 import { LOCATION_MAP } from "@/lib/constants/locations";
+import { delete_reasons_map } from "@/lib/constants/delete-reasons";
 
 interface SubmitClaimDialogProps {
     mode: "claim" | "return";
@@ -296,7 +297,7 @@ export function ReportDialog({
 interface DeleteConfirmationDialogProps {
     isDeleting: boolean;
     setIsDeleting: Dispatch<SetStateAction<boolean>>;
-    handleDelete: () => Promise<void>;
+    handleDelete: (closeReason?: string) => Promise<void>;
     isProcessingDelete: boolean;
 }
 
@@ -306,15 +307,19 @@ export function DeleteConfirmationDialog({
     handleDelete,
     isProcessingDelete
 }: DeleteConfirmationDialogProps) {
-    return <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
+    const [closeReason, setCloseReason] = useState<string | null>(null);
+
+    return <AlertDialog open={isDeleting} onOpenChange={(open) => {
+        setIsDeleting(open);
+        if (!open) setCloseReason(null);
+    }}>
         <AlertDialogContent>
             <AlertDialogHeader>
                 <div className="flex items-start justify-between">
                     <div className="space-y-2">
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your item
-                            and remove it from our servers.
+                            This will permanently remove your post.
                         </AlertDialogDescription>
                     </div>
                     <Button
@@ -327,6 +332,30 @@ export function DeleteConfirmationDialog({
                     </Button>
                 </div>
             </AlertDialogHeader>
+            <div className="space-y-2 py-1">
+                {delete_reasons_map.map((r) => (
+                    <Label
+                        key={r.value}
+                        className={cn(
+                            "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
+                            closeReason === r.value
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:bg-muted/50"
+                        )}
+                    >
+                        <input
+                            type="radio"
+                            name="delete-close-reason"
+                            value={r.value}
+                            checked={closeReason === r.value}
+                            onChange={() => setCloseReason(closeReason === r.value ? null : r.value)}
+                            className="accent-primary"
+                            disabled={isProcessingDelete}
+                        />
+                        <span className="text-sm font-medium">{r.label}</span>
+                    </Label>
+                ))}
+            </div>
             <AlertDialogFooter className="mt-6">
                 <AlertDialogCancel asChild>
                     <Button variant="outline">
@@ -336,7 +365,7 @@ export function DeleteConfirmationDialog({
 
                 <AlertDialogAction
                     className="text-white bg-red-500/85 hover:bg-red-600/85"
-                    onClick={handleDelete}
+                    onClick={() => handleDelete(closeReason ?? undefined)}
                     disabled={isProcessingDelete}
                 >
                     {isProcessingDelete ? "Deleting..." : <><Trash2 className="mr-2 h-4 w-4" /> Delete permanently</>}
