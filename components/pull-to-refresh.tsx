@@ -3,9 +3,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { usePullToRefresh } from "./use-pull-to-refresh";
 import { useSWRConfig } from "swr";
-import { ChevronDown } from "lucide-react";
-
 const THRESHOLD = 80;
+const RING_SIZE = 32;
+const RING_STROKE = 3;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 type PtrRefreshHandler = () => Promise<unknown>;
 
@@ -50,29 +52,66 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
         ]);
     }, [onRefresh, mutate]);
 
-    const { pullDistance, isRefreshing, containerRef } = usePullToRefresh({
+    const { pullDistance, isRefreshing, isDragging, containerRef } = usePullToRefresh({
         onRefresh: handleRefresh,
         threshold: THRESHOLD,
     });
 
-    const rotation = Math.min((pullDistance / THRESHOLD) * 360, 360);
+    const progress = Math.min(pullDistance / THRESHOLD, 1);
     const indicatorHeight = isRefreshing ? THRESHOLD : pullDistance;
     const showIndicator = pullDistance > 0 || isRefreshing;
+    const ringOpacity = isRefreshing ? 1 : Math.min(1, progress * 2.5);
+    const ringScale = isRefreshing ? 1 : 0.6 + 0.4 * progress;
+    const arcLength = isRefreshing
+        ? RING_CIRCUMFERENCE * 0.75
+        : RING_CIRCUMFERENCE * Math.max(progress, 0.04);
 
     return (
         <PtrRegistryContext.Provider value={registry}>
             <div ref={containerRef} className="relative flex-1 min-h-0">
                 <div
                     aria-hidden={!showIndicator}
-                    className="flex items-center justify-center overflow-hidden transition-[height] duration-200 ease-out"
-                    style={{ height: `${showIndicator ? indicatorHeight : 0}px` }}
+                    className="flex items-center justify-center overflow-hidden"
+                    style={{
+                        height: `${showIndicator ? indicatorHeight : 0}px`,
+                        transition: isDragging ? "none" : "height 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
+                    }}
                 >
-                    <ChevronDown
-                        className={`h-6 w-6 transition-colors duration-200 ${
-                            isRefreshing ? "animate-spin text-primary" : "text-muted-foreground"
-                        }`}
-                        style={{ transform: isRefreshing ? undefined : `rotate(${rotation}deg)` }}
-                    />
+                    <div
+                        className="flex h-8 w-8 items-center justify-center"
+                        style={{ opacity: ringOpacity, transform: `scale(${ringScale})` }}
+                    >
+                        <svg
+                            width={RING_SIZE}
+                            height={RING_SIZE}
+                            viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+                            className={isRefreshing ? "animate-spin text-primary" : "text-primary"}
+                            style={{ animationDuration: isRefreshing ? "0.9s" : undefined }}
+                            role="status"
+                            aria-label={isRefreshing ? "Refreshing" : "Pull to refresh"}
+                        >
+                            <circle
+                                cx={RING_SIZE / 2}
+                                cy={RING_SIZE / 2}
+                                r={RING_RADIUS}
+                                fill="none"
+                                stroke="currentColor"
+                                strokeOpacity={0.18}
+                                strokeWidth={RING_STROKE}
+                            />
+                            <circle
+                                cx={RING_SIZE / 2}
+                                cy={RING_SIZE / 2}
+                                r={RING_RADIUS}
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={RING_STROKE}
+                                strokeLinecap="round"
+                                strokeDasharray={`${arcLength} ${RING_CIRCUMFERENCE}`}
+                                transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+                            />
+                        </svg>
+                    </div>
                 </div>
                 <div className={isRefreshing ? "opacity-50 pointer-events-none" : ""}>
                     {children}

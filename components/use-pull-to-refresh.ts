@@ -11,6 +11,7 @@ interface UsePullToRefreshOptions {
 interface UsePullToRefreshReturn {
     pullDistance: number;
     isRefreshing: boolean;
+    isDragging: boolean;
     containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -21,6 +22,7 @@ export function usePullToRefresh({
 }: UsePullToRefreshOptions): UsePullToRefreshReturn {
     const [pullDistance, setPullDistance] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     const pullDistanceRef = useRef(0);
@@ -54,12 +56,14 @@ export function usePullToRefresh({
             }
             trackingRef.current = true;
             startYRef.current = e.touches[0].clientY;
+            setIsDragging(true);
         };
 
         const handleTouchMove = (e: TouchEvent) => {
             if (refreshingRef.current || !trackingRef.current) return;
             if (e.touches.length > 1) {
                 trackingRef.current = false;
+                setIsDragging(false);
                 setPullDistance(0);
                 pullDistanceRef.current = 0;
                 return;
@@ -74,13 +78,25 @@ export function usePullToRefresh({
             }
             if (!isAtTop()) return;
             e.preventDefault();
-            const dampened = Math.min(diff * 0.5, maxPull);
+            // Progressive resistance: easy off the top, increasingly heavy,
+            // asymptoting at maxPull. Reaching `threshold` takes ~170px of
+            // finger travel with the defaults (80 / 150).
+            const dampened = maxPull * (1 - Math.exp(-diff / (maxPull * 1.5)));
+            const wasBelow = pullDistanceRef.current < threshold;
             setPullDistance(dampened);
             pullDistanceRef.current = dampened;
+            if (wasBelow && dampened >= threshold && typeof navigator !== "undefined" && "vibrate" in navigator) {
+                try {
+                    navigator.vibrate(10);
+                } catch {
+                    // Haptics unavailable - visual feedback still applies
+                }
+            }
         };
 
         const reset = () => {
             trackingRef.current = false;
+            setIsDragging(false);
             setPullDistance(0);
             pullDistanceRef.current = 0;
         };
@@ -88,6 +104,7 @@ export function usePullToRefresh({
         const handleTouchEnd = async () => {
             if (refreshingRef.current || !trackingRef.current) return;
             trackingRef.current = false;
+            setIsDragging(false);
             if (pullDistanceRef.current < threshold) {
                 reset();
                 return;
@@ -116,5 +133,5 @@ export function usePullToRefresh({
         };
     }, [threshold, maxPull]);
 
-    return { pullDistance, isRefreshing, containerRef };
+    return { pullDistance, isRefreshing, isDragging, containerRef };
 }
