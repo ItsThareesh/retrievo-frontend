@@ -22,7 +22,7 @@ export function ReportFab() {
         <Link
             href="/report"
             aria-label="Report an item"
-            className="md:hidden fixed right-6 z-50 size-14 rounded-full bg-primary text-primary-foreground shadow-xl hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
+            className="fixed right-6 z-50 size-14 rounded-full bg-primary text-primary-foreground shadow-xl hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
             style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         >
             <Plus className="size-6" />

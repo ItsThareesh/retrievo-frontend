@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Search } from "lucide-react";
+import { Chrome, Loader2, Search } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -15,6 +15,43 @@ export default function SignInContent() {
     const error = searchParams.get("error");
     const callbackUrl = searchParams.get("callbackUrl") || (isPwa ? "/items" : "/");
     const [isSigningIn, setIsSigningIn] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
+    const visibleError = authError ?? error;
+
+    // redirect:false first so failures surface on the card instead of dying
+    // silently (notably inside the standalone PWA webview). Success navigates
+    // manually to the provider URL; only fall back to the classic redirect
+    // flow when no URL comes back.
+    async function handleSignIn() {
+        if (isSigningIn) return;
+        setIsSigningIn(true);
+        setAuthError(null);
+        try {
+            // next-auth performs bare fetches with no timeout of its own; a
+            // hanging request would otherwise leave the card on its spinner
+            // forever with no feedback.
+            const timeout = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error("Sign-in timed out")), 20000)
+            );
+            const res = await Promise.race([
+                signIn("google", { callbackUrl, redirect: false }),
+                timeout,
+            ]);
+            if (res?.error) {
+                setAuthError(res.error);
+                setIsSigningIn(false);
+                return;
+            }
+            if (res?.url) {
+                window.location.assign(res.url);
+                return;
+            }
+            await signIn("google", { callbackUrl });
+        } catch {
+            setAuthError("SignInFailed");
+            setIsSigningIn(false);
+        }
+    }
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden">
@@ -36,7 +73,7 @@ export default function SignInContent() {
                 </CardHeader>
 
                 <CardContent className="space-y-6 p-8 pt-4">
-                    {error && (
+                    {visibleError && (
                         <div className="bg-destructive/10 text-destructive text-sm p-4 rounded-lg flex items-center gap-3 border border-destructive/20 animate-in slide-in-from-top-2 text-center justify-center">
                             <span className="font-medium">Authentication failed. Please try again.</span>
                         </div>
@@ -46,30 +83,24 @@ export default function SignInContent() {
                         variant="outline"
                         className="w-full h-14 text-base font-medium relative cursor-pointer hover:bg-muted/50 transition-all hover:border-primary/50 hover:shadow-sm"
                         disabled={isSigningIn}
-                        onClick={() => {
-                            if (isSigningIn) return;
-                            setIsSigningIn(true);
-                            signIn("google", { callbackUrl });
-                        }}
+                        onClick={handleSignIn}
                     >
                         {isSigningIn ? (
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         ) : (
-                            <svg className="mr-3 h-5 w-5 absolute left-6" aria-hidden="true" focusable="false" role="img" viewBox="0 0 488 512">
-                                <path fill="currentColor" d="M..."></path>
-                            </svg>
+                            <Chrome className="mr-3 h-5 w-5" aria-hidden="true" />
                         )}
                         {isSigningIn ? "Signing in..." : "Continue with Google"}
                     </Button>
                 </CardContent>
 
                 <CardFooter className="flex flex-col gap-4 pb-8 text-center">
-                    <div className="text-sm text-muted-foreground">
-                        <Link href={isPwa ? "/items" : "/"} className="hover:text-primary hover:underline transition-colors inline-flex items-center gap-1">
-                            Return to Home
+                    <div className="text-sm text-muted-foreground underline-offset-4 hover:underline">
+                        <Link href="/items" className="hover:text-primary hover:underline transition-colors inline-flex items-center gap-1">
+                            Return to Browse Items
                         </Link>
                     </div>
-                    <p className="text-xs text-muted-foreground/60 px-8">
+                    <p className="text-xs text-muted-foreground/60 px-8 py-4">
                         By continuing, you agree to our Terms of Service and Privacy Policy.
                     </p>
                 </CardFooter>

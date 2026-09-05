@@ -13,6 +13,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useIsPwa } from '@/lib/hooks/use-is-pwa';
 import { User, LogOut, ShieldCheck, Sun, Moon } from 'lucide-react';
 
 interface UserMenuProps {
@@ -26,6 +27,7 @@ interface UserMenuProps {
 
 export function UserMenu({ user }: UserMenuProps) {
     const { theme, setTheme } = useTheme();
+    const isPwa = useIsPwa();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -92,7 +94,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 <DropdownMenuItem
                     className="text-destructive focus:text-destructive cursor-pointer"
                     onClick={() => signOut({
-                        callbackUrl: '/',
+                        callbackUrl: isPwa ? '/items' : '/',
                         redirect: true
                     })}
                 >

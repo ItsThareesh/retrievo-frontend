@@ -9,6 +9,9 @@ import {
     PTR_RING_CIRCUMFERENCE,
 } from "./use-pull-to-refresh";
 import { useSWRConfig } from "swr";
+import { useIsPwa } from "@/lib/hooks/use-is-pwa";
+
+const THRESHOLD = 80;
 
 type PtrRefreshHandler = () => Promise<unknown>;
 
@@ -31,6 +34,9 @@ interface PullToRefreshProps {
 
 export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
     const { mutate } = useSWRConfig();
+    // Custom pull-to-refresh is PWA-only: mobile/desktop browsers keep
+    // their native pull behavior, and our touch interception stays off.
+    const isPwa = useIsPwa();
     const handlersRef = useRef(new Set<PtrRefreshHandler>());
 
     const register = useCallback((handler: PtrRefreshHandler) => {
@@ -53,21 +59,36 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
         ]);
     }, [onRefresh, mutate]);
 
-    const { isRefreshing, containerRef, contentRef, spinnerRef, arcRef } = usePullToRefresh({
+    const { pullDistance, isRefreshing, isDragging, containerRef } = usePullToRefresh({
         onRefresh: handleRefresh,
-        threshold: 80,
+        threshold: THRESHOLD,
+        disabled: !isPwa,
     });
+
+    const progress = Math.min(pullDistance / THRESHOLD, 1);
+    const indicatorHeight = isRefreshing ? THRESHOLD : pullDistance;
+    const showIndicator = pullDistance > 0 || isRefreshing;
+    const ringOpacity = isRefreshing ? 1 : Math.min(1, progress * 2.5);
+    const ringScale = isRefreshing ? 1 : 0.6 + 0.4 * progress;
+    const arcLength = isRefreshing
+        ? PTR_RING_CIRCUMFERENCE * 0.75
+        : PTR_RING_CIRCUMFERENCE * Math.max(progress, 0.04);
 
     return (
         <PtrRegistryContext.Provider value={registry}>
             <div ref={containerRef} className="relative flex-1 min-h-0">
                 <div
-                    ref={spinnerRef}
-                    aria-hidden={!isRefreshing}
-                    className="pointer-events-none fixed left-0 right-0 z-40 flex justify-center opacity-0"
-                    style={{ top: "calc(env(safe-area-inset-top) + 4.5rem)" }}
+                    aria-hidden={!showIndicator}
+                    className="flex items-center justify-center overflow-hidden"
+                    style={{
+                        height: `${showIndicator ? indicatorHeight : 0}px`,
+                        transition: isDragging ? "none" : "height 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
+                    }}
                 >
-                    <div className="rounded-full bg-background/80 p-1.5 shadow-md ring-1 ring-black/5 backdrop-blur dark:ring-white/10">
+                    <div
+                        className="flex h-8 w-8 items-center justify-center"
+                        style={{ opacity: ringOpacity, transform: `scale(${ringScale})` }}
+                    >
                         <svg
                             width={PTR_RING_SIZE}
                             height={PTR_RING_SIZE}
@@ -87,7 +108,6 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
                                 strokeWidth={PTR_RING_STROKE}
                             />
                             <circle
-                                ref={arcRef}
                                 cx={PTR_RING_SIZE / 2}
                                 cy={PTR_RING_SIZE / 2}
                                 r={PTR_RING_RADIUS}
@@ -95,13 +115,13 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
                                 stroke="currentColor"
                                 strokeWidth={PTR_RING_STROKE}
                                 strokeLinecap="round"
-                                strokeDasharray={`0 ${PTR_RING_CIRCUMFERENCE}`}
+                                strokeDasharray={`${arcLength} ${PTR_RING_CIRCUMFERENCE}`}
                                 transform={`rotate(-90 ${PTR_RING_SIZE / 2} ${PTR_RING_SIZE / 2})`}
                             />
                         </svg>
                     </div>
                 </div>
-                <div ref={contentRef} className={isRefreshing ? "opacity-50 pointer-events-none" : ""}>
+                <div className={isRefreshing ? "opacity-50 pointer-events-none" : ""}>
                     {children}
                 </div>
             </div>
