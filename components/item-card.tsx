@@ -15,7 +15,7 @@ interface ItemCardProps {
 export function ItemCard({ item, type }: ItemCardProps) {
   return (
     <Link href={`/items/${item.id}`} className="block h-full">
-      <Card className="group relative overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg cursor-pointer md:rounded-2xl rounded">
+      <Card className="group relative overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg active:scale-[0.98] cursor-pointer touch-manipulation md:rounded-2xl rounded">
 
         <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
           {item.image && (

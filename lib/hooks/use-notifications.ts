@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR, { mutate } from "swr";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Notification } from "@/types/notification";
 import {
@@ -26,6 +26,13 @@ const NOTIFICATIONS_KEY = "notifications/all";
 const COUNT_KEY = "notifications/count";
 const STORAGE_KEY = "notifications_cache";
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const FRESH_WINDOW = 60 * 1000; // 1 minute - skip refetch when cache is this fresh
+
+// SWR keys in this app are arrays ([KEY, token]), so a bare string never
+// matches. Match on the stable prefix instead.
+function matchKey(prefix: string) {
+    return (key: unknown) => Array.isArray(key) && key[0] === prefix;
+}
 
 interface StoredData {
     data: NotificationsResponse;
@@ -120,9 +127,13 @@ export function useNotifications() {
         }
     );
 
-    useEffect(() => {
+    // Hydrate the session cache before paint so a warm cache never flashes
+    // the skeleton. Runs before paint (no visual flash) but after hydration,
+    // so the first client render still matches the server output.
+    useLayoutEffect(() => {
         const cached = getStoredNotifications();
         if (cached) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setStoredData(cached);
             mutateNotifications(cached.data, false);
         }
@@ -158,11 +169,14 @@ export function useNotifications() {
         ? notifications.filter((n) => !n.is_read).length
         : countData?.count ?? 0;
 
-    // Trigger a fresh fetch when the user opens the dropdown.  Because the
-    // server action now uses cache:"no-store", this always returns live data.
+    // Fetch the list unless the session cache was validated moments ago.
+    // The count watcher covers staleness in between, so opening the page or
+    // dropdown with a seconds-old cache is a free cache hit, not a fetch.
     // Errors are swallowed here — they are surfaced via the `isError` flag
     // returned from the hook so the caller can render an appropriate state.
     const loadNotifications = useCallback(async (): Promise<void> => {
+        const cached = getStoredNotifications();
+        if (cached && Date.now() - cached.timestamp < FRESH_WINDOW) return;
         try {
             await mutateNotifications();
         } catch (err) {
@@ -214,7 +228,7 @@ export function useNotifications() {
             );
             if (updated) setStoredNotifications(updated, updated.last_updated_at);
             await mutate(
-                COUNT_KEY,
+                matchKey(COUNT_KEY),
                 (current?: CountResponse) => {
                     if (!current || current.count <= 0) return current;
                     return {
@@ -250,7 +264,7 @@ export function useNotifications() {
             );
             if (updated) setStoredNotifications(updated, updated.last_updated_at);
             await mutate(
-                COUNT_KEY,
+                matchKey(COUNT_KEY),
                 (current?: CountResponse) => {
                     if (!current) return current;
                     return {
@@ -284,6 +298,6 @@ export function refreshNotifications() {
     if (typeof window !== "undefined") {
         sessionStorage.removeItem(STORAGE_KEY);
     }
-    mutate(NOTIFICATIONS_KEY);
-    mutate(COUNT_KEY);
+    mutate(matchKey(NOTIFICATIONS_KEY));
+    mutate(matchKey(COUNT_KEY));
 }
