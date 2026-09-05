@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect } from "react"
-import { Check, Info, X, CheckCheck, Inbox, AlertOctagon, AlertTriangle } from "lucide-react"
+import { Check, Info, X, CheckCheck, Inbox, AlertOctagon, AlertTriangle, LoaderCircle } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -66,10 +67,10 @@ function NotificationCard({
                 type="button"
                 onClick={() => onClick(notification)}
                 className={cn(
-                    "w-full flex items-start gap-4 p-4 text-left cursor-pointer transition-colors",
+                    "w-full flex items-start gap-4 p-4 text-left cursor-pointer touch-manipulation transition-colors",
                     !notification.is_read
-                        ? "bg-primary/[0.03] hover:bg-primary/[0.06]"
-                        : "hover:bg-muted/40"
+                        ? "bg-primary/[0.03] hover:bg-primary/[0.06] active:bg-primary/[0.09]"
+                        : "hover:bg-muted/40 active:bg-muted/60"
                 )}
             >
                 <NotificationIcon icon={notification.icon} />
@@ -163,17 +164,25 @@ export function NotificationsClient() {
         markAllAsRead,
     } = useNotifications()
 
+    const [isMarkingAll, setIsMarkingAll] = useState(false)
+
     useEffect(() => {
         loadNotifications()
     }, [loadNotifications])
 
     const handleMarkAllAsRead = async () => {
-        const res = await markAllAsRead()
+        if (isMarkingAll) return
+        setIsMarkingAll(true)
+        try {
+            const res = await markAllAsRead()
 
-        if (res.ok) {
-            toast.success("All notifications marked as read")
-        } else {
-            toast.error("Failed to mark notifications as read. Please try again.")
+            if (res.ok) {
+                toast.success("All notifications marked as read")
+            } else {
+                toast.error("Failed to mark notifications as read. Please try again.")
+            }
+        } finally {
+            setIsMarkingAll(false)
         }
     }
 
@@ -221,34 +230,41 @@ export function NotificationsClient() {
                                 : "You're all caught up"}
                         </p>
                     </div>
+                </div>
+            </div>
+
+            <Tabs defaultValue="all" className="w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-8">
+                    <TabsList className="flex w-full sm:max-w-md sm:flex-1 sm:mx-auto">
+                        <TabsTrigger value="all" className={tabTriggerClass}>
+                            All
+                        </TabsTrigger>
+                        <TabsTrigger value="unread" className={tabTriggerClass}>
+                            Unread
+                            {unreadCount > 0 && (
+                                <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 min-w-5 text-[10px] font-normal">
+                                    {unreadCount}
+                                </Badge>
+                            )}
+                        </TabsTrigger>
+                    </TabsList>
                     {unreadCount > 0 && (
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={handleMarkAllAsRead}
-                            className="gap-1.5 shrink-0 border-border/60 bg-background/40 hover:bg-muted/50 hover:text-foreground cursor-pointer"
+                            disabled={isMarkingAll}
+                            className="gap-1.5 shrink-0 w-full sm:w-auto border-border/60 bg-background/40 hover:bg-muted/50 hover:text-foreground cursor-pointer"
                         >
-                            <CheckCheck className="h-4 w-4" />
-                            Mark all as read
+                            {isMarkingAll ? (
+                                <LoaderCircle className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <CheckCheck className="h-4 w-4" />
+                            )}
+                            {isMarkingAll ? "Marking..." : "Mark all as read"}
                         </Button>
                     )}
                 </div>
-            </div>
-
-            <Tabs defaultValue="all" className="w-full">
-                <TabsList className="flex w-full max-w-md mx-auto mb-8">
-                    <TabsTrigger value="all" className={tabTriggerClass}>
-                        All
-                    </TabsTrigger>
-                    <TabsTrigger value="unread" className={tabTriggerClass}>
-                        Unread
-                        {unreadCount > 0 && (
-                            <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 min-w-5 text-[10px] font-normal">
-                                {unreadCount}
-                            </Badge>
-                        )}
-                    </TabsTrigger>
-                </TabsList>
 
                 <TabsContent value="all" className="mt-0 space-y-6">
                     {renderList(notifications, false)}

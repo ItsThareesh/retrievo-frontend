@@ -1,13 +1,14 @@
 "use client"
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
-import { usePullToRefresh } from "./use-pull-to-refresh";
+import {
+    usePullToRefresh,
+    PTR_RING_SIZE,
+    PTR_RING_STROKE,
+    PTR_RING_RADIUS,
+    PTR_RING_CIRCUMFERENCE,
+} from "./use-pull-to-refresh";
 import { useSWRConfig } from "swr";
-const THRESHOLD = 80;
-const RING_SIZE = 32;
-const RING_STROKE = 3;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 type PtrRefreshHandler = () => Promise<unknown>;
 
@@ -52,68 +53,55 @@ export function PullToRefresh({ children, onRefresh }: PullToRefreshProps) {
         ]);
     }, [onRefresh, mutate]);
 
-    const { pullDistance, isRefreshing, isDragging, containerRef } = usePullToRefresh({
+    const { isRefreshing, containerRef, contentRef, spinnerRef, arcRef } = usePullToRefresh({
         onRefresh: handleRefresh,
-        threshold: THRESHOLD,
+        threshold: 80,
     });
-
-    const progress = Math.min(pullDistance / THRESHOLD, 1);
-    const indicatorHeight = isRefreshing ? THRESHOLD : pullDistance;
-    const showIndicator = pullDistance > 0 || isRefreshing;
-    const ringOpacity = isRefreshing ? 1 : Math.min(1, progress * 2.5);
-    const ringScale = isRefreshing ? 1 : 0.6 + 0.4 * progress;
-    const arcLength = isRefreshing
-        ? RING_CIRCUMFERENCE * 0.75
-        : RING_CIRCUMFERENCE * Math.max(progress, 0.04);
 
     return (
         <PtrRegistryContext.Provider value={registry}>
             <div ref={containerRef} className="relative flex-1 min-h-0">
                 <div
-                    aria-hidden={!showIndicator}
-                    className="flex items-center justify-center overflow-hidden"
-                    style={{
-                        height: `${showIndicator ? indicatorHeight : 0}px`,
-                        transition: isDragging ? "none" : "height 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
-                    }}
+                    ref={spinnerRef}
+                    aria-hidden={!isRefreshing}
+                    className="pointer-events-none fixed left-0 right-0 z-40 flex justify-center opacity-0"
+                    style={{ top: "calc(env(safe-area-inset-top) + 4.5rem)" }}
                 >
-                    <div
-                        className="flex h-8 w-8 items-center justify-center"
-                        style={{ opacity: ringOpacity, transform: `scale(${ringScale})` }}
-                    >
+                    <div className="rounded-full bg-background/80 p-1.5 shadow-md ring-1 ring-black/5 backdrop-blur dark:ring-white/10">
                         <svg
-                            width={RING_SIZE}
-                            height={RING_SIZE}
-                            viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+                            width={PTR_RING_SIZE}
+                            height={PTR_RING_SIZE}
+                            viewBox={`0 0 ${PTR_RING_SIZE} ${PTR_RING_SIZE}`}
                             className={isRefreshing ? "animate-spin text-primary" : "text-primary"}
                             style={{ animationDuration: isRefreshing ? "0.9s" : undefined }}
                             role="status"
                             aria-label={isRefreshing ? "Refreshing" : "Pull to refresh"}
                         >
                             <circle
-                                cx={RING_SIZE / 2}
-                                cy={RING_SIZE / 2}
-                                r={RING_RADIUS}
+                                cx={PTR_RING_SIZE / 2}
+                                cy={PTR_RING_SIZE / 2}
+                                r={PTR_RING_RADIUS}
                                 fill="none"
                                 stroke="currentColor"
                                 strokeOpacity={0.18}
-                                strokeWidth={RING_STROKE}
+                                strokeWidth={PTR_RING_STROKE}
                             />
                             <circle
-                                cx={RING_SIZE / 2}
-                                cy={RING_SIZE / 2}
-                                r={RING_RADIUS}
+                                ref={arcRef}
+                                cx={PTR_RING_SIZE / 2}
+                                cy={PTR_RING_SIZE / 2}
+                                r={PTR_RING_RADIUS}
                                 fill="none"
                                 stroke="currentColor"
-                                strokeWidth={RING_STROKE}
+                                strokeWidth={PTR_RING_STROKE}
                                 strokeLinecap="round"
-                                strokeDasharray={`${arcLength} ${RING_CIRCUMFERENCE}`}
-                                transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+                                strokeDasharray={`0 ${PTR_RING_CIRCUMFERENCE}`}
+                                transform={`rotate(-90 ${PTR_RING_SIZE / 2} ${PTR_RING_SIZE / 2})`}
                             />
                         </svg>
                     </div>
                 </div>
-                <div className={isRefreshing ? "opacity-50 pointer-events-none" : ""}>
+                <div ref={contentRef} className={isRefreshing ? "opacity-50 pointer-events-none" : ""}>
                     {children}
                 </div>
             </div>

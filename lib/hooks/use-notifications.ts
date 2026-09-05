@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR, { mutate } from "swr";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Notification } from "@/types/notification";
 import {
@@ -162,7 +162,7 @@ export function useNotifications() {
     // server action now uses cache:"no-store", this always returns live data.
     // Errors are swallowed here — they are surfaced via the `isError` flag
     // returned from the hook so the caller can render an appropriate state.
-    const loadNotifications = async (): Promise<void> => {
+    const loadNotifications = useCallback(async (): Promise<void> => {
         try {
             await mutateNotifications();
         } catch (err) {
@@ -170,7 +170,9 @@ export function useNotifications() {
             // error is exposed via isError; do not let an unhandled rejection
             // propagate from a fire-and-forget call site in the dropdown
         }
-    };
+        // Stable identity: callers use it as a useEffect dependency, and a
+        // fresh identity every render would refetch in a loop.
+    }, [mutateNotifications]);
 
     // Mark a single notification as read.
     //
