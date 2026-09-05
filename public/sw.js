@@ -1,4 +1,4 @@
-const CACHE_NAME = "retrievo-v1";
+const CACHE_NAME = "retrievo-v2";
 const OFFLINE_URL = "/";
 
 self.addEventListener("install", (event) => {
@@ -25,6 +25,14 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
     if (event.request.method !== "GET") return;
+
+    const url = new URL(event.request.url);
+
+    // Auth and API routes must never be intercepted. Google sign-in starts
+    // as a same-origin navigation (/api/auth/signin/google) that 302s to
+    // accounts.google.com, and a cross-origin Response cannot satisfy a
+    // navigation request - the sign-in silently dies as a page refresh.
+    if (url.pathname.startsWith("/api/")) return;
 
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
