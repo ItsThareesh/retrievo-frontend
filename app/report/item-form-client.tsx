@@ -413,7 +413,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                         <Calendar
                                             mode="single"
                                             selected={field.value}
-                                            onSelect={(date) =>{field.onChange(date), setCalendarOpen(false)}}
+                                            onSelect={(date) => { field.onChange(date); setCalendarOpen(false); }}
                                             disabled={(date) => date > new Date() ||
                                                 date < new Date("2025-12-23")} />
                                     </PopoverContent>
@@ -441,7 +441,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                             </FormControl>
 
                             <FormDescription>
-                                Keep identifying details private so the rightful owner can confirm it's theirs.
+                                Keep identifying details private so the rightful owner can confirm it&apos;s theirs.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>

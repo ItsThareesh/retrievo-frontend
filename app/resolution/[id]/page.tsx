@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import {
@@ -365,7 +366,7 @@ export default function ClaimStatusPage() {
 
     const config = useMemo(
         () => resolution && viewer ? resolveStatusUI(resolution, viewer) : null,
-        [resolution?.status, viewer?.role]
+        [resolution?.status, viewer?.role] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
     const theme = config ? THEMES[config.theme as ThemeKey] : null;
@@ -390,11 +391,11 @@ export default function ClaimStatusPage() {
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">Claim Not Found</h1>
                     <p className="text-muted-foreground mb-6">
-                        This claim does not exist or you don't have permission to view it.
+                        This claim does not exist or you don&apos;t have permission to view it.
                     </p>
-                    <a href="/items" className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                    <Link href="/items" className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
                         Back to Items
-                    </a>
+                    </Link>
                 </div>
             </div>
         );
@@ -406,9 +407,9 @@ export default function ClaimStatusPage() {
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">Error</h1>
                     <p className="text-muted-foreground mb-6">Failed to load resolution details.</p>
-                    <a href="/items" className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                    <Link href="/items" className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
                         Back to Items
-                    </a>
+                    </Link>
                 </div>
             </div>
         );

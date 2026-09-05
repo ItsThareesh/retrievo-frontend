@@ -35,7 +35,27 @@ export const compressImage = async (file: File): Promise<File> => {
         }
 
         // Non-WebKit browsers need a WASM HEIC decoder (heic-to) to decode first.
-        const { heicTo } = await import("heic-to/next")
+        // `heic-to/next` is the Next.js / web-worker safe entry; fall back to `heic-to`
+        // for environments where the subpath export is unavailable (prevents "Module not found").
+        let heicTo: (args: { blob: Blob; type: string; quality?: number }) => Promise<Blob>;
+        try {
+            const mod = await import("heic-to/next");
+            heicTo = mod.heicTo;
+        } catch {
+            try {
+                const mod = await import("heic-to");
+                // heic-to re-exports heicTo at top-level; handle both named and default shapes
+                heicTo =
+                    (mod as unknown as { heicTo: typeof heicTo }).heicTo ??
+                    (mod as unknown as { default: typeof heicTo }).default;
+                if (!heicTo) throw new Error("heicTo not found");
+            } catch (err) {
+                throw new Error(
+                    "HEIC support requires the 'heic-to' package. Please run `npm install heic-to`. " +
+                        (err instanceof Error ? err.message : String(err))
+                );
+            }
+        }
 
         const convertedBlob = await heicTo({
             blob: file,

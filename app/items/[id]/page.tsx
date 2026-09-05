@@ -248,8 +248,6 @@ function ItemDetailContent({
         setFormData,
 
         canEdit,
-        canClaim,
-        canReturn,
 
         handleSave,
         handleCancel,

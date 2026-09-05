@@ -139,7 +139,7 @@ export function ProfileClient() {
                 setIsLoading(false);
             });
         return () => { cancelled = true; };
-    }, [status, token]);
+    }, [status, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const toastShownRef = useRef(false);
     const params = useSearchParams();

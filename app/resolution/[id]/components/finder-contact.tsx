@@ -12,7 +12,7 @@ export function FinderContactCard({ contact, theme }: { contact: FinderContact, 
                 <CheckCircle2 className={`h-5 w-5 ${theme.icon} shrink-0 mt-0.5`} />
                 <div className="flex-1">
                     <h3 className={`font-semibold ${theme.textMain} mb-2`}>
-                        Finder's Contact Details
+                        Finder&apos;s Contact Details
                     </h3>
                     <p className={`text-sm ${theme.textSub} mb-4`}>
                         Please reach out to arrange a time and place to collect your item.

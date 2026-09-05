@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ItemCardSkeleton({ index = 0 }: { index?: number }) {
     return (
         <Card className="overflow-hidden">

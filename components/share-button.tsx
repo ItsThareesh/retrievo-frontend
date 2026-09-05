@@ -28,7 +28,7 @@ export function ShareButton({
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
-            } catch (err: unknown) {
+            } catch {
                 // User dismissed the sheet (AbortError) or it failed — either
                 // way we don't fall back to clipboard to prevent duplicate links.
             }

@@ -118,7 +118,7 @@ export function ItemsGridClient() {
 
         loadingMoreRef.current = false;
         setIsLoadingMore(false);
-    }, [searchQuery, categoryFilter, typeFilter, token]);
+    }, [searchQuery, categoryFilter, typeFilter, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Infinite scroll
     useEffect(() => {

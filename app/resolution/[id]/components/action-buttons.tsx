@@ -54,7 +54,7 @@ export function ActionButtons({ allowedActions, loading, onAction }: ActionButto
                     className="w-full sm:flex-1 p-2 cursor-pointer bg-red-700 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500 text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
                 >
                     <X className="shrink-0 h-5 w-5 mr-2" />
-                    Item Doesn't Match
+                    Item Doesn&apos;t Match
                 </Button>
             )}
         </div>

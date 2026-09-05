@@ -56,13 +56,6 @@ function TrendIndicator({ current, previous, suffix }: { current: number; previo
     return <span className="text-sm text-muted-foreground">No change</span>;
 }
 
-function NumericTrend({ current, previous }: { current: number; previous: number }) {
-    const diff = current - previous;
-    if (diff === 0) return <span className="text-xs text-muted-foreground">0</span>;
-    if (diff > 0) return <span className="text-xs text-emerald-600">+{diff}</span>;
-    return <span className="text-xs text-red-600">{diff}</span>;
-}
-
 function StatCard({
     title,
     value,
