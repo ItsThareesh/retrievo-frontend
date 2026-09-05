@@ -1,6 +1,5 @@
-import Link from 'next/link';
-import { Plus } from 'lucide-react';
 import { ItemsGridClient } from './items-grid-client';
+import { ReportFab } from './report-fab';
 
 
 export default function BrowseItemsPage() {
@@ -19,13 +18,8 @@ export default function BrowseItemsPage() {
 
             <ItemsGridClient />
 
-            {/* Mobile FAB */}
-            <Link
-                href="/report"
-                className="md:hidden fixed bottom-6 right-6 z-50 size-14 rounded-full bg-primary text-primary-foreground shadow-xl hover:shadow-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
-            >
-                <Plus className="size-6" />
-            </Link>
+            {/* Mobile FAB - portalled to body, immune to PTR content transform */}
+            <ReportFab />
         </div>
     );
 }
