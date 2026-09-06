@@ -256,8 +256,6 @@ function ItemDetailContent({
         setFormData,
 
         canEdit,
-        canClaim,
-        canReturn,
 
         handleSave,
         handleCancel,
@@ -504,7 +502,7 @@ function ItemDetailContent({
                             isEditing && "bg-muted/30"
                         )}>
                             <span className="text-sm">
-                                Posted on {formatDateString(formData.date)}
+                                {item.type === "lost" ? "Lost" : "Found"} on {formatDateString(formData.date)}
                             </span>
                             <span>•</span>
 
