@@ -49,6 +49,7 @@ interface ItemData {
     item: Item;
     reporter: UserType;
     claim_status: ResolutionStatus | null;
+    resolution_id: string | null;
 }
 
 export default function ItemDetailPage() {
@@ -194,14 +195,16 @@ export default function ItemDetailPage() {
         );
     }
 
-    const { item, reporter, claim_status: resolution_status } = itemData;
+    const { item, reporter, claim_status: resolution_status, resolution_id } = itemData;
 
     return (
         <ItemDetailContent
             item={item}
             reporter={reporter}
             resolution_status={resolution_status}
+            resolution_id={resolution_id ?? null}
             session={session}
+            onResolutionCreated={() => reloadItem(false)}
         />
     );
 }
@@ -210,12 +213,16 @@ function ItemDetailContent({
     item,
     reporter,
     resolution_status,
+    resolution_id,
     session,
+    onResolutionCreated,
 }: {
     item: Item;
     reporter: UserType;
     resolution_status: ResolutionStatus | null;
+    resolution_id: string | null;
     session: Session | null;
+    onResolutionCreated?: () => Promise<void>;
 }) {
     const router = useRouter();
 
@@ -251,6 +258,7 @@ function ItemDetailContent({
 
         isSubmittingResolution,
         resolutionStatus,
+        resolutionId,
 
         formData,
         setFormData,
@@ -262,10 +270,11 @@ function ItemDetailContent({
         handleDelete,
         handleResolutionSubmit,
         handleReport
-    } = useItemEditable({ item, reporter, resolution_status, session });
+    } = useItemEditable({ item, reporter, resolution_status, resolution_id, session });
 
     const isReporter = !!session?.backendToken && session.user.public_id === reporter.public_id;
-    const hasResolution = resolution_status !== null;
+    const hasResolution = resolutionStatus !== null;
+    const showResolution = hasResolution && resolutionId !== null;
     
     const [nudgeDismissed, setNudgeDismissed] = useState(() => {
         try {
@@ -663,6 +672,17 @@ function ItemDetailContent({
                         </div>
                     </div>
                     <div className="space-y-3">
+                        {showResolution ? (
+                            <Button
+                                asChild
+                                size="lg"
+                                className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
+                            >
+                                <Link href={`/resolution/${resolutionId}`}>
+                                    View Resolution
+                                </Link>
+                            </Button>
+                        ) : null}
                         {showClaim ? (
                             <Button
                                 size="lg"
@@ -747,7 +767,10 @@ function ItemDetailContent({
                 text={claimText}
                 setText={setClaimText}
                 isSubmitting={isSubmittingResolution}
-                onSubmit={() => handleResolutionSubmit(item)}
+                onSubmit={async () => {
+                    const ok = await handleResolutionSubmit(item);
+                    if (ok) await onResolutionCreated?.();
+                }}
                 linkableItems={linkableItems}
                 isLoadingLinkableItems={isLoadingLinkableItems}
                 linkedItemId={linkedItemId}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -16,10 +16,11 @@ interface UseItemEditableProps {
     item: Item;
     reporter: UserType;
     resolution_status: ResolutionStatus | null;
+    resolution_id: string | null;
     session: Session | null;
 }
 
-export function useItemEditable({ item, reporter, resolution_status, session }: UseItemEditableProps) {
+export function useItemEditable({ item, reporter, resolution_status, resolution_id, session }: UseItemEditableProps) {
     const router = useRouter();
 
     const [reason, setReason] = useState("fake");
@@ -35,11 +36,8 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     const [isSubmittingResolution, setIsSubmittingResolution] = useState(false);
     const [linkedItemId, setLinkedItemId] = useState<string | null>(null);
 
-    const [resolutionStatus, setResolutionStatus] = useState<ResolutionStatus | null>(resolution_status);
-
-    useEffect(() => {
-        setResolutionStatus(resolution_status);
-    }, [resolution_status]);
+    const resolutionStatus = resolution_status;
+    const resolutionId = resolution_id;
 
     const isLoggedIn = !!session?.backendToken;
     const isReporter = reporter.public_id === session?.user?.public_id;
@@ -69,12 +67,13 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
     );
     const linkableItems = linkableItemsData || [];
 
-    useEffect(() => {
-        if (!isClaiming) {
-            // Reset state when dialog closes
-            setLinkedItemId(null);
-        }
-    }, [isClaiming]);
+    const setClaimingOpen: Dispatch<SetStateAction<boolean>> = (action) => {
+        const open = typeof action === "function"
+            ? (action as (prev: boolean) => boolean)(isClaiming)
+            : action;
+        setIsClaiming(open);
+        if (!open) setLinkedItemId(null);
+    };
 
     async function handleSave() {
         setIsSaving(true);
@@ -88,7 +87,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         }
 
         // Calculate diff - only send changed fields
-        const updates: Record<string, any> = {};
+        const updates: Record<string, string> = {};
         let hasChanges = false;
 
         for (const key of Object.keys(formData) as (keyof typeof formData)[]) {
@@ -191,11 +190,11 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         return null;
     }
 
-    async function handleResolutionSubmit(item: Item) {
+    async function handleResolutionSubmit(item: Item): Promise<boolean> {
         const error = validateResolutionInput(claimText);
         if (error) {
             toast.error(error);
-            return;
+            return false;
         }
 
         setIsSubmittingResolution(true);
@@ -231,25 +230,26 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
                 } else {
                     toast.error("Failed to submit request. Please try again.");
                 }
-                return;
+                return false;
             }
 
-            // Success handling
+            // Success handling - parent reloads the item to get fresh
+            // claim_status + resolution_id from the server.
             if (item.type === "found") {
                 toast.success("Claim sent to finder for verification");
-                setResolutionStatus("pending");
             } else {
                 toast.success("Return initiation request sent to owner");
-                setResolutionStatus("return_initiated");
             }
 
             // Shared cleanup
             setIsClaiming(false);
             setClaimText("");
             setLinkedItemId(null);
+            return true;
         } catch (err) {
-            if (handleBanError(err)) return;
+            if (handleBanError(err)) return false;
             toast.error("Failed to submit request. Please try again.");
+            return false;
         } finally {
             setIsSubmittingResolution(false);
         }
@@ -294,7 +294,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
         isReporting,
         setIsReporting,
         isClaiming,
-        setIsClaiming,
+        setIsClaiming: setClaimingOpen,
         claimText,
         setClaimText,
         linkedItemId,
@@ -304,6 +304,7 @@ export function useItemEditable({ item, reporter, resolution_status, session }: 
 
         isSubmittingResolution,
         resolutionStatus,
+        resolutionId,
 
         formData,
         setFormData,
