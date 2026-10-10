@@ -19,6 +19,13 @@ import {
 
 import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -31,6 +38,19 @@ import { ResolutionStatus } from "@/types/resolutions";
 import { ResolutionDetail } from "@/types/admin";
 
 const PAGE_SIZE = 20;
+
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: "all", label: "All statuses" },
+    { value: "pending", label: "Pending" },
+    { value: "return_initiated", label: "Return initiated" },
+    { value: "approved", label: "Approved" },
+    { value: "rejected", label: "Rejected" },
+    { value: "completed", label: "Completed" },
+    { value: "failed", label: "Failed" },
+    { value: "invalidated", label: "Invalidated" },
+    { value: "expired", label: "Expired" },
+    { value: "pending_admin_review", label: "Admin review" },
+];
 
 function StatusBadge({ status }: { status: ResolutionStatus }) {
     switch (status) {
@@ -117,13 +137,14 @@ export function ResolutionsTab() {
     const token = session?.backendToken;
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearch = useDebouncedValue(searchQuery, 500);
+    const [status, setStatus] = useState("all");
     const [page, setPage] = useState(0);
 
     const { data, isLoading, isValidating } = useSWR(
-        token ? ["resolutions", debouncedSearch, page, token] : null,
+        token ? ["resolutions", debouncedSearch, status, page, token] : null,
         // Over-fetch by one row: a full page means another page exists.
         // No COUNT query needed on the backend.
-        ([, search, p, t]) => getAdminResolutions(search, p * PAGE_SIZE, PAGE_SIZE + 1, t),
+        ([, search, s, p, t]) => getAdminResolutions(search, s, p * PAGE_SIZE, PAGE_SIZE + 1, t),
         { keepPreviousData: true },
     );
 
@@ -144,18 +165,38 @@ export function ResolutionsTab() {
                         Review all claims and return requests across the platform
                     </CardDescription>
                 </div>
-                <div className="relative w-full sm:w-80">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-200" />
-                    <Input
-                        type="search"
-                        placeholder="Search by ID, claimant, or finder"
-                        className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <Select
+                        value={status}
+                        onValueChange={(value) => {
+                            setStatus(value);
                             setPage(0);
                         }}
-                    />
+                    >
+                        <SelectTrigger className="w-full sm:w-48 bg-background border-muted-foreground/20">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {STATUS_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <div className="relative w-full sm:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-200" />
+                        <Input
+                            type="search"
+                            placeholder="Search by ID, claimant, or finder"
+                            className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setPage(0);
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
 

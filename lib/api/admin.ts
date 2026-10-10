@@ -24,10 +24,11 @@ export function getReportedItems(token?: string) {
     return clientFetch<ReportedItemDetail[]>("/admin/reported-items?limit=50", token);
 }
 
-/** GET: Resolutions (paginated, optionally filtered by search) */
-export function getAdminResolutions(search: string, skip: number, limit: number, token?: string) {
+/** GET: Resolutions (paginated, optionally filtered by search + status) */
+export function getAdminResolutions(search: string, status: string, skip: number, limit: number, token?: string) {
     const params = new URLSearchParams({ limit: String(limit), skip: String(skip) });
     if (search) params.set("search", search);
+    if (status && status !== "all") params.set("status", status);
 
     return clientFetch<ResolutionDetail[]>(`/admin/resolutions?${params}`, token);
 }
