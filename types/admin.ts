@@ -62,6 +62,7 @@ export interface UserDetail {
     public_id: string;
     name: string;
     email: string;
+    phone: string | null;
     image: string | null;
     created_at: string;
     warning_count: number;

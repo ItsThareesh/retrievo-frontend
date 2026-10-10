@@ -138,6 +138,7 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                     <TableRow className="border-b-2 border-muted">
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">User</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Email</TableHead>
+                        <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Phone</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Posts</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Reports</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Warnings</TableHead>
@@ -148,7 +149,7 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                 <TableBody>
                     {users.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={7} className="text-center text-muted-foreground py-12 text-sm">
+                            <TableCell colSpan={8} className="text-center text-muted-foreground py-12 text-sm">
                                 No users found
                             </TableCell>
                         </TableRow>
@@ -168,6 +169,13 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle max-w-[220px]">
                                     <span className="text-sm text-muted-foreground block truncate">{user.email}</span>
+                                </TableCell>
+                                <TableCell className="px-6 py-5 align-middle max-w-[160px]">
+                                    {user.phone ? (
+                                        <span className="text-sm text-foreground block truncate">{user.phone}</span>
+                                    ) : (
+                                        <span className="text-sm text-muted-foreground">—</span>
+                                    )}
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle text-center">
                                     <span className="text-sm text-foreground">{user.items_posted}</span>
@@ -257,7 +265,7 @@ export function UsersTab() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-200" />
                     <Input
                         type="search"
-                        placeholder="Search by name or email"
+                        placeholder="Search by name, email, or phone"
                         className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
