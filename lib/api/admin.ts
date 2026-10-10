@@ -1,4 +1,4 @@
-import { ModerateUserRequest, ModerateItemRequest, PaginatedUsers, ResolutionDetail, ActivityItem, ReportedItemDetail } from "@/types/admin";
+import { ModerateUserRequest, ModerateItemRequest, UserDetail, ResolutionDetail, ActivityItem, ReportedItemDetail } from "@/types/admin";
 import { clientFetch } from "@/lib/client-fetch";
 
 /** GET: Platform stats for the overview tab */
@@ -16,7 +16,7 @@ export function getUsers(search: string, skip: number, limit: number, token?: st
     const params = new URLSearchParams({ limit: String(limit), skip: String(skip) });
     if (search) params.set("search", search);
 
-    return clientFetch<PaginatedUsers>(`/admin/users?${params}`, token);
+    return clientFetch<UserDetail[]>(`/admin/users?${params}`, token);
 }
 
 /** GET: Reported items */
