@@ -24,9 +24,9 @@ export function getReportedItems(token?: string) {
     return clientFetch<ReportedItemDetail[]>("/admin/reported-items?limit=50", token);
 }
 
-/** GET: Resolutions (optionally filtered by search) */
-export function getAdminResolutions(search: string, token?: string) {
-    const params = new URLSearchParams({ limit: "50", skip: "0" });
+/** GET: Resolutions (paginated, optionally filtered by search) */
+export function getAdminResolutions(search: string, skip: number, limit: number, token?: string) {
+    const params = new URLSearchParams({ limit: String(limit), skip: String(skip) });
     if (search) params.set("search", search);
 
     return clientFetch<ResolutionDetail[]>(`/admin/resolutions?${params}`, token);

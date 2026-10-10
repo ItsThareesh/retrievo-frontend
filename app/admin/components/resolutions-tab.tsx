@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,10 +12,13 @@ import {
     RotateCcw,
     AlertTriangle,
     Archive,
+    ChevronLeft,
+    ChevronRight,
     Search,
 } from "lucide-react";
 
 import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -26,6 +29,8 @@ import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 import { ClaimsSkeleton } from "./skeletons";
 import { ResolutionStatus } from "@/types/resolutions";
 import { ResolutionDetail } from "@/types/admin";
+
+const PAGE_SIZE = 20;
 
 function StatusBadge({ status }: { status: ResolutionStatus }) {
     switch (status) {
@@ -112,17 +117,23 @@ export function ResolutionsTab() {
     const token = session?.backendToken;
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearch = useDebouncedValue(searchQuery, 500);
+    const [page, setPage] = useState(0);
 
-    const { data, isLoading } = useSWR(
-        token ? ["resolutions", debouncedSearch, token] : null,
-        ([, search, t]) => getAdminResolutions(search, t),
+    const { data, isLoading, isValidating } = useSWR(
+        token ? ["resolutions", debouncedSearch, page, token] : null,
+        // Over-fetch by one row: a full page means another page exists.
+        // No COUNT query needed on the backend.
+        ([, search, p, t]) => getAdminResolutions(search, p * PAGE_SIZE, PAGE_SIZE + 1, t),
+        { keepPreviousData: true },
     );
 
-    if (isLoading) {
+    const rows: ResolutionDetail[] = data ?? [];
+    const hasMore = rows.length > PAGE_SIZE;
+    const resolutions = rows.slice(0, PAGE_SIZE);
+
+    if (!data && isLoading) {
         return <ClaimsSkeleton />;
     }
-
-    const resolutions: ResolutionDetail[] = data ?? [];
 
     return (
         <Card>
@@ -140,7 +151,10 @@ export function ResolutionsTab() {
                         placeholder="Search by ID, claimant, or finder"
                         className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setPage(0);
+                        }}
                     />
                 </div>
             </div>
@@ -269,6 +283,39 @@ export function ResolutionsTab() {
                         )}
                     </TableBody>
                 </Table>
+                {(resolutions.length > 0 || page > 0) && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-2 border-t">
+                        <p className="text-sm text-muted-foreground">
+                            {resolutions.length > 0
+                                ? `Showing ${page * PAGE_SIZE + 1}–${page * PAGE_SIZE + resolutions.length}`
+                                : "No more resolutions"}
+                            {isValidating && <span className="ml-2">Loading…</span>}
+                        </p>
+                        <div className="flex items-center gap-1">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                aria-label="Previous page"
+                                disabled={page === 0}
+                                onClick={() => setPage(page - 1)}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <span className="text-sm text-muted-foreground px-2">
+                                Page {page + 1}
+                            </span>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                aria-label="Next page"
+                                disabled={!hasMore}
+                                onClick={() => setPage(page + 1)}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
