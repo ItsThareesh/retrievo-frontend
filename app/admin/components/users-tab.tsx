@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
     Table,
@@ -25,7 +25,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AlertCircle, Ban, Search } from "lucide-react";
+import { AlertCircle, Ban, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { moderateUser } from "@/lib/api/admin";
 import { UserDetail } from "@/types/admin";
 import useSWR from "swr";
@@ -35,6 +35,15 @@ import { getUsers } from "@/lib/api/admin";
 import { handleBanError } from "@/lib/ban-handler";
 
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
+
+const PAGE_SIZE = 20;
+
+/** 0-based sliding window of up to 5 page numbers around the current page */
+function getPageNumbers(current: number, totalPages: number): number[] {
+    const start = Math.max(0, Math.min(current - 2, totalPages - 5));
+    const end = Math.min(totalPages, start + 5);
+    return Array.from({ length: end - start }, (_, i) => start + i);
+}
 
 function getInitials(name: string) {
     return name
@@ -248,11 +257,17 @@ export function UsersTab() {
     const token = session?.backendToken;
     const [search, setSearch] = useState("");
     const debouncedSearch = useDebouncedValue(search, 500);
+    const [page, setPage] = useState(0);
 
-    const { data: users, isLoading, mutate } = useSWR(
-        token ? ['users', debouncedSearch, token] : null,
-        ([, search, t]) => getUsers(search, t),
+    const { data, isLoading, isValidating, mutate } = useSWR(
+        token ? ['users', debouncedSearch, page, token] : null,
+        ([, search, p, t]) => getUsers(search, p * PAGE_SIZE, PAGE_SIZE, t),
+        { keepPreviousData: true },
     );
+
+    const users = data?.users ?? [];
+    const total = data?.total ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
     return (
         <Card>
@@ -268,15 +283,60 @@ export function UsersTab() {
                         placeholder="Search by name, email, or phone"
                         className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => {
+                            setSearch(e.target.value);
+                            setPage(0);
+                        }}
                     />
                 </div>
             </div>
             <CardContent className="px-6 pt-6 pb-6">
-                {isLoading ? (
+                {!data && isLoading ? (
                     <UsersSkeleton />
                 ) : (
-                    <UsersTable users={users || []} onUpdate={mutate} />
+                    <>
+                        <UsersTable users={users} onUpdate={mutate} />
+                        {total > 0 && (
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-2 border-t">
+                                <p className="text-sm text-muted-foreground">
+                                    Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total} users
+                                    {isValidating && <span className="ml-2">Loading…</span>}
+                                </p>
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        aria-label="Previous page"
+                                        disabled={page === 0}
+                                        onClick={() => setPage(page - 1)}
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    {getPageNumbers(page, totalPages).map((p) => (
+                                        <Button
+                                            key={p}
+                                            size="sm"
+                                            variant={p === page ? "default" : "outline"}
+                                            aria-label={`Page ${p + 1}`}
+                                            aria-current={p === page ? "page" : undefined}
+                                            onClick={() => setPage(p)}
+                                        >
+                                            {p + 1}
+                                        </Button>
+                                    ))}
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        aria-label="Next page"
+                                        disabled={page >= totalPages - 1}
+                                        onClick={() => setPage(page + 1)}
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </CardContent>
         </Card>

@@ -73,6 +73,11 @@ export interface UserDetail {
     reports_received: number;
 }
 
+export interface PaginatedUsers {
+    users: UserDetail[];
+    total: number;
+}
+
 export interface ReportedItemDetail {
     id: string;
     title: string;
