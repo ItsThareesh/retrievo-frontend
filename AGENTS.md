@@ -45,7 +45,7 @@
 
 ## SWR (Notifications)
 - `notifications/all`: 300s dedup, no focus revalidate
-- `notifications/count`: 5s dedup, never mutated
+- `notifications/count`: 10s dedup, never mutated
 - Count derived from list (race safety)
 - Optimistic writes: `rollbackOnError: true, revalidate: false`
 
