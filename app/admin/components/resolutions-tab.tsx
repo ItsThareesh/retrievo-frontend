@@ -14,6 +14,7 @@ import {
     Archive,
     ChevronLeft,
     ChevronRight,
+    ListFilter,
     Search,
 } from "lucide-react";
 
@@ -173,8 +174,12 @@ export function ResolutionsTab() {
                             setPage(0);
                         }}
                     >
-                        <SelectTrigger className="w-full sm:w-48 bg-background border-muted-foreground/20">
-                            <SelectValue placeholder="Filter by status" />
+                        <SelectTrigger
+                            aria-label="Filter by resolution status"
+                            className="w-full sm:w-auto bg-background border-muted-foreground/20 gap-2"
+                        >
+                            <ListFilter className="h-4 w-4 shrink-0" />
+                            {status === "all" ? null : <SelectValue />}
                         </SelectTrigger>
                         <SelectContent>
                             {STATUS_OPTIONS.map((option) => (
@@ -188,7 +193,7 @@ export function ResolutionsTab() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors duration-200" />
                         <Input
                             type="search"
-                            placeholder="Search by ID, claimant, or finder"
+                            placeholder="Search by claimant, finder, or item title"
                             className="pl-9 bg-background border-muted-foreground/20 placeholder:text-neutral-500 transition-all duration-200 focus:border-primary/50"
                             value={searchQuery}
                             onChange={(e) => {
@@ -204,7 +209,6 @@ export function ResolutionsTab() {
                 <Table>
                     <TableHeader>
                         <TableRow className="border-b-2 border-muted">
-                            <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">ID</TableHead>
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Lost Item</TableHead>
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Found Item</TableHead>
                             <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Claimant</TableHead>
@@ -218,7 +222,7 @@ export function ResolutionsTab() {
                         {resolutions.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={8}
+                                    colSpan={7}
                                     className="text-center text-muted-foreground py-12 text-sm"
                                 >
                                     No resolutions found
@@ -231,12 +235,6 @@ export function ResolutionsTab() {
                                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                                     onClick={() => router.push(`/resolution/${res.id}`)}
                                 >
-                                    <TableCell className="px-6 py-5 align-middle">
-                                        <span className="text-sm font-medium text-foreground block max-w-xs">
-                                            {`${res.id.slice(0, 8)}...${res.id.slice(-7)}`}
-                                        </span>
-                                    </TableCell>
-
                                     <TableCell className="px-6 py-5 align-middle">
                                         <div className="space-y-1">
                                             {res.lost_item_id ? (
