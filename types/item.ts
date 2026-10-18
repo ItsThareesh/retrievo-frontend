@@ -19,3 +19,9 @@ export interface Item {
     hidden_reason?: string;
     deleted?: boolean;
 }
+
+/** One entry of GET /items/{id}/matches — the counterpart item + when it matched. */
+export interface PotentialMatchEntry {
+    item: Pick<Item, "id" | "title" | "image" | "type" | "location" | "category" | "date" | "created_at">;
+    matched_at: string;
+}

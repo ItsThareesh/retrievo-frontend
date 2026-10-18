@@ -16,6 +16,11 @@ export function getItem(itemId: string, token?: string) {
     return clientFetch(`/items/${itemId}`, token);
 }
 
+/** GET: Owner-gated list of potential matches for the caller's own item */
+export function getItemMatches(itemId: string, token?: string) {
+    return clientFetch(`/items/${itemId}/matches`, token);
+}
+
 /** POST: Create a new Lost or Found Item */
 export function postLostFoundItem(formData: FormData, token?: string) {
     return clientFetch('/items/create', token, { method: "POST", body: formData, timeout: 30000 }); // Image upload can take time, so we set a longer timeout

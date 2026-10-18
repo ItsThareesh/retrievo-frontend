@@ -18,3 +18,8 @@ export interface ContactPayload {
     phone?: string | null;
     instagramId?: string | null;
 }
+
+export interface NotificationPreferences {
+    email?: boolean;
+    push?: boolean;
+}

@@ -1,5 +1,5 @@
 import { clientFetch } from "@/lib/client-fetch";
-import { OnboardingPayload, ContactPayload } from "@/types/user";
+import { OnboardingPayload, ContactPayload, NotificationPreferences } from "@/types/user";
 
 /** GET: Current user's items */
 export function getMyItems(token?: string) {
@@ -22,6 +22,14 @@ export function updateOnboarding(payload: OnboardingPayload, token?: string) {
 /** PATCH: Update contact details (phone / Instagram) */
 export function updateContact(payload: ContactPayload, token?: string) {
     return clientFetch('/profile/contact', token, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+    });
+}
+
+/** PATCH: Toggle notification channels (email / push) */
+export function updateNotificationPreferences(payload: NotificationPreferences, token?: string) {
+    return clientFetch<{ notification_preferences: NotificationPreferences }>('/profile/notification-preferences', token, {
         method: "PATCH",
         body: JSON.stringify(payload),
     });

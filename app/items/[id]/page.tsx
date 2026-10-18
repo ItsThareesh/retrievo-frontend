@@ -9,7 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn, ArrowLeft, X } from "lucide-react";
+import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn, ArrowLeft, GitCompareArrows, X } from "lucide-react";
 import { ShareButton } from "@/components/share-button";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -379,6 +379,7 @@ function ItemDetailContent({
                 <div className="lg:col-span-2 space-y-6">
                     {item.image && (
                         <ImageViewer src={item.image} alt={item.title}>
+
                             <div className="relative aspect-video w-full max-h-[75vh] overflow-hidden rounded-xl bg-muted border shadow-sm group">
                                 <Image
                                     src={item.image}
@@ -452,9 +453,25 @@ function ItemDetailContent({
                                         placeholder="Item title"
                                     />
                                 ) : (
-                                    <h1 className="text-3xl font-bold leading-tight flex-1 wrap-break-word">
-                                        {formData.title}
-                                    </h1>
+                                    <>
+                                        <h1 className="text-3xl font-bold leading-tight flex-1 wrap-break-word">
+                                            {formData.title}
+                                        </h1>
+
+                                        {canEdit && (
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="sm"
+                                                className="shrink-0 self-start mt-1 h-8 cursor-pointer gap-1.5 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary animate-in fade-in slide-in-from-right-2 duration-200"
+                                            >
+                                                <Link href={`/items/${item.id}/matches`}>
+                                                    <GitCompareArrows className="h-3.5 w-3.5" />
+                                                    Matches
+                                                </Link>
+                                            </Button>
+                                        )}
+                                    </>
                                 )}
 
                                 {canEdit && !isEditing && (

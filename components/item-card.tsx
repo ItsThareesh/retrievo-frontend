@@ -15,7 +15,7 @@ interface ItemCardProps {
 export function ItemCard({ item, type }: ItemCardProps) {
   return (
     <Link href={`/items/${item.id}`} className="block h-full">
-      <Card className="group relative overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg active:scale-[0.98] cursor-pointer touch-manipulation md:rounded-2xl rounded">
+      <Card className="group relative overflow-hidden flex flex-col h-full border-muted transition-all hover:shadow-lg active:scale-[0.98] cursor-pointer touch-manipulation rounded-2xl">
 
         <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
           {item.image && (
@@ -40,7 +40,7 @@ export function ItemCard({ item, type }: ItemCardProps) {
         </div>
 
         <CardHeader className="p-3 pb-0 space-y-0">
-          <h3 className="font-bold text-lg line-clamp-3 group-hover:text-primary transition-colors">
+          <h3 className="font-bold text-lg line-clamp-2 group-hover:text-primary transition-colors">
             {item.title}
           </h3>
           {/* <Badge variant="secondary" className="w-fit font-normal text-xs">
