@@ -179,7 +179,11 @@ export function ResolutionsTab() {
                             className="w-full sm:w-auto bg-background border-muted-foreground/20 gap-2"
                         >
                             <ListFilter className="h-4 w-4 shrink-0" />
-                            {status === "all" ? null : <SelectValue />}
+                            {status === "all" ? (
+                                <span className="text-muted-foreground">No filter</span>
+                            ) : (
+                                <SelectValue />
+                            )}
                         </SelectTrigger>
                         <SelectContent>
                             {STATUS_OPTIONS.map((option) => (
