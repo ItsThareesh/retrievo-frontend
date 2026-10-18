@@ -2,11 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, GitCompareArrows, Search } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDistanceToNow } from "date-fns";
 import { APIError } from "@/lib/api-error";
 import { handleBanError } from "@/lib/ban-handler";
 import { useSession } from "next-auth/react";
@@ -14,15 +13,6 @@ import { usePtrRefreshHandler } from "@/components/pull-to-refresh";
 import { getItem, getItemMatches } from "@/lib/api/items";
 import { ItemCard } from "@/components/item-card";
 import { PotentialMatchEntry } from "@/types/item";
-
-function matchedChip(match: PotentialMatchEntry) {
-    return (
-        <span className="pointer-events-none flex items-center gap-1.5 text-[10px] font-medium text-white bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm">
-            <GitCompareArrows className="w-3 h-3" />
-            Matched {formatDistanceToNow(new Date(match.matched_at), { addSuffix: true })}
-        </span>
-    );
-}
 
 export default function ItemMatchesPage() {    const router = useRouter();
     const { data: session, status: sessionStatus } = useSession();
@@ -170,7 +160,6 @@ export default function ItemMatchesPage() {    const router = useRouter();
                                 visibility: match.item.type === "lost" ? "public" : "public",
                             }}
                             type={match.item.type}
-                            overlay={matchedChip(match)}
                         />
                     ))}
                 </div>
