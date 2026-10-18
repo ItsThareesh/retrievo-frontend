@@ -19,6 +19,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       position="top-center"
       closeButton
+      // Respect the iOS notch/status bar in PWA standalone mode (viewport-fit: cover),
+      // so toasts don't render behind it — same safe area the navbar pads for.
+      offset={{
+        top: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+      }}
+      mobileOffset={{
+        top: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+      }}
       icons={{
         success: <CircleCheckIcon className="size-5 text-emerald-500" />,
         info: <InfoIcon className="size-5 text-primary" />,
