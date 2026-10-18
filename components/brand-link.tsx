@@ -3,15 +3,22 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useIsPwa } from "@/lib/hooks/use-is-pwa";
 
 export function BrandLink() {
     const isPwa = useIsPwa();
+    const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
+
+    // Landing page: stay there (or /items in the PWA, standalone can't "self").
+    // Every page lands on browse instead of the marketing story.
+    const href = pathname === "/" ? (isPwa ? "/items" : "/") : "/items";
 
     const content = (
         <>
@@ -30,7 +37,7 @@ export function BrandLink() {
 
     return (
         <Link
-            href={isPwa ? "/items" : "/"}
+            href={href}
             className="flex items-center gap-2 font-bold text-xl text-primary hover:opacity-90 transition-opacity"
         >
             {content}
