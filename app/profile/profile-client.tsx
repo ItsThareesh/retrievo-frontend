@@ -25,6 +25,7 @@ import { APIError } from '@/lib/api-error';
 import { handleBanError } from '@/lib/ban-handler';
 import { getMyItems } from '@/lib/api/profile';
 import { usePtrRefreshHandler } from '@/components/pull-to-refresh';
+import { PushToggleRow } from '@/components/push-toggle';
 import { standardizeItemDate } from '@/lib/date-formatting';
 import { updateContact } from '@/lib/api/profile';
 import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@/lib/utils/contact';
@@ -356,6 +357,11 @@ export function ProfileClient() {
                                         </div>
                                     )}
                                     <hr className='my-2' />
+
+                                    <PushToggleRow />
+
+                                    <hr className='my-2' />
+
                                     <Button
                                         variant="ghost"
                                         className="w-full justify-center h-10 cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10"

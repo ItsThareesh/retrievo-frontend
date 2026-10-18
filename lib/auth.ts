@@ -18,6 +18,7 @@ async function getProfile(tokenString: string) {
         phone: userData.phone ?? null,
         instagramId: userData.instagram_id ?? null,
         role: userData.role as "user" | "admin",
+        notificationPreferences: userData.notification_preferences ?? null,
     };
 }
 

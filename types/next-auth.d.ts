@@ -1,5 +1,7 @@
 import { DefaultSession } from "next-auth";
 
+import { NotificationPreferences } from "@/types/user";
+
 declare module "next-auth" {
     interface Session {
         backendToken?: string;
@@ -13,6 +15,7 @@ declare module "next-auth" {
             phone: string | null;
             instagramId: string | null;
             role: "user" | "admin";
+            notificationPreferences?: NotificationPreferences | null;
         };
         error?: "RefreshTokenError";
     }
@@ -36,6 +39,7 @@ declare module "next-auth/jwt" {
             phone: string | null;
             instagramId: string | null;
             role: "user" | "admin";
+            notificationPreferences?: NotificationPreferences | null;
         };
         error?: "RefreshTokenError";
     }

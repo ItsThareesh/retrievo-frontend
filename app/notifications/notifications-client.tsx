@@ -192,7 +192,7 @@ export function NotificationsClient() {
         }
 
         if (notification.type === 'potential_match' && notification.item_id !== undefined) {
-            router.push('/items/' + notification.item_id)
+            router.push(`/items/${notification.item_id}/matches`)
         } else if (notification.type === "resolution" && notification.resolution_id !== undefined) {
             router.push('/resolution/' + notification.resolution_id)
         }
