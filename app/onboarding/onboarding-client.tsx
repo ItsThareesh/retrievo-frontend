@@ -2,9 +2,9 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Phone, Building2, Check, Instagram } from 'lucide-react';
+import { ChevronDown, Phone, Building2, Check, Instagram, Bell } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { APIError } from '@/lib/api-error';
@@ -24,6 +24,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { updateOnboarding } from '@/lib/api/profile';
+import { usePushNotifications } from '@/lib/hooks/use-push';
 import { toast } from 'sonner';
 import { OnboardingPayload } from '@/types/user';
 import { needsOnboarding } from '@/lib/utils/needsOnboarding';
@@ -32,6 +33,7 @@ import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@
 export default function OnboardingClient() {
     const { data: session, status, update } = useSession();
     const router = useRouter();
+    const push = usePushNotifications();
 
     const [phoneNumber, setPhoneNumberState] = useState(session?.user?.phone || '');
     const [hostel, setHostelState] = useState<'boys' | 'girls' | ''>(session?.user?.hostel || '');
@@ -39,9 +41,23 @@ export default function OnboardingClient() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [countryCode, setCountryCode] = useState("+91");
+    // Step shown after the profile is saved: ask once for push permission.
+    // Browsers only allow Notification.requestPermission() from a user tap,
+    // so this must be a button, never automatic.
+    const [showPushStep, setShowPushStep] = useState(false);
+    // Once handleSubmit succeeds it owns navigation (push step or /items) —
+    // the check-on-mount effect below must not race it, because the session
+    // update() inside handleSubmit makes needsOnboarding(session) false, which
+    // would otherwise fire the redirect to /items and skip the push step.
+    const submitSucceededRef = useRef(false);
+
+    const goToItems = () => {
+        window.location.href = "/items";
+    };
 
     useEffect(() => {
         if (status !== "authenticated" || !session?.backendToken) return;
+        if (submitSucceededRef.current) return;
 
         if (!needsOnboarding(session)) {
             window.location.href = "/items";
@@ -81,6 +97,7 @@ export default function OnboardingClient() {
                 expires_at: res.expires_at,
             });
 
+            submitSucceededRef.current = true;
             toast.success("Welcome! Your profile has been set up.");
         } catch (err) {
             if (handleBanError(err)) return;
@@ -98,8 +115,67 @@ export default function OnboardingClient() {
             setIsSubmitting(false);
         }
 
-        window.location.href = "/items";
+        // Only offer the native prompt where push is supported and not already on.
+        if (push.supported && !push.enabled) {
+            setShowPushStep(true);
+        } else {
+            goToItems();
+        }
     };
+
+    const handleEnablePush = async () => {
+        // enable() runs SW registration + native permission prompt + subscription
+        // POST — all within this user gesture. Navigate after it settles either way.
+        try {
+            await push.enable();
+        } finally {
+            goToItems();
+        }
+    };
+
+    if (showPushStep) {
+        return (
+            <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-linear-to-br">
+                <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
+                <Card className="w-full max-w-lg shadow-2xl border-border/40 relative z-10 backdrop-blur-sm bg-background/95 text-center">
+                    <CardHeader className="pt-8 items-center">
+                        <div className="mx-auto mb-4 p-4 rounded-full bg-primary/10 w-fit">
+                            <Bell className="w-8 h-8 text-primary" />
+                        </div>
+                        <CardTitle className="text-2xl font-bold tracking-tight">Stay in the loop</CardTitle>
+                        <CardDescription className="text-base mt-2">
+                            Enable notifications to get instant alerts when your lost item gets a
+                            match, or when someone claims what you found.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="px-8 pb-2">
+                        <Button
+                            type="button"
+                            size="lg"
+                            disabled={push.isBusy}
+                            onClick={handleEnablePush}
+                            className="w-full h-11 text-base font-medium shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+                        >
+                            {push.isBusy ? "Setting up..." : "Enable Notifications"}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            disabled={push.isBusy}
+                            onClick={goToItems}
+                            className="w-full h-11 text-muted-foreground mt-2"
+                        >
+                            Not now
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-3">
+                            Your browser will ask for permission. You can change this anytime from
+                            your profile.
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-linear-to-br">
