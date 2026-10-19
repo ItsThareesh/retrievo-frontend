@@ -37,6 +37,48 @@ function pushSupported(): boolean {
     );
 }
 
+// Guidance for the state where push can't be granted from inside the page —
+// the browser already holds a "Block" for this site (or iOS has no in-app
+// reset for it). Each message names the actual blocker and the exact
+// recovery path, because "change your settings" is undiscoverable:
+// there is no per-site notification reset inside a standalone PWA on iOS.
+function blockedPushGuidance(): { title: string; description: string } {
+    const standalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const isiOs = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    // Safari without Chrome's chrome:// or Android's fingerprint.
+    const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+
+    if (isiOs && standalone) {
+        return {
+            title: "Notifications are blocked on this iPhone",
+            description:
+                "iOS offers no reset for this inside the app. Delete it from your Home Screen, then open this site in Safari and re-add it — choosing Allow when asked.",
+        };
+    }
+    if (isiOs) {
+        return {
+            title: "iPhone notifications need the installed app",
+            description:
+                "Safari tabs can't run web push on iOS. Add this site to your Home Screen (Share → Add to Home Screen) and allow notifications when asked.",
+        };
+    }
+    if (isSafari) {
+        return {
+            title: "Notifications are blocked in Safari",
+            description:
+                "Safari menu → Settings… → Websites → Notifications: set this site to Allow, then reload.",
+        };
+    }
+    // Chromium-family and Firefox share the site-settings UI.
+    return {
+        title: "Notifications are blocked by your browser",
+        description:
+            "Click the padlock (or site icon) next to the address bar → Notifications → Allow, then reload this page.",
+    };
+}
+
 async function currentSubscription(): Promise<PushSubscription | null> {
     const registration = await navigator.serviceWorker.getRegistration(SW_PATH);
     if (!registration) return null;
@@ -181,7 +223,12 @@ export function usePushNotifications() {
 
             const permission = await Notification.requestPermission();
             if (permission !== "granted") {
-                toast.error("Permission denied. Enable notifications in your browser settings.");
+                // "denied" here is permanent from this page — the browser
+                // keeps the Block for the site. Tell the user exactly what's
+                // blocking and how to undo it; a generic "check settings"
+                // is a dead end (especially on iOS).
+                const { title, description } = blockedPushGuidance();
+                toast.error(title, { description, duration: 12_000 });
                 return;
             }
 

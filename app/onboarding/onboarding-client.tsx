@@ -115,12 +115,10 @@ export default function OnboardingClient() {
             setIsSubmitting(false);
         }
 
-        // Only offer the native prompt where push is supported and not already on.
-        if (push.supported && !push.enabled) {
-            setShowPushStep(true);
-        } else {
-            goToItems();
-        }
+        // The push step is unconditional: every freshly onboarded account is
+        // asked once. enable() handles unsupported devices (graceful toast)
+        // and already-registered ones via the card's adaptive button below.
+        setShowPushStep(true);
     };
 
     const handleEnablePush = async () => {
@@ -153,10 +151,14 @@ export default function OnboardingClient() {
                             type="button"
                             size="lg"
                             disabled={push.isBusy}
-                            onClick={handleEnablePush}
+                            onClick={push.enabled ? goToItems : handleEnablePush}
                             className="w-full h-11 text-base font-medium shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
                         >
-                            {push.isBusy ? "Setting up..." : "Enable Notifications"}
+                            {push.isBusy
+                                ? "Setting up..."
+                                : push.enabled
+                                    ? "Continue to app"
+                                    : "Enable Notifications"}
                         </Button>
                         <Button
                             type="button"
@@ -168,8 +170,9 @@ export default function OnboardingClient() {
                             Not now
                         </Button>
                         <p className="text-xs text-muted-foreground mt-3">
-                            Your browser will ask for permission. You can change this anytime from
-                            your profile.
+                            {!push.supported
+                                ? "Push notifications aren't supported on this device/browser."
+                                : "Your browser will ask for permission. You can change this anytime from your profile."}
                         </p>
                     </CardContent>
                 </Card>
