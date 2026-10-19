@@ -1,33 +1,47 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 
-function ItemCardSkeleton({ index = 0 }: { index?: number }) {
+function ItemCardSkeleton() {
     return (
-        <Card className="overflow-hidden">
-            <CardContent className="p-0">
-                <Skeleton className="w-full h-48" />
-                <div className="p-4 space-y-3">
-                    <Skeleton className="h-5 w-20" />
-                    <Skeleton className="h-6 w-3/4" />
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-5/6" />
+        <Card className="overflow-hidden flex flex-col h-full border-muted rounded-2xl">
+            {/* Image area + type badge (mirrors ItemCard's aspect-4/3 media block) */}
+            <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
+                <Skeleton className="absolute inset-0 rounded-none" />
+                <Skeleton className="absolute top-3 right-3 h-5 w-14 rounded-full" />
+            </div>
+
+            {/* Title (mirrors CardHeader p-3 pb-0 with line-clamp-2 title) */}
+            <CardHeader className="p-3 pb-0 space-y-0">
+                <Skeleton className="h-6 w-3/4" />
+            </CardHeader>
+
+            {/* Meta rows (mirrors CardContent p-5 pt-1 with date/location after border-t) */}
+            <CardContent className="p-5 pt-1 flex-1">
+                <div className="flex flex-col gap-2 pt-2 border-t">
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="w-3.5 h-3.5" />
+                        <Skeleton className="h-4 w-20" />
                     </div>
-                    <div className="space-y-2 pt-2">
-                        <Skeleton className="h-4 w-2/3" />
-                        <Skeleton className="h-4 w-1/2" />
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="w-3.5 h-3.5" />
+                        <Skeleton className="h-4 w-28" />
                     </div>
                 </div>
             </CardContent>
+
+            {/* View Details button (mirrors CardFooter p-5 pt-0 full-width outline button) */}
+            <CardFooter className="p-5 pt-0">
+                <Skeleton className="w-full h-9 rounded-md" />
+            </CardFooter>
         </Card>
     );
 }
 
 export function ItemsLoadMoreSkeleton() {
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6 gap-2 px-0">
             {Array.from({ length: 4 }).map((_, index) => (
-                <ItemCardSkeleton key={index} index={index} />
+                <ItemCardSkeleton key={index} />
             ))}
         </div>
     );
@@ -150,9 +164,9 @@ export function ResolutionDetailSkeleton() {
 
 export function ItemsGridSkeleton() {
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6 gap-2 px-0">
             {Array.from({ length: 12 }).map((_, index) => (
-                <ItemCardSkeleton key={index} index={index} />
+                <ItemCardSkeleton key={index} />
             ))}
         </div>
     );
