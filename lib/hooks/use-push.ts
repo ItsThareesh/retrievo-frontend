@@ -10,6 +10,11 @@ import { updateNotificationPreferences } from "@/lib/api/profile";
 
 const SW_PATH = "/sw.js";
 
+// Silent device re-registration: don't re-POST the same subscription on every
+// load — once a week is enough to repair a pruned row or refresh an endpoint.
+const SYNC_MARKER_KEY = "retrievo.push.lastSync";
+const SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+
 export function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -38,12 +43,55 @@ async function currentSubscription(): Promise<PushSubscription | null> {
     return registration.pushManager.getSubscription();
 }
 
+async function syncSubscriptionSilently(
+    subscription: PushSubscription,
+    token: string
+): Promise<void> {
+    // No prompts, no toasts, no preference changes — pure backend row
+    // repair/upsert for a device whose subscription was pruned server-side
+    // (410/404) or whose endpoint was rotated by the browser.
+    const json = subscription.toJSON();
+    const endpoint = json.endpoint!;
+    const p256dh = json.keys?.p256dh;
+    const auth = json.keys?.auth;
+    if (!endpoint || !p256dh || !auth) return;
+
+    try {
+        const marker = JSON.parse(
+            localStorage.getItem(SYNC_MARKER_KEY) ?? "null"
+        ) as { endpoint: string; at: number } | null;
+        if (
+            marker &&
+            marker.endpoint === endpoint &&
+            Date.now() - marker.at < SYNC_INTERVAL_MS
+        ) {
+            return;
+        }
+    } catch {
+        localStorage.removeItem(SYNC_MARKER_KEY);
+    }
+
+    try {
+        await subscribePush({ endpoint, p256dh, auth }, token);
+        localStorage.setItem(
+            SYNC_MARKER_KEY,
+            JSON.stringify({ endpoint, at: Date.now() })
+        );
+    } catch (err) {
+        // Marker stays unset, so the next mount retries.
+        console.error("Silent push re-sync failed:", err);
+    }
+}
+
 export function usePushNotifications() {
     const { data: session, status, update: updateSession } = useSession();
     const token = session?.backendToken;
 
     const [supported, setSupported] = useState(true);
     const [enabled, setEnabled] = useState(false);
+    // Inspection of push state is async; the result isn't trustworthy until
+    // this flips true (used by the multi-device enable prompt).
+    const [ready, setReady] = useState(false);
     const [isBusy, setIsBusy] = useState(false);
     const mountedRef = useRef(true);
 
@@ -63,23 +111,45 @@ export function usePushNotifications() {
                 if (!cancelled && mountedRef.current) {
                     setSupported(false);
                     setEnabled(false);
+                    setReady(true);
                 }
                 return;
             }
 
             try {
-                const [subscription] = await Promise.all([
-                    currentSubscription(),
-                    navigator.serviceWorker.ready,
-                ]);
+                // The page can only *register* a service worker here —
+                // navigator.serviceWorker.ready never resolves on devices
+                // where no SW has been registered yet (e.g. a freshly
+                // installed iOS PWA: nobody has enabled push on it before),
+                // which would leave `ready` false forever and keep the
+                // multi-device prompt from ever showing. Registration is
+                // gesture-free, so this is safe on mount. Same dance as
+                // enable() does explicitly.
+                await navigator.serviceWorker.register(SW_PATH);
+                const registration = await navigator.serviceWorker.ready;
+
+                const subscription = await registration.pushManager.getSubscription();
+
+                const registered = !!subscription && Notification.permission === "granted";
+
                 if (!cancelled && mountedRef.current) {
-                    setEnabled(
-                        !!subscription && Notification.permission === "granted"
-                    );
+                    setEnabled(registered);
+                    setReady(true);
+                }
+
+                // The browser owns device-level push state, the DB holds one
+                // row per device. If this device holds a live subscription,
+                // quietly make sure the backend row exists too — covers rows
+                // pruned by 404/410 and browser-side endpoint rotation.
+                if (registered && token) {
+                    await syncSubscriptionSilently(subscription!, token);
                 }
             } catch (err) {
                 console.error("Failed to inspect push subscription:", err);
-                if (!cancelled && mountedRef.current) setEnabled(false);
+                if (!cancelled && mountedRef.current) {
+                    setEnabled(false);
+                    setReady(true);
+                }
             }
         })();
 
@@ -129,6 +199,13 @@ export function usePushNotifications() {
             await subscribePush(payload, token);
             await updateNotificationPreferences({ push: true }, token);
             await updateSession();
+
+            // Fresh subscription just registered — mark it synced so the
+            // silent re-sync doesn't re-POST an identical row next mount.
+            localStorage.setItem(
+                SYNC_MARKER_KEY,
+                JSON.stringify({ endpoint: payload.endpoint, at: Date.now() })
+            );
 
             if (mountedRef.current) setEnabled(true);
             toast.success("Push notifications enabled.");
@@ -183,5 +260,5 @@ export function usePushNotifications() {
         }
     }, [isBusy, token, updateSession]);
 
-    return { supported, enabled, isBusy, enable, disable };
+    return { supported, enabled, ready, isBusy, enable, disable };
 }
