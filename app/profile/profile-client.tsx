@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { APIError } from '@/lib/api-error';
 import { handleBanError } from '@/lib/ban-handler';
+import { useIsPwa } from '@/lib/hooks/use-is-pwa';
 import { getMyItems } from '@/lib/api/profile';
 import { usePtrRefreshHandler } from '@/components/pull-to-refresh';
 import { PushToggleRow } from '@/components/push-toggle';
@@ -33,6 +34,7 @@ import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@
 export function ProfileClient() {
     const { data: session, status, update } = useSession();
     const token = session?.backendToken;
+    const isPwa = useIsPwa();
 
     const [user, setUser] = useState<{ 
         name: string; email: string; image: string; phone?: string; hostel?: string; instagramId?: string 
@@ -365,7 +367,14 @@ export function ProfileClient() {
                                     <Button
                                         variant="ghost"
                                         className="w-full justify-center h-10 cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        onClick={() => signOut({ callbackUrl: '/' })}
+                                        onClick={() => signOut({
+                                            // Match the navbar dropdown's PWA
+                                            // handling: the landing page is
+                                            // desktop-marketing UX that has
+                                            // no place in the standalone app.
+                                            callbackUrl: isPwa ? '/items' : '/',
+                                            redirect: true
+                                        })}
                                     >
                                         <LogOut className="mr-2 h-4 w-4" />
                                         Sign Out
