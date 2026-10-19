@@ -107,6 +107,7 @@ cp .env.example .env.local
 | `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret |
 | `NEXTAUTH_SECRET` | Yes | NextAuth session encryption key |
 | `AUTH_TRUST_HOST` | Yes | Required by Auth.js — set to `true` |
+| `AUTH_URL` | No | Pin Auth.js's base URL for OAuth callbacks (e.g. `https://dev.retrievo.dev`). Only needed behind a dev proxy/tunnel where host detection reports `localhost:3000` and Google sign-in fails with `redirect_uri_mismatch` |
 | `NEXT_PUBLIC_BACKEND_URL` | Yes | Backend URL — used by the browser (clientFetch) and NextAuth server callbacks (e.g. `http://localhost:8000/api/v1`) |
 
 ### Development
