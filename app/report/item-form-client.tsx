@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Combobox } from '@/components/ui/combo-box';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,6 +38,17 @@ import { handleBanError } from '@/lib/ban-handler';
 import type { Session } from 'next-auth';
 import { ImageViewer } from '@/components/image-viewer';
 import { toast } from 'sonner';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { SubmittingDialog, type SubmittingPhase } from '@/components/ui/submitting-dialog';
 import { LOCATION_MAP } from '../../lib/constants/locations';
 import { compressImage } from '@/lib/utils/img-compressor';
 
@@ -88,6 +99,10 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCompressing, setIsCompressing] = useState(false);
     const [calenderOpen, setCalendarOpen] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [showSubmitting, setShowSubmitting] = useState(false);
+    const [submitPhase, setSubmitPhase] = useState<SubmittingPhase>("loading");
+    const pendingValues = useRef<z.infer<typeof formSchema> | null>(null);
     const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -101,6 +116,11 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             item_type: type,
         },
     });
+
+    function handleFormValid(values: z.infer<typeof formSchema>) {
+        pendingValues.current = values;
+        setShowConfirm(true);
+    }
 
     async function getActualFileSize(file: File): Promise<number> {
         // iOS Safari reports `file.size` as the decoded bitmap size (width * height * 4)
@@ -181,11 +201,16 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
         return Object.entries(groups).map(([category, items]) => ({ category, items }));
     })();
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+    async function submitItem() {
+        const values = pendingValues.current;
+        if (!values) return;
+
         let newItemId: string | undefined;
 
         try {
             setIsSubmitting(true);
+            setShowSubmitting(true);
+            setSubmitPhase("loading");
 
             const formData = new FormData();
 
@@ -206,6 +231,8 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
 
             toast.success("Item reported successfully!");
         } catch (error) {
+            setShowSubmitting(false);
+
             if (handleBanError(error)) return;
 
             const status = error instanceof APIError ? error.status : undefined;
@@ -230,6 +257,10 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
             setIsSubmitting(false);
         }
 
+        setSubmitPhase("done");
+        await new Promise((r) => setTimeout(r, 1200));
+        setShowSubmitting(false);
+
         // Redirects to the newly created item page only after successful submission
         router.push(`/items/${newItemId}`);
     }
@@ -250,12 +281,50 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                     {renderItemForm()}
                 </CardContent>
             </Card>
+
+            <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {form.watch("visibility") === "public"
+                                ? "Public Visibility"
+                                : form.watch("visibility") === "boys"
+                                    ? "Boys' Hostel Residents Only"
+                                    : "Girls' Hostel Residents Only"}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {form.watch("visibility") === "public"
+                                ? "This lost and found post will be visible to everyone. Do you want to continue?"
+                                : form.watch("visibility") === "boys"
+                                    ? "This lost and found post will be visible only to residents of boys' hostels. Do you want to continue?"
+                                    : "This lost and found post will be visible only to residents of girls' hostels. Do you want to continue?"}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="cursor-pointer">
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className="cursor-pointer"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setShowConfirm(false);
+                                submitItem();
+                            }}
+                        >
+                            Submit
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <SubmittingDialog open={showSubmitting} phase={submitPhase} />
         </div >
     );
 
     function renderItemForm() {
         return <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(handleFormValid)} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <FormField
                         control={form.control}
@@ -521,8 +590,7 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                     className="w-full h-12 text-lg cursor-pointer"
                     disabled={isSubmitting || isCompressing}
                 >
-                    {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                    {isSubmitting ? "Reporting..." : "Report"}
+                    Report
                 </Button>
             </form>
         </Form>;
