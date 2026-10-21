@@ -7,6 +7,19 @@ const isHeic = (file: File) =>
 // Safari and all iOS browsers (WebKit) can decode HEIC natively via <img>/canvas,
 // whereas Blink/Gecko (Chrome, Firefox, Edge) cannot and require a WASM decoder (heic-to).
 let nativeHeicSupport: boolean | null = null
+let heicToModule: { heicTo: (args: { blob: Blob; type: string; quality?: number }) => Promise<Blob> } | null = null
+
+async function loadHeicTo() {
+    if (heicToModule !== null) return heicToModule
+    try {
+        const mod = await import("heic-to/next")
+        heicToModule = mod
+    } catch {
+        heicToModule = null
+    }
+    return heicToModule
+}
+
 async function browserSupportsNativeHeic(): Promise<boolean> {
     if (nativeHeicSupport !== null) return nativeHeicSupport
     if (typeof window === "undefined" || typeof navigator === "undefined") {
@@ -35,9 +48,10 @@ export const compressImage = async (file: File): Promise<File> => {
         }
 
         // Non-WebKit browsers need a WASM HEIC decoder (heic-to) to decode first.
-        const { heicTo } = await import("heic-to/next")
+        const heicToMod = await loadHeicTo()
+        if (!heicToMod) throw new Error("HEIC conversion unavailable in this browser")
 
-        const convertedBlob = await heicTo({
+        const convertedBlob = await heicToMod.heicTo({
             blob: file,
             type: "image/jpeg",
             quality: 0.9,
