@@ -49,6 +49,10 @@ function getInitials(name: string) {
 
 function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => void }) {
     const { data: session } = useSession();
+    // Backend rejects admin self-moderation (400); mirror that here so the
+    // buttons read as unavailable instead of erroring on submit. Emails are
+    // unique in the users table, so this pins the caller's own row exactly.
+    const selfEmail = session?.user?.email;
     const [actionDialog, setActionDialog] = useState<{
         open: boolean;
         action: () => Promise<void>;
@@ -75,12 +79,15 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
     };
 
     const banButton = (user: UserDetail) => {
+        const isSelf = !!selfEmail && user.email === selfEmail;
         if (!user.is_banned) {
             return (
                 <>
                     <Button
                         size="sm"
                         variant="outline"
+                        disabled={isSelf}
+                        title={isSelf ? "You can't warn your own account" : undefined}
                         onClick={() =>
                             confirmAction(
                                 () => handleModerateUser(user.id, "warn"),
@@ -96,6 +103,8 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                         size="sm"
                         variant="outline"
                         className="text-red-600"
+                        disabled={isSelf}
+                        title={isSelf ? "You can't ban your own account" : undefined}
                         onClick={() =>
                             confirmAction(
                                 () =>
@@ -120,6 +129,8 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
             <Button
                 size="sm"
                 variant="outline"
+                disabled={isSelf}
+                title={isSelf ? "You can't unban your own account" : undefined}
                 onClick={() =>
                     confirmAction(
                         () => handleModerateUser(user.id, "unban"),
@@ -167,6 +178,11 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                                         <Link href={`/profile/${user.public_id}`} className="text-sm font-medium text-foreground hover:underline truncate max-w-[180px]">
                                             {user.name}
                                         </Link>
+                                        {selfEmail && user.email === selfEmail && (
+                                            <Badge variant="outline" className="shrink-0 text-xs bg-muted">
+                                                You
+                                            </Badge>
+                                        )}
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle max-w-[220px]">
