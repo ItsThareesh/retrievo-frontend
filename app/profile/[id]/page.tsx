@@ -11,7 +11,7 @@ import { User as UserType } from '@/types/user';
 import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { APIError } from '@/lib/api-error';
 import { getUserProfile } from '@/lib/api/profile';
@@ -25,6 +25,17 @@ export default function UserPage() {
     const token = session?.backendToken;
     const params = useParams();
     const id = params.id as string;
+    const router = useRouter();
+
+    // Opening your own public profile while signed in is redundant - the
+    // rich /profile view is your page.
+    const isSelf = sessionStatus === "authenticated" && session?.user?.public_id === id;
+
+    useEffect(() => {
+        if (isSelf) {
+            router.replace("/profile");
+        }
+    }, [isSelf, router]);
 
     const [user, setUser] = useState<UserType | null>(null);
     const [lostItems, setLostItems] = useState<Item[]>([]);
@@ -57,9 +68,10 @@ export default function UserPage() {
     }, [id, token, sessionStatus]);
 
     useEffect(() => {
+        if (isSelf) return; // redirecting to /profile; skip the fetch
         // eslint-disable-next-line react-hooks/set-state-in-effect
         reloadUser();
-    }, [reloadUser]);
+    }, [reloadUser, isSelf]);
 
     usePtrRefreshHandler(reloadUser);
 
