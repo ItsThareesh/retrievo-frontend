@@ -1,4 +1,4 @@
-import { ModerateUserRequest, ModerateItemRequest, UserDetail, UserRole, ResolutionDetail, ActivityItem, ReportedItemDetail } from "@/types/admin";
+import { ModerateUserRequest, ModerateItemRequest, UserDetail, UserRole, ResolutionDetail, ActivityItem, ReportedItemDetail, CustodyLogEntry } from "@/types/admin";
 import { clientFetch } from "@/lib/client-fetch";
 
 /** GET: Platform stats for the overview tab */
@@ -22,6 +22,11 @@ export function getUsers(search: string, skip: number, limit: number, token?: st
 /** GET: Reported items */
 export function getReportedItems(token?: string) {
     return clientFetch<ReportedItemDetail[]>("/admin/reported-items?limit=50", token);
+}
+
+/** GET: Security-office custody log (items currently held + returned) */
+export function getCustodyLog(token?: string) {
+    return clientFetch<CustodyLogEntry[]>("/admin/custody-log?limit=100", token);
 }
 
 /** GET: Resolutions (paginated, optionally filtered by search + status) */

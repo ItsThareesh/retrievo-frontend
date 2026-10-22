@@ -107,3 +107,22 @@ export interface ModerateItemRequest {
     action: "hide" | "restore" | "delete";
     force?: boolean;
 }
+
+export type CustodyStatus = "held" | "returned";
+
+/** One security-office custody item — currently held or handed back to the owner */
+export interface CustodyLogEntry {
+    item_id: string;
+    title: string;
+    category: string;
+    location: string;
+    item_type: string;
+    visibility: item_visibility;
+    status: CustodyStatus;
+    transferred_at: string;
+    returned_at: string | null;
+    officer_id: string;
+    officer_name: string;
+    original_finder_id: string | null;
+    original_finder_name: string | null;
+}

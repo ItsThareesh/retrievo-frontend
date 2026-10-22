@@ -7,12 +7,16 @@ import { OverviewTab } from "./overview-tab";
 import { ResolutionsTab } from "./resolutions-tab";
 import { UsersTab } from "./users-tab";
 import { ReportsTab } from "./reports-tab";
+import { CustodyLog } from "./custody-log";
+import { UserRole } from "@/types/user";
 
-const VALID_TABS = ["overview", "resolutions", "users", "reports"] as const;
-type Tab = (typeof VALID_TABS)[number];
+type Tab = "overview" | "resolutions" | "custody" | "users" | "reports";
 
-function isValidTab(value: string): value is Tab {
-    return VALID_TABS.includes(value as Tab);
+const ADMIN_TABS: readonly Tab[] = ["overview", "resolutions", "users", "reports"];
+const OFFICER_TABS: readonly Tab[] = ["overview", "custody", "users", "reports"];
+
+function isValidTab(value: string, tabs: readonly Tab[]): value is Tab {
+    return (tabs as readonly string[]).includes(value);
 }
 
 /**
@@ -26,13 +30,22 @@ function isValidTab(value: string): value is Tab {
  * so there is no server round-trip when the user switches tabs.
  * router.replace() performs a client-side shallow update — the Server
  * Component (page.tsx) is NOT re-executed.
+ *
+ * Security officers get the same panel except that the Resolutions tab is
+ * replaced by the Custody Log: they cannot act on resolutions and bypass
+ * that system entirely, so resolutions stay admin-only.
  */
-export function AdminView() {
+export function AdminView({ role }: { role: UserRole }) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
+    const isOfficer = role === "security_officer";
+    const roleTabs = isOfficer ? OFFICER_TABS : ADMIN_TABS;
+
     const rawTab = searchParams.get("tab") ?? "overview";
-    const activeTab: Tab = isValidTab(rawTab) ? rawTab : "overview";
+    // A tab outside the caller's role set (e.g. ?tab=resolutions for an
+    // officer) falls back to Overview instead of silently rendering it.
+    const activeTab: Tab = isValidTab(rawTab, roleTabs) ? (rawTab as Tab) : "overview";
 
     const handleTabChange = useCallback(
         (value: string) => {
@@ -45,16 +58,25 @@ export function AdminView() {
         [router, searchParams],
     );
 
+    const tabsList = (
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            {isOfficer ? (
+                <TabsTrigger value="custody">Custody Log</TabsTrigger>
+            ) : (
+                <TabsTrigger value="resolutions">Resolutions</TabsTrigger>
+            )}
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="reports">Flagged Posts</TabsTrigger>
+        </TabsList>
+    );
+
     return (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="resolutions">Resolutions</TabsTrigger>
-                <TabsTrigger value="users">Users</TabsTrigger>
-                <TabsTrigger value="reports">Reports</TabsTrigger>
-            </TabsList>
+            {tabsList}
 
             <TabsContent value="overview"><OverviewTab /></TabsContent>
+            <TabsContent value="custody"><CustodyLog /></TabsContent>
             <TabsContent value="resolutions"><ResolutionsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
             <TabsContent value="reports"><ReportsTab /></TabsContent>

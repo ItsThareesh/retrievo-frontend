@@ -38,7 +38,7 @@
 ## Mutations & Reads (client-side wrappers in `lib/api/`)
 - `items.ts`: getItems, getItem | postLostFoundItem, updateItem, deleteItem, flagItem
 - `resolutions.ts`: getResolution, getLinkableItems | createResolution, approveResolution, rejectResolution, completeResolution, failResolution
-- `admin.ts`: getStats, getActivity, getUsers, getReportedItems, getAdminResolutions | moderateUser, moderateItem
+- `admin.ts`: getStats, getActivity, getUsers, getReportedItems, getAdminResolutions, getCustodyLog | moderateUser, moderateItem
 - `notifications.ts`: getNotifications, getNotificationCount | readNotification, readAllNotifications
 - `profile.ts`: getMyItems, getUserProfile | updateOnboarding, updateContact
 - (No Server Actions — all requests are direct browser→backend)

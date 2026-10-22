@@ -246,11 +246,11 @@ export function OverviewTab() {
                     subline={`${stats.items_this_month} posted this month`}
                 />
                 <StatCard
-                    title="Active Reports"
+                    title="Active Flags"
                     value={stats.active_reports}
                     icon={Flag}
                     trend={<TrendIndicator current={stats.reports_this_month} previous={stats.reports_last_month} />}
-                    subline={`${stats.reports_this_month} reports this month`}
+                    subline={`${stats.reports_this_month} flagged this month`}
                 />
                 <StatCard
                     title="Total Users"

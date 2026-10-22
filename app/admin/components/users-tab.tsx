@@ -73,6 +73,10 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
     // buttons read as unavailable instead of erroring on submit. Emails are
     // unique in the users table, so this pins the caller's own row exactly.
     const selfEmail = session?.user?.email;
+    // Role management is pure-admin (POST /admin/users/{id}/role is gated by
+    // get_require_admin). Render the select admin-only anyway so a non-admin
+    // panel session never even shows an actionable control.
+    const canChangeRoles = session?.user?.role === "admin";
     const [actionDialog, setActionDialog] = useState<{
         open: boolean;
         action: () => Promise<void>;
@@ -186,7 +190,7 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Role</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Phone</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Posts</TableHead>
-                        <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Reports</TableHead>
+                        <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Flags</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Warnings</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Status</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Actions</TableHead>
@@ -224,34 +228,40 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                                     <span className="text-sm text-muted-foreground block truncate">{user.email}</span>
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle">
-                                    <Select
-                                        value={user.role}
-                                        disabled={isSelf}
-                                        onValueChange={(role: string) => {
-                                            if (role === user.role) return;
-                                            confirmAction(
-                                                () => handleRoleChange(user.id, role as UserRole),
-                                                "Change Role",
-                                                `Change ${user.name}'s role from ${roleLabel(user.role)} to ${roleLabel(role)}? This signs them out on all devices.`
-                                            );
-                                        }}
-                                    >
-                                        <SelectTrigger
-                                            size="sm"
-                                            className="w-[140px] bg-background border-muted-foreground/20"
-                                            title={isSelf ? "You can't change your own role" : roleLabel(user.role)}
-                                            aria-label={`Role of ${user.name}`}
+                                    {canChangeRoles ? (
+                                        <Select
+                                            value={user.role}
+                                            disabled={isSelf}
+                                            onValueChange={(role: string) => {
+                                                if (role === user.role) return;
+                                                confirmAction(
+                                                    () => handleRoleChange(user.id, role as UserRole),
+                                                    "Change Role",
+                                                    `Change ${user.name}'s role from ${roleLabel(user.role)} to ${roleLabel(role)}? This signs them out on all devices.`
+                                                );
+                                            }}
                                         >
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ROLE_OPTIONS.map((opt) => (
-                                                <SelectItem key={opt.value} value={opt.value}>
-                                                    {opt.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                            <SelectTrigger
+                                                size="sm"
+                                                className="w-[140px] bg-background border-muted-foreground/20"
+                                                title={isSelf ? "You can't change your own role" : roleLabel(user.role)}
+                                                aria-label={`Role of ${user.name}`}
+                                            >
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {ROLE_OPTIONS.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Badge variant="outline" className="bg-muted text-xs">
+                                            {roleLabel(user.role)}
+                                        </Badge>
+                                    )}
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle max-w-[160px]">
                                     {user.phone ? (

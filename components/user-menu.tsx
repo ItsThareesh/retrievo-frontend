@@ -70,12 +70,12 @@ export function UserMenu({ user }: UserMenuProps) {
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {user?.role === "admin" && (
+                {(user?.role === "admin" || user?.role === "security_officer") && (
                     <>
                         <DropdownMenuItem asChild>
                             <Link href="/admin" className="cursor-pointer">
                                 <ShieldCheck className="mr-2 h-4 w-4" />
-                                Administration
+                                {user?.role === "security_officer" ? "Security Office" : "Administration"}
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />

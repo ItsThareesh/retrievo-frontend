@@ -95,12 +95,12 @@ function ReportedItemCard({
                                 {isExpanded ? (
                                     <>
                                         <ChevronUp className="h-4 w-4" />
-                                        Hide Reports
+                                        Hide Flags
                                     </>
                                 ) : (
                                     <>
                                         <ChevronDown className="h-4 w-4" />
-                                        View Reports
+                                        View Flags
                                     </>
                                 )}
                             </Button>
@@ -142,7 +142,7 @@ function ReportedItemCard({
 
             {isExpanded && (
                 <div className="border-t px-5 py-4 bg-muted/20">
-                    <h4 className="font-semibold text-sm mb-3">Reports ({item.reports.length})</h4>
+                    <h4 className="font-semibold text-sm mb-3">Flags ({item.reports.length})</h4>
                     <div className="space-y-3">
                         {item.reports.map((report) => (
                             <div
@@ -279,15 +279,15 @@ export function ReportsTab() {
         <>
             <Card>
                 <CardHeader className="px-6 py-6">
-                    <CardTitle>Reported Items</CardTitle>
-                    <CardDescription>Review and moderate reported content</CardDescription>
+                    <CardTitle>Flagged Posts</CardTitle>
+                    <CardDescription>Review and moderate flagged content</CardDescription>
                 </CardHeader>
                 <CardContent className="px-6 pb-6">
                     <div className="space-y-4">
                         {(!reportedItems || reportedItems.length === 0) ? (
                             <div className="text-center py-12 text-muted-foreground">
                                 <Flag className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                <p>No reported items</p>
+                                <p>No flagged posts</p>
                             </div>
                         ) : (
                             reportedItems.map((item) => (

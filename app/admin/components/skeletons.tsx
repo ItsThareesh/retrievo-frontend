@@ -217,3 +217,21 @@ export function ActivitySkeleton() {
         </Card>
     );
 }
+
+export function CustodySkeleton() {
+    return (
+        <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-4 p-5 rounded-lg border">
+                    <Skeleton className="h-9 w-9 rounded-full mt-1" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-3 w-1/2" />
+                        <Skeleton className="h-3 w-1/4" />
+                    </div>
+                    <Skeleton className="h-6 w-32" />
+                </div>
+            ))}
+        </div>
+    );
+}
