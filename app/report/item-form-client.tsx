@@ -294,10 +294,10 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {form.watch("visibility") === "public"
-                                ? "This lost and found post will be visible to everyone. Do you want to continue?"
+                                ? "This post will be visible to everyone. Do you want to continue?"
                                 : form.watch("visibility") === "boys"
-                                    ? "This lost and found post will be visible only to residents of boys' hostels. Do you want to continue?"
-                                    : "This lost and found post will be visible only to residents of girls' hostels. Do you want to continue?"}
+                                    ? "This post will be visible only to residents of boys' hostels. Do you want to continue?"
+                                    : "This post will be visible only to residents of girls' hostels. Do you want to continue?"}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
