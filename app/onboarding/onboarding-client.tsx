@@ -27,7 +27,7 @@ import { updateOnboarding } from '@/lib/api/profile';
 import { usePushNotifications } from '@/lib/hooks/use-push';
 import { toast } from 'sonner';
 import { OnboardingPayload } from '@/types/user';
-import { needsOnboarding } from '@/lib/utils/needsOnboarding';
+import { needsOnboarding, isStudentUser } from '@/lib/utils/needsOnboarding';
 import { COUNTRY_CODES, buildPhone, sanitizeInstagram, validateContact } from '@/lib/utils/contact';
 
 export default function OnboardingClient() {
@@ -38,6 +38,14 @@ export default function OnboardingClient() {
     const [phoneNumber, setPhoneNumberState] = useState(session?.user?.phone || '');
     const [hostel, setHostelState] = useState<'boys' | 'girls' | ''>(session?.user?.hostel || '');
     const [instagramId, setInstagramId] = useState(session?.user?.instagramId || "");
+
+    // Students (verified server-side from the email roll pattern) must set a
+    // hostel; hostel-less roles (staff/officer/admin) never send one — the
+    // backend rejects a hostel payload from them with 403.
+    const isStudent = isStudentUser({
+        role: session?.user?.role,
+        email: session?.user?.email,
+    });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [countryCode, setCountryCode] = useState("+91");
@@ -68,7 +76,7 @@ export default function OnboardingClient() {
         e.preventDefault();
 
         // Validation
-        if (!hostel) {
+        if (isStudent && !hostel) {
             toast.error("Please select your hostel.");
             return;
         }
@@ -80,7 +88,9 @@ export default function OnboardingClient() {
         }
 
         const payload: OnboardingPayload = {
-            hostel,
+            // JSON.stringify drops undefined keys — hostel-less roles send no
+            // hostel at all (backend 403s any hostel payload from them).
+            hostel: isStudent && hostel ? hostel : undefined,
             phone: buildPhone(countryCode, phoneNumber) || null,
             instagramId: instagramId.trim() || null,
         };
@@ -135,24 +145,26 @@ export default function OnboardingClient() {
         return (
             <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-linear-to-br">
                 <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
-                <Card className="w-full max-w-lg shadow-2xl border-border/40 relative z-10 backdrop-blur-sm bg-background/95 text-center">
-                    <CardHeader className="pt-8 items-center">
-                        <div className="mx-auto mb-4 p-4 rounded-full bg-primary/10 w-fit">
-                            <Bell className="w-8 h-8 text-primary" />
+                <Card className="w-5/6 max-w-md shadow-2xl border-border/40 relative z-10 backdrop-blur-sm bg-background/95 animate-in fade-in zoom-in-95 duration-500">
+                    <CardHeader className="text-center space-y-4 pb-2 pt-8">
+                        <div className="mx-auto bg-primary/10 p-4 rounded-2xl w-fit mb-2 ring-1 ring-primary/20 shadow-sm">
+                            <Bell className="w-10 h-10 text-primary" strokeWidth={2.5} />
                         </div>
-                        <CardTitle className="text-2xl font-bold tracking-tight">Stay in the loop</CardTitle>
-                        <CardDescription className="text-base mt-2">
-                            Enable notifications to get instant alerts when your lost item gets a
-                            match, or when someone claims what you found.
-                        </CardDescription>
+                        <div className="space-y-2">
+                            <CardTitle className="text-2xl font-bold tracking-tight">Stay in the loop</CardTitle>
+                            <CardDescription className="text-base leading-relaxed">
+                                Enable notifications to get instant alerts when your lost item gets a
+                                match, or when someone claims what you found.
+                            </CardDescription>
+                        </div>
                     </CardHeader>
-                    <CardContent className="px-8 pb-2">
+
+                    <CardFooter className="flex flex-col gap-3 p-8 pt-0">
                         <Button
                             type="button"
-                            size="lg"
                             disabled={push.isBusy}
                             onClick={push.enabled ? goToItems : handleEnablePush}
-                            className="w-full h-11 text-base font-medium shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+                            className="w-full h-12 text-base font-medium cursor-pointer transition-all hover:shadow-sm"
                         >
                             {push.isBusy
                                 ? "Setting up..."
@@ -165,16 +177,16 @@ export default function OnboardingClient() {
                             variant="ghost"
                             disabled={push.isBusy}
                             onClick={goToItems}
-                            className="w-full h-11 text-muted-foreground mt-2"
+                            className="w-full h-12 text-base font-medium cursor-pointer hover:bg-muted transition-all"
                         >
                             Not now
                         </Button>
-                        <p className="text-xs text-muted-foreground mt-3">
+                        <p className="text-xs text-muted-foreground text-center">
                             {!push.supported
                                 ? "Push notifications aren't supported on this device/browser."
                                 : "Your browser will ask for permission. You can change this anytime from your profile."}
                         </p>
-                    </CardContent>
+                    </CardFooter>
                 </Card>
             </div>
         );
@@ -193,51 +205,7 @@ export default function OnboardingClient() {
 
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-6 pt-6 px-8">
-                        {/* Phone Input */}
-                        <div className="space-y-3">
-                            <label htmlFor="phone" className="text-sm font-medium leading-none flex items-center gap-2">
-                                <Phone className="w-4 h-4 text-muted-foreground" />
-                                Phone Number <span className="text-red-500">*</span>
-                            </label>
-                            <div className="flex rounded-md shadow-sm overflow-hidden ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            className="rounded-r-none w-[70px] border-r-0 [font-variant-numeric:tabular-nums]"
-                                        >
-                                            <span className="w-7 text-center">{countryCode}</span>
-                                            <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="min-w-[200px]">
-                                        {COUNTRY_CODES.map((item) => (
-                                            <DropdownMenuItem
-                                                key={item.value}
-                                                onSelect={() => setCountryCode(item.value)}
-                                                className="justify-between"
-                                            >
-                                                <span className="font-mono">{item.value}</span>
-                                                <span className="text-muted-foreground">{item.label}</span>
-                                            </DropdownMenuItem>
-                                        ))}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-
-                                <Input
-                                    id="phone"
-                                    type="tel"
-                                    placeholder="Enter your number"
-                                    value={phoneNumber}
-                                    onChange={(e) => setPhoneNumberState(e.target.value)}
-                                    disabled={isSubmitting}
-                                    className="flex-1 rounded-l-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Hostel Select */}
+                        {isStudent && (
                         <div className="space-y-3">
                             <label className="text-sm font-medium leading-none flex items-center gap-2">
                                 <Building2 className="w-4 h-4 text-muted-foreground" />
@@ -295,6 +263,51 @@ export default function OnboardingClient() {
                                 </button>
                             </div>
                         </div>
+                        )}
+
+                        {/* Phone Input */}
+                        <div className="space-y-3">
+                            <label htmlFor="phone" className="text-sm font-medium leading-none flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-muted-foreground" />
+                                Phone Number <span className="text-orange-500">*</span>
+                            </label>
+                            <div className="flex rounded-md shadow-sm overflow-hidden ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className="rounded-r-none w-[70px] border-r-0 [font-variant-numeric:tabular-nums]"
+                                        >
+                                            <span className="w-7 text-center">{countryCode}</span>
+                                            <ChevronDown className="ml-1 h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="min-w-[200px]">
+                                        {COUNTRY_CODES.map((item) => (
+                                            <DropdownMenuItem
+                                                key={item.value}
+                                                onSelect={() => setCountryCode(item.value)}
+                                                className="justify-between"
+                                            >
+                                                <span className="font-mono">{item.value}</span>
+                                                <span className="text-muted-foreground">{item.label}</span>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+
+                                <Input
+                                    id="phone"
+                                    type="tel"
+                                    placeholder="Enter your number"
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumberState(e.target.value)}
+                                    disabled={isSubmitting}
+                                    className="flex-1 rounded-l-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                />
+                            </div>
+                        </div>
 
                         <div className="space-y-3">
                             <label
@@ -302,7 +315,7 @@ export default function OnboardingClient() {
                                 className="text-sm font-medium leading-none flex items-center gap-2"
                             >
                                 <Instagram className="w-4 h-4 text-muted-foreground" />
-                                Instagram ID <span className="text-red-500">*</span>
+                                Instagram ID <span className="text-orange-500">*</span>
                             </label>
 
                             <Input

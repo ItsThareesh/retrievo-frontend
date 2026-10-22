@@ -8,8 +8,10 @@ export interface User {
     phone?: string;
 }
 
+export type UserRole = "student" | "staff" | "admin" | "security_officer";
+
 export interface OnboardingPayload {
-    hostel: string;
+    hostel?: string;
     phone: string | null;
     instagramId: string | null;
 }

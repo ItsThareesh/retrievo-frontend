@@ -1,6 +1,4 @@
-import { DefaultSession } from "next-auth";
-
-import { NotificationPreferences } from "@/types/user";
+import { NotificationPreferences, UserRole } from "@/types/user";
 
 declare module "next-auth" {
     interface Session {
@@ -14,7 +12,7 @@ declare module "next-auth" {
             hostel: "boys" | "girls" | null;
             phone: string | null;
             instagramId: string | null;
-            role: "user" | "admin";
+            role: UserRole;
             notificationPreferences?: NotificationPreferences | null;
         };
         error?: "RefreshTokenError";
@@ -38,7 +36,7 @@ declare module "next-auth/jwt" {
             hostel: "boys" | "girls" | null;
             phone: string | null;
             instagramId: string | null;
-            role: "user" | "admin";
+            role: UserRole;
             notificationPreferences?: NotificationPreferences | null;
         };
         error?: "RefreshTokenError";

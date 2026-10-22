@@ -15,13 +15,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsPwa } from '@/lib/hooks/use-is-pwa';
 import { User, LogOut, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { UserRole } from '@/types/user';
 
 interface UserMenuProps {
     user: {
         name?: string | null;
         email?: string | null;
         image?: string | null;
-        role?: "user" | "admin" | null;
+        role?: UserRole | null;
     } | null;
 }
 

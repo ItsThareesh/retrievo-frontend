@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import { clientFetch } from "./client-fetch";
 import { APIError } from "./api-error";
+import { UserRole } from "@/types/user";
 
 async function getProfile(tokenString: string) {
     const userData = await clientFetch("/auth/me", tokenString, {
@@ -17,7 +18,7 @@ async function getProfile(tokenString: string) {
         hostel: (userData.hostel ?? null) as "boys" | "girls" | null,
         phone: userData.phone ?? null,
         instagramId: userData.instagram_id ?? null,
-        role: userData.role as "user" | "admin",
+        role: userData.role as UserRole,
         notificationPreferences: userData.notification_preferences ?? null,
     };
 }
