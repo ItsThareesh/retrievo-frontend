@@ -122,7 +122,7 @@ export function UsersSkeleton() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            {Array.from({ length: 7 }).map((_, i) => (
+                            {Array.from({ length: 9 }).map((_, i) => (
                                 <TableHead key={i} className="px-4 py-4">
                                     <Skeleton className="h-4 w-20" />
                                 </TableHead>
@@ -139,7 +139,7 @@ export function UsersSkeleton() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-5"><Skeleton className="h-4 w-32" /></TableCell>
-                                <TableCell className="px-4 py-5"><Skeleton className="h-4 w-8" /></TableCell>
+                                <TableCell className="px-4 py-5"><Skeleton className="h-8 w-28" /></TableCell>
                                 <TableCell className="px-4 py-5"><Skeleton className="h-4 w-8" /></TableCell>
                                 <TableCell className="px-4 py-5"><Skeleton className="h-4 w-8" /></TableCell>
                                 <TableCell className="px-4 py-5"><Skeleton className="h-5 w-16" /></TableCell>

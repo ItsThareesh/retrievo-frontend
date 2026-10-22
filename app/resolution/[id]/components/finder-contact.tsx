@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, Instagram, Mail, Phone } from "lucide-react";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { FinderContact } from "@/types/resolutions";
 import Link from "next/link";
 
@@ -47,6 +48,21 @@ export function FinderContactCard({ contact, theme }: { contact: FinderContact, 
                                         className={`text-sm ${theme.textMain} hover:underline`}
                                     >
                                         {contact.phone}
+                                    </Link>
+                                </div>
+                            )}
+
+                            {contact.phone && (
+                                <div className="flex items-center gap-2">
+                                    <WhatsAppIcon className={`h-4 w-4 ${theme.icon}`} />
+                                    <Link
+                                        // wa.me expects international number digits only (no +)
+                                        href={`https://wa.me/${contact.phone.replace(/\D/g, "")}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`text-sm ${theme.textMain} hover:underline`}
+                                    >
+                                        WhatsApp
                                     </Link>
                                 </div>
                             )}

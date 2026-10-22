@@ -1,4 +1,4 @@
-import { ModerateUserRequest, ModerateItemRequest, UserDetail, ResolutionDetail, ActivityItem, ReportedItemDetail } from "@/types/admin";
+import { ModerateUserRequest, ModerateItemRequest, UserDetail, UserRole, ResolutionDetail, ActivityItem, ReportedItemDetail } from "@/types/admin";
 import { clientFetch } from "@/lib/client-fetch";
 
 /** GET: Platform stats for the overview tab */
@@ -38,6 +38,14 @@ export function moderateUser(userId: number, request: ModerateUserRequest, token
     return clientFetch(`/admin/users/${userId}/moderate`, token, {
         method: "POST",
         body: JSON.stringify(request),
+    });
+}
+
+/** POST: Change a user's role (student / staff / admin / security_officer) */
+export function changeUserRole(userId: number, role: UserRole, token?: string) {
+    return clientFetch(`/admin/users/${userId}/role`, token, {
+        method: "POST",
+        body: JSON.stringify({ role }),
     });
 }
 

@@ -35,15 +35,26 @@ import { Combobox } from "@/components/ui/combo-box";
 import { LOCATION_MAP, LocationKey } from "@/lib/constants/locations";
 import { ResolutionStatus } from "@/types/resolutions";
 import { DeleteConfirmationDialog, ReportDialog, SubmitClaimDialog } from "./item-dialogs";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { needsOnboarding } from "@/lib/utils/needsOnboarding";
 import { formatDateString } from "@/lib/date-formatting";
 import { APIError } from "@/lib/api-error";
-import { getItem } from "@/lib/api/items";
+import { getItem, takeCustody, handToOwner } from "@/lib/api/items";
 import { ItemDetailSkeleton } from "../items-loading-skeleton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Session } from "next-auth";
 import { usePtrRefreshHandler } from "@/components/pull-to-refresh";
 import { handleBanError } from "@/lib/ban-handler";
+import { toast } from "sonner";
 
 interface ItemData {
     item: Item;
@@ -272,10 +283,11 @@ function ItemDetailContent({
         handleReport
     } = useItemEditable({ item, reporter, resolution_status, resolution_id, session });
 
+    const token = session?.backendToken;
     const isReporter = !!session?.backendToken && session.user.public_id === reporter.public_id;
     const hasResolution = resolutionStatus !== null;
     const showResolution = hasResolution && resolutionId !== null;
-    
+
     const [nudgeDismissed, setNudgeDismissed] = useState(() => {
         try {
             return localStorage.getItem(`nudge_dismissed:${item.id}`) !== null;
@@ -283,9 +295,52 @@ function ItemDetailContent({
     });
     const [daysSincePost] = useState(() => Math.floor((Date.now() - new Date(item.created_at).getTime()) / 86400000));
     const showStaleNudge = isReporter && !item.hidden && daysSincePost >= 14 && !nudgeDismissed && !hasResolution;
-    
-    const showClaim = item.type === "found" && !isReporter && !hasResolution;
-    const showReturn = item.type === "lost" && !isReporter && !hasResolution;
+
+    // Security officers work the desk instead of claiming: custody buttons
+    // occupy the claim slot, and claim/return CTAs are suppressed for them.
+    // Officer-owned items (including custody take-overs) are poster-matched anyway.
+    const isOfficer = !!session?.backendToken && session.user.role === "security_officer";
+
+    const showTakeCustody = isOfficer && item.type === "found" && !item.held_at_security_office && !hasResolution;
+    const showHandToOwner = isOfficer && !!item.held_at_security_office;
+
+    const showClaim = item.type === "found" && !isReporter && !hasResolution && !isOfficer;
+    const showReturn = item.type === "lost" && !isReporter && !hasResolution && !isOfficer;
+
+    const [custodyDialog, setCustodyDialog] = useState<null | "take" | "hand" | "notice">(null);
+    const [custodyBusy, setCustodyBusy] = useState(false);
+
+    async function handleTakeCustody() {
+        setCustodyBusy(true);
+        try {
+            await takeCustody(item.id, token!);
+            toast.success("Custody taken — the original finder has been notified.");
+            setCustodyDialog(null);
+            await onResolutionCreated?.();
+        } catch (err) {
+            if (handleBanError(err)) return;
+            toast.error(err instanceof APIError && err.message ? err.message : "Failed to take custody.");
+        } finally {
+            setCustodyBusy(false);
+        }
+    }
+
+    async function handleHandToOwner() {
+        setCustodyBusy(true);
+        try {
+            await handToOwner(item.id, token!);
+            toast.success("Item recorded as handed to its owner.");
+            setCustodyDialog(null);
+            // Handover hides the item, so the officer loses view rights — leave
+            // instead of reloading into a 404.
+            router.push("/items");
+        } catch (err) {
+            if (handleBanError(err)) return;
+            toast.error(err instanceof APIError && err.message ? err.message : "Failed to record handover.");
+        } finally {
+            setCustodyBusy(false);
+        }
+    }
 
     function dismissNudge() {
         try { localStorage.setItem(`nudge_dismissed:${item.id}`, "1"); } catch { /* ignore */ }
@@ -700,11 +755,38 @@ function ItemDetailContent({
                                 </Link>
                             </Button>
                         ) : null}
+                        {showTakeCustody ? (
+                            <Button
+                                size="lg"
+                                className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
+                                disabled={custodyBusy}
+                                onClick={() => setCustodyDialog("take")}
+                            >
+                                Take Custody
+                            </Button>
+                        ) : null}
+                        {showHandToOwner ? (
+                            <Button
+                                size="lg"
+                                className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
+                                disabled={custodyBusy}
+                                onClick={() => setCustodyDialog("hand")}
+                            >
+                                Handed to Owner
+                            </Button>
+                        ) : null}
                         {showClaim ? (
                             <Button
                                 size="lg"
                                 className="w-full h-12 text-lg shadow-sm mb-6 cursor-pointer"
                                 onClick={() => {
+                                    // Custody items reject claims (403) — guide
+                                    // the user to collect in person instead.
+                                    if (item.held_at_security_office) {
+                                        setCustodyDialog("notice");
+                                        return;
+                                    }
+
                                     if (!session?.backendToken) {
                                         router.push(`/auth/signin?callbackUrl=/items/${item.id}`)
                                         return
@@ -768,6 +850,74 @@ function ItemDetailContent({
                     </div>
                 </div>
             </div>
+
+            <AlertDialog
+                open={custodyDialog !== null}
+                onOpenChange={(open) => { if (!open) setCustodyDialog(null); }}
+            >
+                <AlertDialogContent>
+                    {custodyDialog === "take" ? (
+                        <>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Take this item into custody?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    It will be listed as held at the security office, the original finder will be
+                                    notified, and claiming will be turned off for this item.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel disabled={custodyBusy}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    disabled={custodyBusy}
+                                    onClick={async (e) => {
+                                        e.preventDefault();
+                                        await handleTakeCustody();
+                                    }}
+                                >
+                                    {custodyBusy ? "Taking custody..." : "Take Custody"}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </>
+                    ) : custodyDialog === "hand" ? (
+                        <>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Handed the item to its owner?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This records the in-person handover. The item will be permanently removed from
+                                    the public feed and this cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel disabled={custodyBusy}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    disabled={custodyBusy}
+                                    onClick={async (e) => {
+                                        e.preventDefault();
+                                        await handleHandToOwner();
+                                    }}
+                                >
+                                    {custodyBusy ? "Recording..." : "Yes, handed to owner"}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </>
+                    ) : (
+                        <>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Held at the security office</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This item has been placed in the security office&apos;s custody, so it can&apos;t
+                                    be claimed through the app. Visit the security office at Main Gate in person to collect it.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogAction onClick={() => setCustodyDialog(null)}>
+                                    Got it
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </>
+                    )}
+                </AlertDialogContent>
+            </AlertDialog>
 
             <DeleteConfirmationDialog
                 isDeleting={isDeleting}

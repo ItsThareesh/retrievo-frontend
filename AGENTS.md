@@ -62,7 +62,7 @@
 - PATCH sends diffs only
 - After `updateOnboarding()`: call `session.update()` to refresh JWT
 - Feed segment (`public`/`boys`/`girls`): backend-enforced; token passed in `Authorization` header
-- Onboarding: hostel + ≥1 contact (phone or Instagram)
+- Onboarding: students (role from `session.user.role`, falling back to the backend roll regex `_[mbp]\d{4,6}[a-z]{2}$` in `needsOnboarding.ts`) need hostel + ≥1 contact (phone or Instagram); hostel-less roles (staff/officer/admin) send NO hostel field (backend 403s)
 - Locations: `LOCATION_MAP` in `lib/constants/locations.ts`
 - Report reasons: `"harassment"` | `"inappropriate"` | `"spam"` | `"fake"` | `"duplicate"` | `"other"`
 

@@ -1,5 +1,8 @@
 import { item_visibility } from "./item";
 import { ResolutionStatus, ResolutionType } from "./resolutions";
+import { UserRole } from "./user";
+
+export type { UserRole };
 
 export interface OverviewStats {
     total_items: number;
@@ -65,6 +68,7 @@ export interface UserDetail {
     phone: string | null;
     image: string | null;
     created_at: string;
+    role: UserRole;
     warning_count: number;
     is_banned: boolean;
     ban_reason: string | null;
