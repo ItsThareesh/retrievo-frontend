@@ -26,17 +26,37 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertCircle, Ban, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { moderateUser } from "@/lib/api/admin";
-import { UserDetail } from "@/types/admin";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { changeUserRole, moderateUser } from "@/lib/api/admin";
+import { UserDetail, UserRole } from "@/types/admin";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
 import { UsersSkeleton } from "./skeletons";
 import { getUsers } from "@/lib/api/admin";
 import { handleBanError } from "@/lib/ban-handler";
+import { APIError } from "@/lib/api-error";
+import { toast } from "sonner";
 
 import { useDebouncedValue } from "@/lib/hooks/useDebounce";
 
 const PAGE_SIZE = 20;
+
+const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
+    { value: "student", label: "Student" },
+    { value: "staff", label: "Staff" },
+    { value: "admin", label: "Admin" },
+    { value: "security_officer", label: "Security Officer" },
+];
+
+function roleLabel(role: string) {
+    return ROLE_OPTIONS.find((opt) => opt.value === role)?.label ?? role;
+}
 
 function getInitials(name: string) {
     return name
@@ -76,6 +96,18 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
 
     const confirmAction = (action: () => Promise<void>, title: string, description: string) => {
         setActionDialog({ open: true, action, title, description });
+    };
+
+    const handleRoleChange = async (userId: number, role: UserRole) => {
+        try {
+            await changeUserRole(userId, role, session?.backendToken);
+            toast.success("Role updated — the user will be signed out on all devices");
+            onUpdate();
+        } catch (error) {
+            if (handleBanError(error)) return;
+            toast.error(error instanceof APIError && error.message ? error.message : "Failed to change role");
+            onUpdate();
+        }
     };
 
     const banButton = (user: UserDetail) => {
@@ -151,6 +183,7 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                     <TableRow className="border-b-2 border-muted">
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">User</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Email</TableHead>
+                        <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Role</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Phone</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Posts</TableHead>
                         <TableHead className="px-6 py-4 text-sm font-semibold text-foreground">Reports</TableHead>
@@ -162,12 +195,14 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                 <TableBody>
                     {users.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={8} className="text-center text-muted-foreground py-12 text-sm">
+                            <TableCell colSpan={9} className="text-center text-muted-foreground py-12 text-sm">
                                 No users found
                             </TableCell>
                         </TableRow>
                     ) : (
-                        users.map((user) => (
+                        users.map((user) => {
+                            const isSelf = !!selfEmail && user.email === selfEmail;
+                            return (
                             <TableRow key={user.id} className="hover:bg-muted/50 transition-colors">
                                 <TableCell className="px-6 py-5 align-middle">
                                     <div className="flex items-center gap-3">
@@ -187,6 +222,36 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle max-w-[220px]">
                                     <span className="text-sm text-muted-foreground block truncate">{user.email}</span>
+                                </TableCell>
+                                <TableCell className="px-6 py-5 align-middle">
+                                    <Select
+                                        value={user.role}
+                                        disabled={isSelf}
+                                        onValueChange={(role: string) => {
+                                            if (role === user.role) return;
+                                            confirmAction(
+                                                () => handleRoleChange(user.id, role as UserRole),
+                                                "Change Role",
+                                                `Change ${user.name}'s role from ${roleLabel(user.role)} to ${roleLabel(role)}? This signs them out on all devices.`
+                                            );
+                                        }}
+                                    >
+                                        <SelectTrigger
+                                            size="sm"
+                                            className="w-[140px] bg-background border-muted-foreground/20"
+                                            title={isSelf ? "You can't change your own role" : roleLabel(user.role)}
+                                            aria-label={`Role of ${user.name}`}
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ROLE_OPTIONS.map((opt) => (
+                                                <SelectItem key={opt.value} value={opt.value}>
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </TableCell>
                                 <TableCell className="px-6 py-5 align-middle max-w-[160px]">
                                     {user.phone ? (
@@ -234,7 +299,9 @@ function UsersTable({ users, onUpdate }: { users: UserDetail[], onUpdate: () => 
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        )))}
+                            );
+                            })
+                        )}
                 </TableBody>
             </Table>
 
