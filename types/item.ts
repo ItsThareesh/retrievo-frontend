@@ -18,6 +18,8 @@ export interface Item {
     hidden?: boolean;
     hidden_reason?: string;
     deleted?: boolean;
+    /** Set when a security officer holds the item (custody_transferred_at stamped) */
+    held_at_security_office?: boolean;
 }
 
 /** One entry of GET /items/{id}/matches — the counterpart item + when it matched. */

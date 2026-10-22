@@ -41,3 +41,13 @@ export function deleteItem(itemId: string, token?: string, reason?: string) {
 export function flagItem(itemId: string, reason: string, token?: string) {
     return clientFetch(`/items/${itemId}/flag`, token, { method: "POST", body: JSON.stringify({ reason }) });
 }
+
+/** POST: Security officer takes physical custody of a found item (officer-only) */
+export function takeCustody(itemId: string, token?: string) {
+    return clientFetch(`/items/${itemId}/take-custody`, token, { method: "POST" });
+}
+
+/** POST: Security officer confirms handing a custody item to its owner (officer-only) */
+export function handToOwner(itemId: string, token?: string) {
+    return clientFetch(`/items/${itemId}/handed-to-owner`, token, { method: "POST" });
+}
