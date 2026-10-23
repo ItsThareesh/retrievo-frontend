@@ -12,7 +12,7 @@ import { UserRole } from "@/types/user";
 
 type Tab = "overview" | "resolutions" | "custody" | "users" | "reports";
 
-const ADMIN_TABS: readonly Tab[] = ["overview", "resolutions", "users", "reports"];
+const ADMIN_TABS: readonly Tab[] = ["overview", "resolutions", "users", "reports", "custody"];
 const OFFICER_TABS: readonly Tab[] = ["overview", "custody", "users", "reports"];
 
 function isValidTab(value: string, tabs: readonly Tab[]): value is Tab {
@@ -33,14 +33,16 @@ function isValidTab(value: string, tabs: readonly Tab[]): value is Tab {
  *
  * Security officers get the same panel except that the Resolutions tab is
  * replaced by the Custody Log: they cannot act on resolutions and bypass
- * that system entirely, so resolutions stay admin-only.
+ * that system entirely, so resolutions stay admin-only. Admins get all
+ * four standard tabs plus the Custody Log as a fifth (cross-check surface:
+ * custody items, held or returned, in case of moderation disputes).
  */
 export function AdminView({ role }: { role: UserRole }) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const isOfficer = role === "security_officer";
-    const roleTabs = isOfficer ? OFFICER_TABS : ADMIN_TABS;
+    const isAdmin = role === "admin";
+    const roleTabs = isAdmin ? ADMIN_TABS : OFFICER_TABS;
 
     const rawTab = searchParams.get("tab") ?? "overview";
     // A tab outside the caller's role set (e.g. ?tab=resolutions for an
@@ -59,15 +61,16 @@ export function AdminView({ role }: { role: UserRole }) {
     );
 
     const tabsList = (
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+        <TabsList className={`grid w-full ${isAdmin ? "grid-cols-5" : "grid-cols-4"} lg:w-auto lg:inline-grid`}>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            {isOfficer ? (
-                <TabsTrigger value="custody">Custody Log</TabsTrigger>
-            ) : (
+            {isAdmin ? (
                 <TabsTrigger value="resolutions">Resolutions</TabsTrigger>
+            ) : (
+                <TabsTrigger value="custody">Custody Log</TabsTrigger>
             )}
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="reports">Flagged Posts</TabsTrigger>
+            {isAdmin && <TabsTrigger value="custody">Custody Log</TabsTrigger>}
         </TabsList>
     );
 
