@@ -268,6 +268,8 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
                     toast.error("You have already flagged this item");
                 } else if (res.status === 400) {
                     toast.error("Cannot self-flag your own item post");
+                } else if (res.status === 403) {
+                    toast.error("This item is held at the security office — raise any concern there in person");
                 } else {
                     toast.error("Failed to flag item");
                 }

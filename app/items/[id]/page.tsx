@@ -835,7 +835,7 @@ function ItemDetailContent({
                                 size="sm"
                                 className="w-full text-muted-foreground py-3 cursor-pointer"
                             />
-                            {!!session?.backendToken && session.user.public_id != reporter.public_id && (
+                            {!!session?.backendToken && session.user.public_id != reporter.public_id && !item.held_at_security_office && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
