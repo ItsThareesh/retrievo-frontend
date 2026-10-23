@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Flag, ExternalLink, ChevronDown, ChevronUp, Eye, EyeOff, AlertTriangle, Trash2 } from "lucide-react";
+import { Flag, ExternalLink, ChevronDown, ChevronUp, Eye, EyeOff, AlertTriangle, Trash2, Building2 } from "lucide-react";
 import { moderateItem } from "@/lib/api/admin";
 import { formatDistanceToNow } from "date-fns";
 import useSWR from "swr";
@@ -71,6 +71,12 @@ function ReportedItemCard({
                                     <Badge variant="secondary" className="gap-1">
                                         <EyeOff className="h-3 w-3" />
                                         Hidden
+                                    </Badge>
+                                )}
+                                {item.custodial && (
+                                    <Badge className="gap-1 bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800">
+                                        <Building2 className="h-3 w-3" />
+                                        At security office
                                     </Badge>
                                 )}
                             </div>
@@ -141,6 +147,12 @@ function ReportedItemCard({
                                         Delete Item
                                     </Button>
                                 </>
+                            )}
+                            {!canModerate && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                    <Building2 className="h-3.5 w-3.5" />
+                                    Held at the security office — moderation belongs to the officers only.
+                                </p>
                             )}
                         </div>
                     </div>
