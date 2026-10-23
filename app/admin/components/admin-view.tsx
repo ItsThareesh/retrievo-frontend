@@ -13,7 +13,7 @@ import { UserRole } from "@/types/user";
 type Tab = "overview" | "resolutions" | "custody" | "users" | "reports";
 
 const ADMIN_TABS: readonly Tab[] = ["overview", "resolutions", "users", "reports", "custody"];
-const OFFICER_TABS: readonly Tab[] = ["overview", "custody", "users", "reports"];
+const OFFICER_TABS: readonly Tab[] = ["overview", "custody", "users"];
 
 function isValidTab(value: string, tabs: readonly Tab[]): value is Tab {
     return (tabs as readonly string[]).includes(value);
@@ -61,7 +61,7 @@ export function AdminView({ role }: { role: UserRole }) {
     );
 
     const tabsList = (
-        <TabsList className={`grid w-full ${isAdmin ? "grid-cols-5" : "grid-cols-4"} lg:w-auto lg:inline-grid`}>
+        <TabsList className={`grid w-full ${isAdmin ? "grid-cols-5" : "grid-cols-3"} lg:w-auto lg:inline-grid`}>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             {isAdmin ? (
                 <TabsTrigger value="resolutions">Resolutions</TabsTrigger>
@@ -69,7 +69,7 @@ export function AdminView({ role }: { role: UserRole }) {
                 <TabsTrigger value="custody">Custody Log</TabsTrigger>
             )}
             <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="reports">Flagged Posts</TabsTrigger>
+            {isAdmin && <TabsTrigger value="reports">Flagged Posts</TabsTrigger>}
             {isAdmin && <TabsTrigger value="custody">Custody Log</TabsTrigger>}
         </TabsList>
     );

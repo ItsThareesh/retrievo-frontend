@@ -85,6 +85,8 @@ export interface ReportedItemDetail {
     report_count: number;
     is_hidden: boolean;
     hidden_reason: string | null;
+    /** Physically held at the security office — moderation is officer-managed */
+    custodial: boolean;
     created_at: string;
     reports: ReportDetail[];
 }
@@ -119,6 +121,8 @@ export interface CustodyLogEntry {
     item_type: string;
     visibility: item_visibility;
     status: CustodyStatus;
+    /** Held item hidden by moderation/flag flood — officer must restore before handover */
+    moderation_hidden: boolean;
     transferred_at: string;
     returned_at: string | null;
     officer_id: string;

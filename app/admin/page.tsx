@@ -26,7 +26,7 @@ export default async function AdminDashboard() {
                 <p className="text-muted-foreground">
                     {isAdmin
                         ? "Platform management and moderation control center"
-                        : "Custody log, user, and report monitoring - resolutions are handled by admins"}
+                        : "Custody log and user monitoring — moderation is handled by admins"}
                 </p>
             </div>
 

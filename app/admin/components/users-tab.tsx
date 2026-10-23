@@ -384,8 +384,9 @@ export function UsersTab() {
                 ) : (
                     <>
                         <UsersTable users={users} onUpdate={mutate} />
+                        {/* footer spacing: symmetric 1.5rem around the divider, matching the tab-level card rhythm */}
                         {(users.length > 0 || page > 0) && (
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-2 border-t">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-6 border-t">
                                 <p className="text-sm text-muted-foreground">
                                     {users.length > 0
                                         ? `Showing ${page * PAGE_SIZE + 1}–${page * PAGE_SIZE + users.length}`

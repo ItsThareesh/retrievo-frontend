@@ -883,8 +883,9 @@ function ItemDetailContent({
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Handed the item to its owner?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This records the in-person handover. The item will be permanently removed from
-                                    the public feed and this cannot be undone.
+                                    This records the in-person handover. The item will be hidden from the feed for
+                                    correctness reasons — you can revert this at any time from the Custody Log tab
+                                    in the security panel.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

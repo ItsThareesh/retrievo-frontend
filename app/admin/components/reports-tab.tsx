@@ -22,12 +22,15 @@ function ReportedItemCard({
     item,
     isExpanded,
     onToggleExpand,
-    onModerate
+    onModerate,
+    canModerate
 }: {
     item: ReportedItemDetail;
     isExpanded: boolean;
     onToggleExpand: (id: string) => void;
     onModerate: (item: ReportedItemDetail, action: "hide" | "restore" | "delete") => void;
+    /** Custody inventory is officer-managed — admins can't moderate held items */
+    canModerate: boolean;
 }) {
     const router = useRouter();
 
@@ -105,36 +108,40 @@ function ReportedItemCard({
                                 )}
                             </Button>
 
-                            {item.is_hidden ? (
-                                <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={() => onModerate(item, "restore")}
-                                    className="gap-2"
-                                >
-                                    <Eye className="h-4 w-4" />
-                                    Restore
-                                </Button>
-                            ) : (
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => onModerate(item, "hide")}
-                                    className="gap-2"
-                                >
-                                    <EyeOff className="h-4 w-4" />
-                                    Hide Item
-                                </Button>
-                            )}
+                            {canModerate && (
+                                <>
+                                    {item.is_hidden ? (
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={() => onModerate(item, "restore")}
+                                            className="gap-2"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                            Restore
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={() => onModerate(item, "hide")}
+                                            className="gap-2"
+                                        >
+                                            <EyeOff className="h-4 w-4" />
+                                            Hide Item
+                                        </Button>
+                                    )}
 
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => onModerate(item, "delete")}
-                            >
-                                <Trash2 className="h-4 w-4" />
-                                Delete Item
-                            </Button>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => onModerate(item, "delete")}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        Delete Item
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -297,6 +304,9 @@ export function ReportsTab() {
                                     isExpanded={expandedItems.has(item.id)}
                                     onToggleExpand={toggleExpanded}
                                     onModerate={handleActionClick}
+                                    // Custody inventory is officer-managed; admins
+                                    // keep moderation on everything else.
+                                    canModerate={session?.user.role === "security_officer" || !item.custodial}
                                 />
                             ))
                         )}
