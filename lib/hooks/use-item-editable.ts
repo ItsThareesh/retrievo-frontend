@@ -11,6 +11,7 @@ import { validateForm } from "@/lib/utils/validation";
 import { reasons_map } from "../constants/report-reasons";
 import { ResolutionStatus } from "@/types/resolutions";
 import { handleBanError } from "@/lib/ban-handler";
+import { APIError } from "@/lib/api-error";
 
 interface UseItemEditableProps {
     item: Item;
@@ -215,23 +216,7 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
             }
 
             const description = claimText.trim() || null;
-            const res = await createResolution(lostItemId, foundItemId, description, session?.backendToken);
-
-            if (!res.ok) {
-                const errorCode = res.data?.detail?.code;
-                if (errorCode === "RESOLUTION_COOLDOWN_ACTIVE") {
-                    toast.error("Your claim has been rejected recently. Please wait before creating a new one.");
-                } else if (errorCode === "PAIR_TEMPORARILY_SUPPRESSED") {
-                    toast.error("Cooldown Active: A resolution between these items was recently created.");
-                } else if (errorCode === "ITEMS_NOT_MUTUALLY_VISIBLE") {
-                    toast.error("Modify your linked item's visibility to public or visible to other user to create a resolution.");
-                } else if (res.status === 409) {
-                    toast.error("You have already submitted a resolution for this item.");
-                } else {
-                    toast.error("Failed to submit request. Please try again.");
-                }
-                return false;
-            }
+            await createResolution(lostItemId, foundItemId, description, session?.backendToken);
 
             // Success handling - parent reloads the item to get fresh
             // claim_status + resolution_id from the server.
@@ -248,6 +233,28 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
             return true;
         } catch (err) {
             if (handleBanError(err)) return false;
+
+            // clientFetch throws APIError on non-2xx (H-1, vulnerabilities.md)
+            // and normalizes detail shapes there, so err.code / err.message
+            // are uniform regardless of the backend detail shape.
+            if (err instanceof APIError) {
+                if (err.code === "RESOLUTION_COOLDOWN_ACTIVE") {
+                    toast.error("Your claim has been rejected recently. Please wait before creating a new one.");
+                } else if (err.code === "PAIR_TEMPORARILY_SUPPRESSED") {
+                    toast.error("Cooldown Active: A resolution between these items was recently created.");
+                } else if (err.code === "ITEMS_NOT_MUTUALLY_VISIBLE") {
+                    toast.error("Modify your linked item's visibility to public or visible to other user to create a resolution.");
+                } else if (err.status === 409 && !err.message) {
+                    toast.error("This item already has an active or completed resolution.");
+                } else if (err.message) {
+                    // Backend-authored copy (onboarding, custody notice) is
+                    // user-appropriate — show it verbatim.
+                    toast.error(err.message);
+                } else {
+                    toast.error("Failed to submit request. Please try again.");
+                }
+                return false;
+            }
             toast.error("Failed to submit request. Please try again.");
             return false;
         } finally {
@@ -261,21 +268,33 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
         try {
             const res = await flagItem(item.id, reason, session?.backendToken);
 
+            // `res.ok` works only via the top-level `ok: True` envelope;
+            // failures throw APIError and surface in the catch below
+            // (H-1, vulnerabilities.md).
             if (res.ok) {
                 toast.success("Report submitted. We'll review it shortly.");
             } else {
-                if (res.status === 409) {
+                toast.error("Failed to flag item");
+            }
+        } catch (err) {
+            if (handleBanError(err)) return;
+
+            if (err instanceof APIError) {
+                if (err.status === 409) {
                     toast.error("You have already flagged this item");
-                } else if (res.status === 400) {
-                    toast.error("Cannot self-flag your own item post");
-                } else if (res.status === 403) {
-                    toast.error("This item is held at the security office — raise any concern there in person");
+                } else if (err.status === 403) {
+                    // Custody jurisdiction or incomplete onboarding — backend copy is user-appropriate.
+                    toast.error(err.message || "This item is held at the security office — raise any concern there in person");
+                } else if (err.status === 400) {
+                    toast.error(err.message || "Cannot self-flag your own item post");
+                } else if (err.message) {
+                    toast.error(err.message);
                 } else {
                     toast.error("Failed to flag item");
                 }
+                return;
             }
-        } catch (err) {
-            handleBanError(err);
+            toast.error("Failed to flag item");
         } finally {
             setIsReporting(false);
             setReason("");

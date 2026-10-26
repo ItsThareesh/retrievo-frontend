@@ -66,6 +66,17 @@ export async function clientFetch<T = any>(
 				code = body.code;
 			} catch {}
 
+			// Uniform error contract (H-1): FastAPI details arrive in two
+			// shapes — plain strings (human copy) and `{code, message}`
+			// envelopes (machine codes). Lift envelope fields here, once, so
+			// every caller reads `err.code` / `err.message` the same way.
+			// Top-level codes (the ban contract) are unaffected.
+			if (detail && typeof detail === "object") {
+				const envelope = detail as { code?: string; message?: string };
+				code = code ?? envelope.code;
+				detail = envelope.message ?? res.statusText;
+			}
+
 			throw new APIError(res.status, detail, code, data);
 		}
 

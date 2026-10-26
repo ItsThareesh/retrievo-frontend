@@ -875,7 +875,16 @@ function ItemDetailContent({
                                     variant="ghost"
                                     size="sm"
                                     className="w-full text-muted-foreground hover:text-destructive py-3 cursor-pointer"
-                                    onClick={() => setIsReporting(true)}
+                                    onClick={() => {
+                                        // flag_item 403s incomplete-onboarding accounts —
+                                        // route to onboarding like the claim/return CTAs
+                                        // instead of silently failing.
+                                        if (needsOnboarding(session!)) {
+                                            router.push('/onboarding');
+                                            return;
+                                        }
+                                        setIsReporting(true);
+                                    }}
                                 >
                                     <Flag className="w-4 h-4 mr-2" />
                                     Report
