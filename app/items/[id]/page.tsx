@@ -9,7 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn, ArrowLeft, GitCompareArrows, X } from "lucide-react";
+import { MoreHorizontal, Trash2, Calendar, MapPin, User, Pencil, Flag, Lock, LogIn, ArrowLeft, GitCompareArrows, X, EyeOff } from "lucide-react";
 import { ShareButton } from "@/components/share-button";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -301,11 +301,16 @@ function ItemDetailContent({
     // Officer-owned items (including custody take-overs) are poster-matched anyway.
     const isOfficer = !!session?.backendToken && session.user.role === "security_officer";
 
-    const showTakeCustody = isOfficer && item.type === "found" && !item.held_at_security_office && !hasResolution;
-    const showHandToOwner = isOfficer && !!item.held_at_security_office;
+    // Hidden-item previews (admins + officers only) are out of play: no
+    // claim, return, report, or custody CTAs on a hidden item. Everyone else
+    // never reaches this page — the backend 404s hidden items for them.
+    const isHiddenPreview = !!item.hidden;
 
-    const showClaim = item.type === "found" && !isReporter && !hasResolution && !isOfficer;
-    const showReturn = item.type === "lost" && !isReporter && !hasResolution && !isOfficer;
+    const showTakeCustody = !isHiddenPreview && isOfficer && item.type === "found" && !item.held_at_security_office && !hasResolution;
+    const showHandToOwner = !isHiddenPreview && isOfficer && !!item.held_at_security_office;
+
+    const showClaim = !isHiddenPreview && item.type === "found" && !isReporter && !hasResolution && !isOfficer;
+    const showReturn = !isHiddenPreview && item.type === "lost" && !isReporter && !hasResolution && !isOfficer;
 
     const [custodyDialog, setCustodyDialog] = useState<null | "take" | "hand" | "notice">(null);
     const [custodyBusy, setCustodyBusy] = useState(false);
@@ -414,6 +419,20 @@ function ItemDetailContent({
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
             </div>
+            {isHiddenPreview && (
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-2.5 text-destructive text-sm mb-6">
+                    <EyeOff className="h-4 w-4 mt-0.5 shrink-0" />
+                    <div className="flex flex-col">
+                        <span className="font-semibold text-[11px] uppercase tracking-wider">Hidden item preview</span>
+                        <span className="font-medium mt-0.5 capitalize">
+                            {item.hidden_reason
+                                ? item.hidden_reason.replace(/_/g, " ")
+                                : "Hidden item"}
+                            . Only admins and the security office can view this page. Hidden from public feed.
+                        </span>
+                    </div>
+                </div>
+            )}
             {showStaleNudge && (
                 <div className="flex items-center justify-between gap-3 rounded-lg border p-4 mb-6 bg-muted/40">
                     <p className="text-sm text-muted-foreground">
@@ -835,7 +854,7 @@ function ItemDetailContent({
                                 size="sm"
                                 className="w-full text-muted-foreground py-3 cursor-pointer"
                             />
-                            {!!session?.backendToken && session.user.public_id != reporter.public_id && !item.held_at_security_office && (
+                            {!!session?.backendToken && session.user.public_id != reporter.public_id && !item.hidden && !item.held_at_security_office && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
