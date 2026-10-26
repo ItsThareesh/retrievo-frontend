@@ -401,9 +401,13 @@ export function ItemFormClient({ session, type }: ItemFormClientProps) {
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="public">Public</SelectItem>
-                                        {session?.user?.hostel === "boys" ? (
+                                        {/* Hostel options only for hostel roles — hostel-less
+                                            staff/officer sessions can only post Public
+                                            (backend hostel-match guard, items.py) */}
+                                        {session?.user?.hostel === "boys" && (
                                             <SelectItem value="boys">Boys Only</SelectItem>
-                                        ) : (
+                                        )}
+                                        {session?.user?.hostel === "girls" && (
                                             <SelectItem value="girls">Girls Only</SelectItem>
                                         )}
                                     </SelectContent>

@@ -650,10 +650,22 @@ function ItemDetailContent({
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="public">Public</SelectItem>
-                                            {session?.user.hostel === "boys" ? (
+                                            {session?.user.hostel === "boys" && (
                                                 <SelectItem value="boys">Boys Only</SelectItem>
-                                            ) : (
+                                            )}
+                                            {session?.user.hostel === "girls" && (
                                                 <SelectItem value="girls">Girls Only</SelectItem>
+                                            )}
+                                            {/* Hostel-less roles (staff/officers) editing a
+                                                custody-held or legacy non-public item: the
+                                                backend forbids visibility changes they can't
+                                                own (items.py hostel-match guard), so show the
+                                                held value read-only instead of offering an
+                                                option that would 403 on save. */}
+                                            {session?.user.hostel !== formData.visibility && formData.visibility !== "public" && (
+                                                <SelectItem value={formData.visibility} disabled>
+                                                    {formData.visibility === "boys" ? "Boys Only" : "Girls Only"}
+                                                </SelectItem>
                                             )}
                                         </SelectContent>
                                     </Select>
