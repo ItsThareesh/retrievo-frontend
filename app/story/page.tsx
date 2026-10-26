@@ -6,7 +6,9 @@ import { PrivacySection } from "@/components/story/privacy-section";
 import { VisibilitySection } from "@/components/story/visibility-section";
 import { ClaimVerificationSection } from "@/components/story/claim-verification-section";
 import { NotificationsSection } from "@/components/story/notifications-section";
-import { EmailNotificationsSection } from "@/components/story/email-notifications-section";
+// Email notifications get a dedicated section once email digests ship; the
+// channel itself is covered in copy under NotificationsSection.
+// import { EmailNotificationsSection } from "@/components/story/email-notifications-section";
 import { MatchingEngineSection } from "@/components/story/matching-engine-section";
 import { BuiltForTrustSection } from "@/components/story/built-for-trust-section";
 import { TechArchitectureSection } from "@/components/story/tech-architecture-section";
@@ -24,7 +26,7 @@ export default function StoryPage() {
       <VisibilitySection />
       <ClaimVerificationSection />
       <NotificationsSection />
-      <EmailNotificationsSection />
+      {/* <EmailNotificationsSection /> */}
       <MatchingEngineSection />
       <BuiltForTrustSection />
       <TechArchitectureSection />

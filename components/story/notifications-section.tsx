@@ -147,7 +147,7 @@ export function NotificationsSection() {
                   Stay Updated Automatically
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Real-time notifications keep everyone in the loop throughout the resolution process.
+                  Real-time notifications keep everyone in the loop throughout the resolution process — every update lands <span className="font-medium text-foreground/90">in-app</span> instantly, arrives as an <span className="font-medium text-foreground/90">email update</span> for the key steps, and reaches you as a <span className="font-medium text-foreground/90">push notification</span> on every device you enable, even when Retrievo is closed.
                 </p>
               </div>
 
@@ -157,6 +157,7 @@ export function NotificationsSection() {
                   "Your claim is approved by the finder",
                   "A newly reported item matches your lost report",
                   "The resolution status changes",
+                  "In-app instantly, by email for key steps, and push on every device you enable — even with Retrievo closed",
                 ].map((update) => (
                   <div key={update} className="flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">

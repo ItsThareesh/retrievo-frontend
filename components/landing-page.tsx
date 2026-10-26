@@ -130,7 +130,7 @@ const faqsData = [
     },
     {
         question: "What should I do if I find something valuable?",
-        answer: "Create a found report with enough detail (category, location, date, and a photo) for the owner to recognise the item - but avoid sharing sensitive or identifying information publicly. Let the owner describe the item themselves before handing it over."
+        answer: "Create a found report with enough detail (category, location, date, and a photo) for the owner to recognise the item. Avoid sharing sensitive or identifying information publicly. Let the owner describe the item themselves before handing it over. You can also hand the item to the campus security office - the officer logs it on Retrievo, safeguards it there, and the owner collects it in person once the officer verifies it's theirs."
     },
     {
         question: "How do I prove an item is mine?",
@@ -139,6 +139,10 @@ const faqsData = [
     {
         question: "Can I browse reports without signing in?",
         answer: "Yes - public reports are open to browse without an account. Signing in is only required to post items, submit or approve claims, and manage or flag reports."
+    },
+    {
+        question: "Will I get notified about updates?",
+        answer: "Yes. Claims, matches, and resolution updates show up as in-app notifications right away. You can also turn on push notifications for each device you use - so you hear about new claims and matches even when Retrievo isn't open - plus email updates for the key steps."
     }
 ];
 

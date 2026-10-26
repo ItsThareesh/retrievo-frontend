@@ -11,6 +11,7 @@ const benefits = [
   "Verify ownership before sharing contact",
   "Protect your privacy with visibility controls",
   "Resolve claims faster with structured workflows",
+  "Valuable finds safeguarded by campus security until the owner collects in person",
 ];
 
 export function SolutionSection() {
