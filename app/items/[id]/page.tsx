@@ -312,6 +312,10 @@ function ItemDetailContent({
     const showClaim = !isHiddenPreview && item.type === "found" && !isReporter && !hasResolution && !isOfficer;
     const showReturn = !isHiddenPreview && item.type === "lost" && !isReporter && !hasResolution && !isOfficer;
 
+    // Share pane matches the self-posted layout (full-width Share, no Report)
+    // whenever the Report slot is empty — self-post, custody-held, or hidden preview.
+    const showReport = !!session?.backendToken && session.user.public_id != reporter.public_id && !isHiddenPreview && !item.held_at_security_office;
+
     const [custodyDialog, setCustodyDialog] = useState<null | "take" | "hand" | "notice">(null);
     const [custodyBusy, setCustodyBusy] = useState(false);
 
@@ -843,7 +847,7 @@ function ItemDetailContent({
                                 I Found This!
                             </Button>
                         ) : null}
-                        <div className={`grid gap-3 ${!!session?.backendToken && session.user.public_id != reporter.public_id ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        <div className={`grid gap-3 ${showReport ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <ShareButton
                                 url={`${window.location.origin}/items/${item.id}`}
                                 title={item.title}
@@ -854,7 +858,7 @@ function ItemDetailContent({
                                 size="sm"
                                 className="w-full text-muted-foreground py-3 cursor-pointer"
                             />
-                            {!!session?.backendToken && session.user.public_id != reporter.public_id && !item.hidden && !item.held_at_security_office && (
+                            {showReport && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
