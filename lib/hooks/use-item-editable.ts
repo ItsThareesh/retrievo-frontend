@@ -55,8 +55,9 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
         date: item.date ?? "",
     });
 
-    // Determine permissions
-    const canEdit = isLoggedIn && isReporter && !hasResolution;
+    // Determine permissions (H-3: hidden items 404 on every owner endpoint —
+    // PATCH/DELETE/matches all filter is_hidden — so gate the stale CTAs off)
+    const canEdit = isLoggedIn && isReporter && !hasResolution && !item.hidden;
     const canClaim = isLoggedIn && isFoundItem && !isReporter && !hasResolution;
     const canReturn = isLoggedIn && isLostItem && !isReporter && !hasResolution;
 
