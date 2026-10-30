@@ -531,7 +531,14 @@ export default function ClaimStatusPage() {
                     <FinderContactCard contact={finderContact} theme={theme} />
                 )}
 
-                {resolution.description && <ClaimDescription resolution={resolution} />}
+                {(resolution.description || resolution.claim_photo) && (
+                    <ClaimDescription
+                        resolution={resolution}
+                        viewerRole={viewer.role}
+                        token={token}
+                        onEdited={() => setRefreshKey(k => k + 1)}
+                    />
+                )}
 
                 <ActionButtons
                     allowedActions={allowedActions}

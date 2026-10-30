@@ -19,7 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Trash2, X, Link2, FileText, MapPin, Calendar, Loader2 } from "lucide-react";
+import { compressImage } from "@/lib/utils/img-compressor";
+import { toast } from "sonner";
+import { ChevronDown, Trash2, X, Link2, FileText, MapPin, Calendar, Loader2, ImagePlus } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { LinkableItem } from "@/types/resolutions";
 import { item_type } from "@/types/item";
@@ -33,6 +35,8 @@ interface SubmitClaimDialogProps {
     setIsOpen: Dispatch<SetStateAction<boolean>>;
     text: string;
     setText: Dispatch<SetStateAction<string>>;
+    photo: File | null;
+    setPhoto: Dispatch<SetStateAction<File | null>>;
     isSubmitting: boolean;
     onSubmit: () => Promise<void>;
     linkableItems: LinkableItem[];
@@ -47,6 +51,8 @@ export function SubmitClaimDialog({
     setIsOpen,
     text,
     setText,
+    photo,
+    setPhoto,
     isSubmitting,
     onSubmit,
     linkableItems,
@@ -56,6 +62,7 @@ export function SubmitClaimDialog({
 }: SubmitClaimDialogProps) {
     const isClaim = mode === "claim";
     const [activeTab, setActiveTab] = useState<string>("link");
+    const [isCompressingPhoto, setIsCompressingPhoto] = useState(false);
 
     const ui = {
         title: isClaim ? "Claim this item" : "Return this item",
@@ -69,6 +76,41 @@ export function SubmitClaimDialog({
         minLength: 20,
         maxLength: 280,
     };
+
+    async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0] ?? null;
+
+        if (!file) return;
+
+        // Reset the input so choosing the same file again re-triggers onChange
+        e.target.value = "";
+
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error("Original image must be under 10MB. Please choose a smaller image.");
+            return;
+        }
+
+        setIsCompressingPhoto(true);
+        try {
+            const compressed = await compressImage(file);
+
+            if (compressed.size > 1 * 1024 * 1024) {
+                toast.error("Unable to compress image under 1MB. Please choose a smaller or simpler image.");
+                return;
+            }
+
+            setPhoto(compressed);
+        } catch (error) {
+            console.error("Claim photo compression error:", error);
+            toast.error("Failed to compress image. Please try a different image.");
+        } finally {
+            setIsCompressingPhoto(false);
+        }
+    }
+
+    function clearPhoto() {
+        setPhoto(null);
+    }
 
     const trimmed = text.trim();
     const hasValidDescription =
@@ -84,21 +126,81 @@ export function SubmitClaimDialog({
     const showSkipNudge =
         activeTab === "describe" && hasLinkableItems && !hasLinkedItem;
 
+    // Claimant evidence photo (optional) — lives inside the Describe step:
+    // describing always offers it, the Link tab stays list-only (a linked
+    // post documents its evidence on its own). Link selection is a toggle, so
+    // users can still change their mind. The counterparty sees the photo on
+    // the claim notification page: `owner_initiated` → owner's pre-loss
+    // evidence, `finder_initiated` → finder's proof of possession.
+    const photoSection = (
+        <div className="flex flex-col gap-2">
+            <Label className="text-xs font-medium text-muted-foreground block">
+                {isClaim ? "Evidence photo (optional)" : "Proof-of-possession photo (optional)"}
+            </Label>
+            {isCompressingPhoto ? (
+                <div className="flex items-center gap-3 px-3 h-12 border rounded-lg bg-muted/30">
+                    <Loader2 className="size-4 shrink-0 text-muted-foreground animate-spin" />
+                    <span className="text-sm text-muted-foreground flex-1 min-w-0 truncate">Compressing image…</span>
+                </div>
+            ) : photo ? (
+                <div className="flex items-center gap-3 px-3 h-12 border rounded-lg">
+                    <ImagePlus className="size-4 shrink-0 text-muted-foreground" />
+                    <span className="text-sm flex-1 min-w-0 truncate">{photo.name}</span>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={isSubmitting}
+                        aria-label="Remove photo"
+                        className="size-7 shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
+                        onClick={clearPhoto}
+                    >
+                        <X className="size-4" />
+                    </Button>
+                </div>
+            ) : (
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="relative flex w-full items-center justify-center gap-3 px-4 h-12 cursor-pointer hover:bg-muted/50"
+                    disabled={isSubmitting}
+                >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted/60">
+                        <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                    </span>
+                    <span className="text-sm font-medium">Add a photo</span>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={isSubmitting}
+                        onChange={handlePhotoSelect}
+                    />
+                </Button>
+            )}
+            <p className="text-xs text-muted-foreground/60">
+                {isClaim
+                    ? "Optional. Anything that shows it's yours — an old shot of you with it, a close-up of distinguishing marks, etc."
+                    : "Optional. A quick shot of you with the item in hand is the clearest proof."}
+            </p>
+        </div>
+    );
+
     const describeContent = (
-        <div className="space-y-2">
+        <div className="space-y-3">
             <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={ui.placeholder}
-                className="min-h-[120px] text-sm resize-none"
+                className="min-h-[80px] text-sm resize-none"
                 disabled={isSubmitting}
             />
             {showSkipNudge && (
                 <p className="text-xs text-muted-foreground">
-                    If your posted item matches this one, it will stay in the feed until expiry. 
-                    Please consider linking items to increase chances of a successful match!
+                    Your post stays in the feed either way — linking it just backs this claim with your actual post, photo and details included.
                 </p>
             )}
+            {photoSection}
         </div>
     );
 
@@ -109,7 +211,7 @@ export function SubmitClaimDialog({
                     <Loader2 className="size-5 animate-spin text-muted-foreground" />
                 </div>
             ) : hasLinkableItems ? (
-                <div className="space-y-2 max-h-60 overflow-y-auto py-1">
+                <div className="space-y-2 max-h-60 overflow-y-auto">
                     {linkableItems.map((li) => (
                         <Label
                             key={li.id}
@@ -121,12 +223,13 @@ export function SubmitClaimDialog({
                             )}
                         >
                             <input
-                                type="radio"
-                                name="linkable-item"
-                                value={li.id}
+                                type="checkbox"
                                 checked={linkedItemId === li.id}
-                                onChange={() => setLinkedItemId(li.id)}
-                                className="mt-0.5 accent-primary"
+                                onChange={() =>
+                                    setLinkedItemId(linkedItemId === li.id ? null : li.id)
+                                }
+                                aria-label={linkedItemId === li.id ? `Unlink ${li.title}` : `Link ${li.title}`}
+                                className="mt-0.5 size-4 shrink-0 accent-primary rounded-full cursor-pointer"
                                 disabled={isSubmitting}
                             />
                             <div className="flex-1 min-w-0">
@@ -172,7 +275,6 @@ export function SubmitClaimDialog({
                 <Tabs
                     value={activeTab}
                     onValueChange={setActiveTab}
-                    className="mt-4"
                 >
                     <TabsList className="w-full">
                         <TabsTrigger value="link" className="flex-1 gap-1.5">
@@ -185,16 +287,16 @@ export function SubmitClaimDialog({
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="link">
+                    <TabsContent value="link" className="pt-3">
                         {linkContent}
                     </TabsContent>
 
-                    <TabsContent value="describe">
+                    <TabsContent value="describe" className="pt-3">
                         {describeContent}
                     </TabsContent>
                 </Tabs>
 
-                <AlertDialogFooter className="mt-6">
+                <AlertDialogFooter>
                     <AlertDialogCancel asChild>
                         <Button
                             variant="outline"

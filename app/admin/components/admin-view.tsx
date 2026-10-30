@@ -31,11 +31,12 @@ function isValidTab(value: string, tabs: readonly Tab[]): value is Tab {
  * router.replace() performs a client-side shallow update — the Server
  * Component (page.tsx) is NOT re-executed.
  *
- * Security officers get the same panel except that the Resolutions tab is
- * replaced by the Custody Log: they cannot act on resolutions and bypass
- * that system entirely, so resolutions stay admin-only. Admins get all
- * four standard tabs plus the Custody Log as a fifth (cross-check surface:
- * custody items, held or returned, in case of moderation disputes).
+ * Security officers get a minimal panel: Overview, Custody Log, and Users
+ * (moderation over non-elevated users). They never see resolutions — claims
+ * on custody items are impossible, so their desk surface bypasses that
+ * system entirely; resolution reads are participants + admins only. Admins
+ * get all four standard tabs plus the Custody Log as a fifth (cross-check
+ * surface: custody items, held or returned, in case of moderation disputes).
  */
 export function AdminView({ role }: { role: UserRole }) {
     const router = useRouter();
