@@ -269,7 +269,7 @@ export default function OnboardingClient() {
                         <div className="space-y-3">
                             <label htmlFor="phone" className="text-sm font-medium leading-none flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-muted-foreground" />
-                                Phone Number <span className="text-orange-500">*</span>
+                                Phone Number <span className="text-orange-500"></span>
                             </label>
                             <div className="flex rounded-md shadow-sm overflow-hidden ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                                 <DropdownMenu>
@@ -315,7 +315,7 @@ export default function OnboardingClient() {
                                 className="text-sm font-medium leading-none flex items-center gap-2"
                             >
                                 <Instagram className="w-4 h-4 text-muted-foreground" />
-                                Instagram ID <span className="text-orange-500">*</span>
+                                Instagram ID <span className="text-orange-500"></span>
                             </label>
 
                             <Input

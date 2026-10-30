@@ -34,6 +34,7 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
 
     const [isClaiming, setIsClaiming] = useState(false);
     const [claimText, setClaimText] = useState("");
+    const [claimPhoto, setClaimPhoto] = useState<File | null>(null);
     const [isSubmittingResolution, setIsSubmittingResolution] = useState(false);
     const [linkedItemId, setLinkedItemId] = useState<string | null>(null);
 
@@ -74,7 +75,10 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
             ? (action as (prev: boolean) => boolean)(isClaiming)
             : action;
         setIsClaiming(open);
-        if (!open) setLinkedItemId(null);
+        if (!open) {
+            setLinkedItemId(null);
+            setClaimPhoto(null);
+        }
     };
 
     async function handleSave() {
@@ -217,7 +221,12 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
             }
 
             const description = claimText.trim() || null;
-            await createResolution(lostItemId, foundItemId, description, session?.backendToken);
+
+            // Photo was already compressed + size-checked at selection time in
+            // the dialog (same convention as the report form). A create-time
+            // photo failure is soft on the backend: the claim still goes
+            // through and the response carries `claim_photo_warning`.
+            const res = await createResolution(lostItemId, foundItemId, description, claimPhoto, session?.backendToken);
 
             // Success handling - parent reloads the item to get fresh
             // claim_status + resolution_id from the server.
@@ -227,9 +236,14 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
                 toast.success("Return initiation request sent to owner");
             }
 
+            if (res?.claim_photo_warning) {
+                toast.warning(res.claim_photo_warning);
+            }
+
             // Shared cleanup
             setIsClaiming(false);
             setClaimText("");
+            setClaimPhoto(null);
             setLinkedItemId(null);
             return true;
         } catch (err) {
@@ -319,6 +333,8 @@ export function useItemEditable({ item, reporter, resolution_status, resolution_
         setIsClaiming: setClaimingOpen,
         claimText,
         setClaimText,
+        claimPhoto,
+        setClaimPhoto,
         linkedItemId,
         setLinkedItemId,
         linkableItems,

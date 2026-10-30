@@ -10,19 +10,47 @@ export function getLinkableItems(itemId: string, token?: string) {
     return clientFetch(`/resolutions/linkable-items/${itemId}`, token);
 }
 
-/** POST: Create a resolution (claim/return) */
+/** POST: Create a resolution (claim/return, multipart with optional claim photo) */
 export function createResolution(
     lostItemId: string | null,
     foundItemId: string | null,
     description: string | null,
+    photo: File | null,
     token?: string,
 ) {
-    const body: Record<string, string> = {};
-    if (lostItemId) body.lost_item_id = lostItemId;
-    if (foundItemId) body.found_item_id = foundItemId;
-    if (description) body.description = description;
+    const body = new FormData();
+    if (lostItemId) body.append("lost_item_id", lostItemId);
+    if (foundItemId) body.append("found_item_id", foundItemId);
+    if (description) body.append("description", description);
+    if (photo) body.append("photo", photo);
 
-    return clientFetch('/resolutions/create', token, { method: "POST", body: JSON.stringify(body) });
+    // Image upload can take time, so we set a longer timeout
+    return clientFetch('/resolutions/create', token, { method: "POST", body, timeout: 30000 });
+}
+
+/** POST: Attach or replace a resolution's claim photo (claimant only, while active) */
+export function uploadResolutionPhoto(resolutionId: string, photo: File, token?: string) {
+    const body = new FormData();
+    body.append("photo", photo);
+
+    return clientFetch(`/resolutions/${resolutionId}/photo`, token, {
+        method: "POST",
+        body,
+        timeout: 30000,
+    });
+}
+
+/** DELETE: Remove a resolution's claim photo (claimant only, while active) */
+export function deleteResolutionPhoto(resolutionId: string, token?: string) {
+    return clientFetch(`/resolutions/${resolutionId}/photo`, token, { method: "DELETE" });
+}
+
+/** PATCH: Update the claimant's claim description (shared edit budget applies) */
+export function updateClaimDescription(resolutionId: string, description: string | null, token?: string) {
+    return clientFetch(`/resolutions/${resolutionId}`, token, {
+        method: "PATCH",
+        body: JSON.stringify({ description }),
+    });
 }
 
 /** POST: Approve a resolution */

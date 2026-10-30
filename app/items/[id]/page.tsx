@@ -262,6 +262,8 @@ function ItemDetailContent({
         setIsClaiming,
         claimText,
         setClaimText,
+        claimPhoto,
+        setClaimPhoto,
         linkedItemId,
         setLinkedItemId,
         linkableItems,
@@ -978,6 +980,8 @@ function ItemDetailContent({
                 setIsOpen={setIsClaiming}
                 text={claimText}
                 setText={setClaimText}
+                photo={claimPhoto}
+                setPhoto={setClaimPhoto}
                 isSubmitting={isSubmittingResolution}
                 onSubmit={async () => {
                     const ok = await handleResolutionSubmit(item);

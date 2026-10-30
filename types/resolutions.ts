@@ -15,7 +15,15 @@ export interface Resolution {
     rejection_reason?: string;
     created_at: string;
     decided_at: string;
+    /** CDN URL of the claimant's evidence photo (absent when none attached) */
+    claim_photo?: string | null;
+    claim_photo_uploaded_at?: string | null;
+    /** Claimant content edits used so far (description + photo, budget = MAX_CLAIM_EDITS = 5) */
+    content_edit_count?: number;
 }
+
+/** Budget synced with backend `settings.MAX_CLAIM_EDITS` */
+export const MAX_CLAIM_EDITS = 5;
 
 export interface FinderContact {
     name: string;
